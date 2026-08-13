@@ -121,3 +121,149 @@ NO toco `Encuesta_Tia_Lola.md`. Es tu archivo de referencia con la v2 que ya hic
 ---
 
 **Fin del archivo.**
+
+---
+
+## OPCIÓN B (ACTIVA) — Prompt para Gemini in Workspace
+
+Copia y pega este prompt EXACTO en la caja de Gemini que tienes en pantalla. **No modifiques el prompt**, solo dale a "Crear".
+
+```
+Crea un Google Form con el título "Tu forma de planear — Encuesta para maestros" y la siguiente descripción: "Encuesta anónima para entender cómo haces tus planeaciones NEM. Tus respuestas se usan solo para mejorar la herramienta que estoy construyendo. Cero datos personales."
+
+Configuración obligatoria del form:
+- NO recolectar direcciones de email (desactivar "Collect email addresses").
+- "Show progress bar" activado.
+- "Limit to 1 response" desactivado (varias maestras deben poder responder).
+- Confirmación al enviar: "¡Gracias! Tu respuesta quedó registrada. Si quieres, pasa este link a un(a) colega maestro(a)."
+
+Las preguntas son las siguientes, en este ORDEN EXACTO. Cada pregunta indica su tipo entre corchetes []. Crea cada pregunta con el tipo indicado y las opciones exactas.
+
+PREGUNTAS:
+
+[Sección — "Sobre ti (sin identificarte)"]
+
+1. [Múltiple choice, obligatoria] "¿En qué nivel das clases?"
+   Opciones: Preescolar | Primaria | Secundaria | Otro
+
+2. [Múltiple choice, obligatoria] "¿Cuántos años llevas dando clases?"
+   Opciones: Menos de 5 | Entre 5 y 15 | Más de 15
+
+3. [Múltiple choice, obligatoria] "¿Cuántos alumnos tienes por grupo (aproximado)?"
+   Opciones: 1-15 | 16-25 | 26-35 | Más de 35
+
+4. [Múltiple choice, obligatoria] "¿Dónde planeas la mayoría de las veces?"
+   Opciones: En casa de noche con celular | En casa con laptop | En la escuela antes o después de clase | En la escuela en recesos | Otro
+
+   4.1 [Texto corto, opcional] Si elegiste "Otro", especifica: ____
+
+[Sección — "Sobre las planeaciones NEM hoy"]
+
+5. [Múltiple choice, obligatoria] "¿Cada cuánto entregas una planeación al director?"
+   Opciones: Cada semana | Cada quince días | Cada mes | Cuando me la piden | Otro
+
+   5.1 [Texto corto, opcional] Si elegiste "Otro", especifica: ____
+
+6. [Múltiple choice, obligatoria] "¿Más o menos cuánto tiempo te toma hacer UNA planeación completa?"
+   Opciones: Menos de 1 hora | Entre 1 y 3 horas | Entre 3 y 6 horas | Más de 6 horas | No me quiero acordar
+
+7. [Múltiple choice, obligatoria] "¿Cómo la entregas al director?"
+   Opciones: Impresa en papel | Por correo electrónico | Por WhatsApp | Subida a alguna plataforma | Otro
+
+   7.1 [Texto corto, opcional] Si elegiste "Otro", especifica: ____
+
+8. [Múltiple choice, obligatoria] "¿El director te regresa la planeación con cambios?"
+   Opciones: Sí, casi siempre me pide correcciones | A veces, pero no muchas | Casi nunca, solo cuando hay errores | Nunca, las acepta tal cual
+
+9. [Texto largo, obligatoria] "¿Qué parte de hacer la planeación te quita más tiempo o te frustra más?"
+   Texto de ayuda: "Escribe lo que te moleste, sin filtro. Cuanto más concreto mejor."
+
+[Sección — "Sobre los núcleos o actividades SEP"]
+
+10. [Múltiple choice, obligatoria] "¿Usas el 'núcleo' o las actividades que la SEP publica para cada tema?"
+    Opciones: Sí, siempre me baso en eso | A veces las consulto | Las conozco pero no las sigo al pie de la letra | No las conozco bien / se me dificulta encontrarlas | Otra
+
+11. [Múltiple choice, obligatoria] "¿Te sería útil que esos núcleos ya estuvieran cargados en una herramienta y tú solo armaras la clase con ellos (como 'bloques' para arrastrar)?"
+    Opciones: Sí, eso me ahorraría mucho tiempo | Tal vez, habría que verlo | No, yo prefiero escribir todo desde cero | No sé bien qué quieres decir
+
+12. [Múltiple choice, obligatoria] "¿Cómo relacionas cada clase con los 'campos formativos' (Lenguajes, Saberes y Pensamiento Científico, Ética, De lo Humano y lo Comunitario)?"
+    Opciones: Lo tengo claro y no me cuesta | Lo tengo que pensar/buscar cada vez | Lo pongo más por cumplir el formato que por convicción | Se me complica
+
+[Sección — "Después de la clase"]
+
+13. [Múltiple choice, obligatoria] "Después de dar la clase, ¿tomas notas o haces algo para recordar cómo te fue?"
+    Opciones: Sí, escribo en un cuaderno o bitácora | Sí, pero solo a veces (cuando me acuerdo o tengo tiempo) | Lo hago en una hoja y luego la pierdo | No, lo dejo en mi cabeza | Otro
+
+14. [Múltiple choice, obligatoria] "Si tomas notas, ¿cuánto tiempo te toma hacerlo después de la clase?"
+    Opciones: Menos de 1 minuto | Entre 1 y 5 minutos | Entre 5 y 15 minutos | Más de 15 minutos | No tomo notas | Otro
+
+15. [Múltiple choice, obligatoria] "¿Tienes que reportar evidencias a alguien (fotos, productos)?"
+    Opciones: Sí, fotos al director | Sí, reportes a la supervisión | Sí, fotos o notas a los papás | No, solo el director recibe la planeación | Otro
+
+16. [Múltiple choice, obligatoria] "¿Te ha pasado que después de varias semanas o meses quieres recordar qué tema diste con X niño y no encuentras la info?"
+    Opciones: Sí, muchas veces | Sí, pero solo algunas veces | Pocas veces | No, tengo todo bien organizado
+
+17. [Texto largo, opcional] "¿Qué te ayudaría más para no perder esa información después de la clase?"
+
+[Sección — "Sobre la tecnología que usas"]
+
+18. [Múltiple choice, obligatoria] "¿Qué tan cómoda te sientes con el celular para trabajar (apps, formularios)?"
+    Opciones: Muy cómoda, lo uso para casi todo | Más o menos, solo lo básico | Me cuesta, prefiero papel | No me gusta, solo llamadas/WhatsApp
+
+19. [Múltiple choice, obligatoria] "¿Tienes datos móviles (internet en el celular) en la escuela?"
+    Opciones: Sí, siempre | A veces se cae o no llega bien | No, casi nunca tengo señal
+
+20. [Múltiple choice, obligatoria] "¿Hoy usas alguna app o plataforma para tus planeaciones?"
+    Opciones: Sí, uso una app específica (cuál) | Sí, pero solo para guardar archivos (Drive, OneDrive, etc.) | No, todo lo hago en Word/PDF | No, todo lo hago a mano
+
+21. [Casillas de verificación, obligatoria] "Si existiera una app donde tú armas la planeación arrastrando bloques (sin escribir tanto), la usarías si:"
+    Opciones:
+    - Me ahorra tiempo real (más de 1 hora a la semana)
+    - Es bonita y se ve profesional
+    - El director la aceptara sin pedirme cambios
+    - No tengo que aprender algo muy complicado
+    - Sirve aunque no tenga internet
+    - Otra (campo libre)
+
+    21.1 [Texto corto, opcional] Si elegiste "Otra", especifica: ____
+
+[Sección — "Sobre entrega al director y ecosistema"]
+
+22. [Múltiple choice, obligatoria] "Hoy, cuando entregas tu planeación al director, ¿él o ella la revisa realmente o solo la archiva?"
+    Opciones: La revisa de verdad y me da retroalimentación útil | La pasa a otra instancia (supervisión) sin revisarla mucho | Solo la archiva, casi nunca me dice nada | Depende del director, pero en general la archiva
+
+23. [Múltiple choice, obligatoria] "¿Pagas de tu bolsillo por algo para tus clases (materiales, apps, cursos)?"
+    Opciones: Sí, bastante | Sí, pero solo lo mínimo | Poca cosa | No, todo lo cubre la escuela/SEP
+
+24. [Múltiple choice, obligatoria] "Si una herramienta te ahorrara por lo menos 3-4 horas a la semana y costara $300 MXN al mes, ¿la pagarías tú de tu bolsa?"
+    Opciones: Sí, sin pensarlo | Tal vez, tendría que ver cuánto ahorra | Probablemente no, está fuera de mi presupuesto | No, yo no pago nada para trabajar | Otra
+
+[Sección — "Bonus para formadores de primaria o secundaria"]
+
+25. [Múltiple choice, opcional] "Si te doy la oportunidad, ¿prefieres arrastrar bloques a un calendario interactivo, o seguir con un PDF estático que llenas?"
+    Opciones: Calendario arrastrable | PDF estático | Me da igual
+
+[Sección — "Final — Sobre tus colegas y comentarios libres"]
+
+26. [Texto largo, opcional] "¿Conoces a otro(a) maestro(a) que pueda contestar también? Pásale este link."
+    Texto de ayuda: "Si quieres, escribe nombre y cómo contactarlo para invitarla."
+
+27. [Texto largo, opcional] "(Última) ¿Algo más que quieras decir sobre planeaciones, dirección o esta encuesta?"
+```
+
+REGLAS ADICIONALES PARA EL FORM:
+- Cada "Sección —" debe ser un salto de sección (page break) en Google Forms.
+- El orden EXACTO de las preguntas es el indicado arriba.
+- NO agregues preguntas extras.
+- NO omitas ninguna pregunta.
+- Las preguntas opcionales NO deben ser obligatorias.
+- NO pidas email, CCT, nombre, celular, ni ningún dato personal en ninguna pregunta.
+
+Cuando termines de crear el form, devuelve SOLO el link del formulario generado en una sola línea.
+```
+
+## Después de darle "Crear" en Gemini
+
+Gemini genera el Form en tu Google Drive y te da un link. Pásalo a tía Lola con este mensaje:
+
+> "Hola tía Lola. Te paso una encuesta rápida (10-15 min) sobre cómo haces tus planeaciones NEM. Es para una herramienta que estoy construyendo. **Es anónima** — no te pide nombre ni CCT ni email. Si te late, pásale el link a otro(a) maestro(a). ¡Gracias!" — Link: [PEGAR LINK]
