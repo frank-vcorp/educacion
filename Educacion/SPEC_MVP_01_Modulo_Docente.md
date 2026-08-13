@@ -1,6 +1,6 @@
 # SPEC MVP — MÓDULO DOCENTE
 
-**Versión:** 0.12 — E15 cerrada con resultado positivo: **SÍ existe dataset público oficial del Catálogo CCT SEP 2024** (414 MB, CC-BY-4.0). Plan B descartado; se sustituye por ETL sobre el dataset nacional completo con joins a INEGI/CONAPO/INPI. Coste ETL: 6-10 h-hombre. Detalles en `fuentes/E15_INVESTIGACION_CCT_ZONA.md`.
+**Versión:** 0.13 — UX como diferenciador explícito. Añadida §6.3 con **10 principios UX innegociables (P-UX1 a P-UX10)**, decisiones concretas (tipografía sistema, paleta 4 colores, iconos Lucide, sin gamificación), **6 tests de validación pre-release (T-UX1 a T-UX6)**. Ampliados criterios de cierre §7 con T-UX1 y T-UX2 (mobile-first honesto + cold-start con 5 maestras).
 **Fecha:** 2026-08-13
 **Estado:** ESPECIFICACIÓN PARTICULAR #1 (la primera a detallar)
 **Origen:** Discovery con fundador (3 rondas, 12 decisiones cerradas) + ronda de investigación profunda (NEM oficial, LFPDPPP 2025, mercado edtech MX, UX drag-and-drop) + investigación sobre contrato curricular oficial de la planeación NEM (elementos obligatorios SEP) + análisis de cadencia real de cambios normativos 2022-2026 + diseño del Monitor de Vigilancia + diseño del motor de catalogación de contenidos preescolar + iteración de diseño de la planeación (M1-M3) basada en diferenciación vs Kumu
@@ -633,7 +633,68 @@ Confirmado por research: drag-and-drop con `dnd-kit` requiere decisiones explíc
   - Cambio de CCT de un maestro (traslado de escuela): requiere acción explícita de desvinculación; no automático.
 - **Para verificar:** un test E2E donde una maestra de CCT-A intenta ver entregas de CCT-B y la app lo bloquea.
 
----
+### 6.3. UX como diferenciador (v0.13)
+
+**Decisión de fundador (v0.13):** la experiencia de uso debe ser **superior al menos a Kumu y servicios similares**, y esto se valida de manera observable, no por opinión.
+
+**Por qué UX es diferenciador explícito:**
+- Kumu, Teachy, Planea IA son productos con catálogo + IA. Sus argumentos de venta son "rápido" y "completo". Pero los docentes mexicanos suelen reportar fricción, no features.
+- Nuestra ventaja debe ser la **experiencia**: simple, funcional, sin estridencias, sin ruido, sin ansiedad, terminamos rápido y la maestra SIENTE que terminó.
+- Kumu y similares NO invierten tanto en esto porque su modelo de negocio no depende de retención diaria. Nuestras maestras no renuevan si no la usan — necesitamos retención por experiencia.
+
+**Principios UX innegociables (no se negocian en MVP):**
+
+| # | Principio | Cómo se mide |
+|---|---|---|
+| **P-UX1** | **"Una pregunta por pantalla"**. Nunca mostrar 5 campos a la vez. Mostrar 1 (o un grupo pequeño relacionado) con CTA claro. | Auditoría de cada pantalla. |
+| **P-UX2** | **"Pull, no push"**. La app sugiere; la maestra decide. Cero banners rojos de "tareas pendientes". Cero timeouts agresivos. | Test con 5 maestras: ninguna debe sentir "la app me apura". |
+| **P-UX3** | **"Texto claro antes que iconos opacos"**. Botones dicen "Guardar proyecto", no solo un floppy disk. | Cualquier icono sin texto adyacente es auditable. |
+| **P-UX4** | **"Mobile first honest"**. La pantalla de 360px de ancho debe ser **completa y completa**, no "versión reducida". Lo que hace la maestra en su cama cuenta. | Test obligatorio a 360×640 viewport. |
+| **P-UX5** | **"Tiempo de carga < 1.5s p75"**. La maestra está cansada. Espera < 1.5s y no perdona > 3s. | Métrica Core Web Vitals Vercel Analytics. |
+| **P-UX6** | **"Recuperación fácil de errores"**. Si la maestra borra algo accidentalmente, debe poder deshacer. Undo siempre visible las primeras 2 semanas. | Test E2E con flujo "undo". |
+| **P-UX7** | **"Estados vacíos con llamada a la acción, no tristeza"**. Una pantalla vacía de proyectos no dice "no tienes proyectos". Dice "Crea tu primer proyecto en 15 min" con CTA. | Auditoría de cada estado vacío. |
+| **P-UX8** | **"Compatibilidad con datos del mundo real"**. La maestra escribe "no se entregó tarea por falta de cuaderno", no "el alumno no presentó la evidencia pedagógica trazada". Aceptamos su lenguaje. | Cero jerga pedagógica en UI. |
+| **P-UX9** | **"Cero entrenamiento requerido"**. La maestra que abre la app por primera vez debe poder armar una planeación SIN video tutorial. Máximo: 1 hint contextual la primera vez, después desaparece. | Test con maestra sin instrucción previa. |
+| **P-UX10** | **"Accesibilidad WCAG 2.1 AA mínimo"**. Contraste, navegación por teclado, lector de pantalla, textos escalables. No es nice-to-have, es ley (LFPDPPP-incluye derechos digitales). | Auditoría con axe-core o equivalente. |
+
+**Decisiones concretas UX MVP (sin negociación):**
+
+- **Tipografía:** una sola fuente, **sans-serif del sistema** (`-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`). Sin fuentes custom en MVP. Velocidad > marca.
+- **Paleta:** máximo 4 colores funcionales:
+  - Verde (`#1F8A4C` estilo SEP verde) — acción primaria, "OK", "guardado".
+  - Amarillo (`#D4A017`) — atención moderada, "revisar".
+  - Rojo (`#A02B2B`) — error real, "faltan datos críticos". **NO se usa para tareas pendientes** (véase P-UX2).
+  - Gris (`#5C6770`) — secundario, texto secundario.
+  - **Y blanco/negro para el resto.** Sin paleta "educativa infantil" con muchos colores.
+- **Iconografía:** sistema **Lucide** (open-source, sin royalties, ~1500 iconos). Sin emoji en UI de producto. Tamaño consistente 20px en sidebar, 24px en headers, 16px en inline.
+- **Idioma:** español neutro (México). Sin regionalismos de un solo estado. Sin diminutivos condescendientes.
+- **Densidad:** holgada. 16px base font, 24px padding estándar. Maestra cansada, no quiere apretura visual.
+- **Botones primarios:** color sólido, texto blanco, alto contraste. **Un solo botón primario por pantalla** (P-UX1).
+- **Loading:** skeletons, no spinners. Skeletons muestran la forma del contenido que viene.
+- **Errores:** inline, junto al campo. No modales. P-UX6.
+
+**Decisiones explícitas que NO hacemos en MVP (anti-diferenciador):**
+
+- ❌ **NO gamificación.** Sin badges, sin puntos, sin "niveles". Kumu lo hace y muchos docentes lo encuentran condescendiente.
+- ❌ **NO streaks ni rachas.** La maestra planeó ayer o no lo hizo. El sistema no la castiga con "racha rota".
+- ❌ **NO emojis en UI de producto.** Solo en mensajes pre-armados de WhatsApp (porque son personales).
+- ❌ **NO animaciones innecesarias.** Una transición al cambiar de paso está bien; 6 efectos en cascada al abrir un menú están mal.
+- ❌ **NO onboarding largo.** Sin tutorial 5-pasos al registrarse. Una pregunta + 1 hint contextual.
+
+**Validación UX antes de MVP (lo que cambia todo):**
+
+| Test | Cuándo | Quién | Criterio de éxito |
+|---|---|---|---|
+| **T-UX1: Test de los 5 minutos.** | Cada release candidate. | 5 maestras reales nuevas. | Cada una abre la app cold-start (sin instrucciones), arma al menos un proyecto, calendariza 1 sesión, llena 1 bitácora. Lo logra en < 20 min sin pedir ayuda. |
+| **T-UX2: Mobile-first honesto.** | Cada release candidate. | Tester (cualquiera). | 360×640 viewport: TODAS las pantallas principales (crear proyecto, ver calendario, abrir bitácora, configurar escuela) usables al 100%. |
+| **T-UX3: Comparativa con referencia del mercado.** | Beta cerrada pre-lanzamiento. | 5 maestras. | Misma tarea en nuestro producto vs. Kumu (o alternativa que usen). 4 de 5 prefieren el nuestro por UX explícita. |
+| **T-UX4: Accesibilidad básica.** | Cada release. | Automático (axe-core CI). | 0 issues "serious" o "critical" en flujos principales. |
+| **T-UX5: Tiempo de carga.** | Cada release. | Vercel Analytics. | p75 LCP < 1.5s en 4G. p95 < 3s. |
+| **T-UX6: Lenguaje de maestra.** | Cada release candidate. | 2 maestras que lean textos UI. | "Esto suena a algo que yo diría, no a un libro de texto." |
+
+**Anti-feature UX permanente:**
+
+- ❌ No meteremos features que el maestro no pidió. Si una feature no resuelve un dolor validado, no se hace.
 
 ## 7. CRITERIOS DE CIERRE DEL MVP (v0.11 con M2-M5)
 
@@ -649,6 +710,8 @@ El MVP está "listo" cuando **todas** estas condiciones se cumplen:
 6. **No hay crashes** en 5 sesiones consecutivas de uso real.
 7. Costo de infraestructura < USD 50/mes con 100 docentes activos.
 8. Probada con **al menos 1 maestra real no-fundadora** (tía Lola o equivalente).
+9. **T-UX1:** probada con 5 maestras reales cold-start que arman proyecto + calendariza 1 sesión + llena 1 bitácora en < 20 min sin pedir ayuda.
+10. **T-UX2:** TODAS las pantallas principales usables en viewport 360×640px (mobile-first honesto, P-UX4).
 
 ### 7.2. Criterios por mejora M2-M5 (v0.11, cierre de ENT-001 H1)
 
@@ -708,6 +771,7 @@ Estos NO son parte del MVP, pero el MVP los **desbloquea**:
 | E14 | **Catalogación Autónoma Fase 2 (Preescolar)** | Diseño del motor de catalogación autónoma del catálogo NEM Fase 2. Pipeline de extracción PDF + validación humana + modelo relacional + carga. Reside en `fuentes/E14_CATALOGACION_AUTONOMA_FASE_2.md` |
 | E15 | **Investigación CCT→zona (dataset público)** | Búsqueda de dataset oficial SEP/INEGI/CONAPO que mapee CCT a zona rural/urbana/indígena. Acelera el catálogo M2. Output reside en worktree `ct-research-cct-zona`. |
 | E16 | **Mejoras M1-M5 (Diseño de la planeación diferenciada)** | Diseño completo de las 5 mejoras que cierran el diferenciador vs Kumu. M1 (bloques) cerrada; M2 (problema del contexto primero) cerrada con CCT-zona; M3 (vista proactiva) cerrada con interruptor y reglas duras; M4 (características ensamblables) cerrada; M5 (entrega real) arquitectura cerrada, UX concreta del portal director PENDIENTE de validación con director real. |
+| E17 | **UX como Diferenciador** | Diseño UX completo: 10 principios P-UX1 a P-UX10, decisiones concretas (tipografía sistema, paleta 4 colores, iconos Lucide, sin gamificación, sin emojis en UI), decisiones por módulo (calendario, bloques, entrega, configuración), 6 tests pre-release T-UX1 a T-UX6. Reside en `fuentes/E17_UX_COMO_DIFERENCIADOR.md` y resumido en §6.3. |
 
 ---
 

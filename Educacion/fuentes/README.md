@@ -27,6 +27,7 @@ fuentes/
 | 0.2 | `E11_MONITOR_VIGILANCIA_NORMATIVA.md` | Especificación | Diseño del Monitor de Vigilancia: 6 fuentes núcleo, heurística de severidad INFO/REVISAR/ACTUAR, contrato de salida, modo cron semanal. Listo para implementar E13 cuando se decida. |
 | 0.3 | `E14_CATALOGACION_AUTONOMA_FASE_2.md` | Especificación | Diseño del motor de catalogación autónoma para Fase 2 (preescolar). Pipeline de 4 capas: extracción PDF → validación humana → modelo relacional → carga en Supabase. Schema SQL objetivo definido. |
 | 0.4 | `ENT-001_REVISION_EXHAUSTIVA.md` | Checkpoint | Revisión exhaustiva del SPEC MVP v0.8.1 + Encuesta v2 antes de entrega a Lola. 22 hallazgos: 6 Alta (bloqueante), 9 Media, 7 Baja. Plan de resolución incluido. |
+| 0.5 | `E17_UX_COMO_DIFERENCIADOR.md` | Especificación | UX como diferenciador explícito: 10 principios P-UX1 a P-UX10, decisiones concretas (tipografía sistema, paleta 4 colores, iconos Lucide, sin gamificación), 6 tests de validación T-UX1 a T-UX6. Acompaña al SPEC §6.3. |
 
 ## 1. Inventario de archivos descargados
 
