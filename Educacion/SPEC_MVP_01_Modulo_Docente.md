@@ -1,6 +1,6 @@
 # SPEC MVP — MÓDULO DOCENTE
 
-**Versión:** 0.10 — decisión estratégica: **la IA integrada del producto es MiniMax (M3)**, única (sin fallback), contexto del docente anonimizado permitido, CERO datos de menores. Añadida §3.7 "IA MiniMax" con features concretas, API key, política de datos, costos, riesgos. Reabierto E5 como entregable "Configuración MiniMax en producción".
+**Versión:** 0.11 — cerrados los 9 Media de ENT-001 (I3, I4, I8, H1, H2, H3, S1, S2, S3). §7 ahora cubre M2-M5 (no solo M1). §6.2 multi-tenant añadido. §4 entidad Entrega actualizada con campos M5. §3.6.M2 plan B documentado. E3+E14 fusionados. Pendiente: cerrar Baja + investigación CCT por agente + encuesta a Lola + diseño E2 con datos reales.
 **Fecha:** 2026-08-13
 **Estado:** ESPECIFICACIÓN PARTICULAR #1 (la primera a detallar)
 **Origen:** Discovery con fundador (3 rondas, 12 decisiones cerradas) + ronda de investigación profunda (NEM oficial, LFPDPPP 2025, mercado edtech MX, UX drag-and-drop) + investigación sobre contrato curricular oficial de la planeación NEM (elementos obligatorios SEP) + análisis de cadencia real de cambios normativos 2022-2026 + diseño del Monitor de Vigilancia + diseño del motor de catalogación de contenidos preescolar + iteración de diseño de la planeación (M1-M3) basada en diferenciación vs Kumu
@@ -83,9 +83,9 @@ Sin login social complejo. Sin pagos. Sin IA generativa. Sin alumnos ni padres n
 **Persona 3: "Marta" — directora de preescolar/primaria**
 - Recibe planeaciones en PDF de 3-8 maestros a cargo.
 - Hoy las recibe por WhatsApp, email o impresas.
-- En MVP: solo **visualiza y descarga** lo que el maestro exporta. Sin edición, sin comentarios (eso es Fase 2).
+- En MVP: vista ligera vía **URL firmada** (ver §3.6 M5) — abrir la URL y marcar/comentar sin registro; registro formal opcional con OTP WhatsApp.
 
-> **Decisión de scope MVP:** la persona 3 se cubre con una vista de **solo-lectura** mínima (panel de dirección).
+> **Decisión de scope MVP:** la persona 3 se cubre con vista ligera de solo-lectura mediante URL firmada. Sin panel director formal en MVP. E2 (Módulo Director) es Fase 2 con validación de tía Lola ex-directora.
 
 ---
 
@@ -218,6 +218,11 @@ Sin login social complejo. Sin pagos. Sin IA generativa. Sin alumnos ni padres n
 
 **Investigación pendiente** (worktree `ct-research-cct-zona`): buscar dataset público SEP/datos.gob.mx que mapee CCT → zona rural/urbana/indígena. Si existe, el catálogo `cct_zona.json` se llena en 1h; si no, se cura manualmente con 50 CCTs founder-friendly.
 
+**Plan B documentado (v0.11, S2):** si E15 confirma que NO existe dataset público viable, M2 opera con:
+- La maestra selecciona manualmente su zona entre 4 opciones categóricas (urbana / rural-genérica / indígena-genérica / mixta-multigrado) en onboarding (después del CCT).
+- App curará un banco de **50 CCTs founder-friendly** manualmente en 1-2 semanas (con tía Lola, sus colegas, y datos de dirección del founder).
+- T13 (las 2 variantes) sigue funcionando con fallback si CCT no está: urbana por default, rural seleccionable.
+
 #### M3 — Vista mensual proactiva con interruptor y reglas duras
 
 **Concepto:** el calendario te dice qué tienes y qué te falta, **sin culparte ni obligarte**.
@@ -318,9 +323,11 @@ La sección de "tu escuela en sus propias palabras" se coloca al inicio del Fluj
 2. **URL firmada única** para esta entrega: `https://app.dominio.com/v/<entrega_id>?token=<jwt>` con expiración a 30 días (configurable).
 3. Botones de compartir: [Copiar] + [WhatsApp pre-armado] + [QR].
 
-**Mensaje pre-armado de WhatsApp (T24 — editable por la maestra, sugerido como default):**
+**Mensaje pre-armado de WhatsApp (T24 + I4 — editable por la maestra, sugerido como default; promesa clarificada):**
 
-> *"Hola director(a) [nombre]. Te paso mi planeación de [mes]. La abres con este link directo: [URL]. Si quieres registrarte en la plataforma para recibir las próximas planeaciones de tus maestros sin que te las manden por aquí, este es el portal: [URL pública plataforma]. Sin costo."*
+> *"Hola director(a) [nombre]. Te paso mi planeación de [mes]. La abres con este link directo: [URL]. Si te registras en la plataforma (sin costo), verás aquí en un solo lugar todas las planeaciones que te manden tus maestros en el futuro, en lugar de recibirlas por WhatsApp. Es opcional."*
+
+> **Cambio v0.11:** la promesa es **recepción centralizada** ("verás aquí todas las..."), no "alertas proactivas" (que son Fase 2). Reduce la expectativa de notificaciones automáticas.
 
 **Pantalla del director SIN registrarse** (al abrir la URL firmada):
 
@@ -343,7 +350,7 @@ La sección de "tu escuela en sus propias palabras" se coloca al inicio del Fluj
 **Beneficios concretos que ve el director al registrarse** (lista preliminar, a refinar post-validación):
 
 - "Recibe todas las planeaciones de sus maestros aquí, no por WhatsApp."
-- "Recibe avisos cuando un maestro sube una planeación nueva" (opt-in).
+- "Recibe avisos cuando un maestro sube una planeación nueva" — **canal v0.11:** email semanal consolidado, opt-in. NO push, NO WhatsApp en MVP. Detalles en §3.7.6 sobre canales.
 - "Ve el historial completo de entregas del mes/trimestre/ciclo."
 - "Puede pedir cambios sin reescribir la planeación."
 - "Una sola vista para ATP y supervisión cuando la pidan."
@@ -538,7 +545,7 @@ Esto convierte tu app en **guardiana de cumplimiento NEM**, no solo un editor de
 - **Bloque**: tipo (`microleccion | actividad_practica | video | referencia_oficial | evaluacion_formativa | cierre_reflexivo | lectura`), descripción, recursos_embebidos opcional (URL, NO contenido CONALITEG), pda_trabajado.
 - **Programación** (antes "Planeación"): docente, periodo (mes o semana), proyectos[] con posición en calendario, PDF generado (URL), fecha de creación, fecha_entrega (al director).
 - **Bitácora**: sesion, fecha, participación (1-5), actividad mejor (referencia a bloque), dificultades (texto), evidencia (URL imagen), docente.
-- **Entrega** (al director): programacion_id, doc_pdf_url, fecha_entrega, recibido_por (director), comentario_director (opcional), timestamp.
+- **Entrega** (al director): programacion_id, version (1, 2, 3...; cada edición post-entrega genera v+1), estado (`entregada` | `recibida` | `con_comentarios` | `archivada`), doc_pdf_url, pdf_sha256, fecha_creacion (timestamp de generación), fecha_entrega (timestamp del click "Entregar al director"), fecha_recibida (timestamp del director), comentario_director (texto libre opcional, persistente ligado al token hasta registro), url_firmada_token (JWT), url_firmada_expira_at (timestamp, default 30 días), director_celular (declarado por maestra, validado por OTP), director_id (FK cuando se registra).
 - **CatalogoNEM**: versionado (Fase X / Edición 2025), campos[], ejes[], pdas[] (texto oficial del DOF).
 
 **Datos sensibles — decisión:**
@@ -612,23 +619,73 @@ Confirmado por research: drag-and-drop con `dnd-kit` requiere decisiones explíc
 
 **Decisión pendiente (no bloqueante):** hosting propio vs. cloud. Cloud para MVP.
 
+### 6.2. Multi-tenant (H2 de ENT-001, v0.11)
+
+**Regla:** cada escuela es un tenant lógico. Datos aislados por CCT.
+
+- **Row-Level Security (RLS) en Supabase:** cada tabla lleva `cct_id` o `escuela_id`. Policies de Supabase Auth.uid() + JOIN a `usuarios.cct_id` para validar acceso.
+- **Aislamiento de subida:** fotos de bitácora se guardan en Supabase Storage con path `ccts/{cct}/bitacoras/{fecha}/{uuid}.jpg`. RLS del bucket valida acceso por CCT.
+- **Casos borde:**
+  - Maestra con CCT pero sin director asignado: la app funciona; sus entregas se guardan sin destino específico hasta que el director se registre.
+  - Director de CCT con varios maestros: panel director muestra TODOS los maestros vinculados a su CCT.
+  - Cambio de CCT de un maestro (traslado de escuela): requiere acción explícita de desvinculación; no automático.
+- **Para verificar:** un test E2E donde una maestra de CCT-A intenta ver entregas de CCT-B y la app lo bloquea.
+
 ---
 
-## 7. CRITERIOS DE CIERRE DEL MVP
+## 7. CRITERIOS DE CIERRE DEL MVP (v0.11 con M2-M5)
 
 El MVP está "listo" cuando **todas** estas condiciones se cumplen:
 
-1. Una maestra real (no fundadora) logra crear una clase en <3 min sin ayuda.
-2. La misma maestra logra armar una planeación mensual en <5 min.
-3. La misma maestra llena una bitácora en <30 s.
-4. La planeación exportada en PDF es aceptada por su director sin reformateo.
-5. La app funciona offline para flujos B (bitácora) y se sincroniza al recuperar señal.
+### 7.1. Núcleo MVP (no negociables)
+
+1. Una maestra real (no fundadora) logra **crear un proyecto** (Flujo A) en <15 min sin ayuda.
+2. La misma maestra logra **armar la planeación mensual** (Flujo B) en <5 min sobre los 15 min anteriores, total <20 min.
+3. La misma maestra llena una **bitácora** en <30 s.
+4. La planeación exportada en **PDF** es aceptada por su director sin reformateo.
+5. La app funciona offline para **bitácora** y se sincroniza al recuperar señal.
 6. **No hay crashes** en 5 sesiones consecutivas de uso real.
 7. Costo de infraestructura < USD 50/mes con 100 docentes activos.
+8. Probada con **al menos 1 maestra real no-fundadora** (tía Lola o equivalente).
 
-**No es MVP** si solo se cumplen 1-6 sin 4. El director aceptando el PDF es la prueba de fuego.
+### 7.2. Criterios por mejora M2-M5 (v0.11, cierre de ENT-001 H1)
+
+**M2 — Problema del contexto primero, contextualizado por CCT-zona:**
+- 9. Una maestra con CCT en el catálogo CCT-zona MEX ve **al menos 1 sugerencia contextual** de su zona al crear un proyecto.
+- 10. Una maestra que NO tiene CCT en el catálogo puede usar el banco genérico + caja blanca sin truncamiento del flujo.
+- 11. La maestra puede **cambiar la situación** (problema del contexto) hasta el día 5 del mes sin perder lo que ya hizo.
+
+**M3 — Vista mensual proactiva:**
+- 12. El calendario de una maestra con 5 planeaciones muestra **los 4 estados de color** correctamente (verde/amarillo/rojo/gris).
+- 13. "Planificar mes completo" propone **esqueleto de fechas tentativas**, no rellena contenido. La maestra debe confirmar bloque por bloque.
+- 14. Interruptor "Mostrar comparación con meses anteriores" funciona: **default OFF, no satura**.
+
+**M4 — Ensamblaje de características de la escuela:**
+- 15. Una maestra con "**Luz intermitente**" configurada NO ve bloques que requieren proyector en el banco principal.
+- 16. Una maestra con "**Multigrado 3 niveles**" ve bloques adaptados a multigrado (no los mismos de unigrado).
+- 17. La maestra puede **editar la configuración** en cualquier momento desde Ajustes; los cambios surten efecto en próximas sugerencias sin alterar proyectos ya creados.
+
+**M5 — Entrega real al director (URL firmada + OTP WhatsApp):**
+- 18. La maestra **entrega una planeación** con un click; recibe confirmación visual con timestamp.
+- 19. La **URL firmada** abre el PDF sin necesidad de login del director.
+- 20. El director **marca como recibida** sin registrarse (timestamp guardado).
+- 21. El director **opta por registrarse** vía OTP WhatsApp al celular que la maestra usó para llegar; tras confirmar, **se preservan** sus comentarios previos.
+- 22. Si el director **no abre la URL en 7 días**, la maestra recibe un **recordatorio suave** en la app (no push, no email).
+
+### 7.3. Criterion de IA (Sección §3.7)
+
+- 23. Las 4 features IA (F1 variantes, F2 help-in-line, F3 pulido PDF) pasan los **5 criterios de §3.7.7** cada una.
+- 24. **Costo MiniMax < USD 30/mes con 1000 planeaciones/mes.** Validado en E5.
+
+### 7.4. Criterion de fuego (igual a v0.1)
+
+**No es MVP** si solo se cumplen 7.1 sin su criterio 4. El director aceptando el PDF es la prueba de fuego.
+
+**No es MVP** si solo se cumplen 7.1 + 7.2 + 7.3 sin validar con al menos 1 maestra real no-fundadora (criterio 8).
 
 ---
+
+## 8. ENTREGABLES DERIVADOS (SIGUIENTE SPRINT)
 
 ## 8. ENTREGABLES DERIVADOS (SIGUIENTE SPRINT)
 
@@ -637,8 +694,8 @@ Estos NO son parte del MVP, pero el MVP los **desbloquea**:
 | # | Entregable | Descripción breve |
 |---|---|---|
 | E2 | SPEC del módulo Director completo | Panel con revisión, comentarios, calendario agregado, alertas |
-| E3 | Catálogo NEM digitalizado | JSON estructurado de fases, campos, ejes, PDA — trabajo manual, 40-80h estimadas |
-| E4 | Compliance LFPDPPP 2025 | Análisis formal de qué datos se pueden tratar, bases legales, aviso de privacidad para IA futuro, exclusiones voluntarias documentadas |
+| ~~E3~~ | (fusionado con E14, v0.11) | Catálogo NEM digitalizado = mismo entregable que E14 (catalogación autónoma Fase 2). Se conserva E14; se quita E3. |
+| E4 | Compliance LFPDPPP 2025 | Análisis formal de qué datos se pueden tratar, bases legales, aviso de privacidad para IA futuro, exclusiones voluntarias documentadas. **Bloqueador para M5 en producción** (ver §3.6.M5 banner). |
 | E5 | **Configuración MiniMax en producción** | Decisión v0.10: MiniMax M3 como IA única. Este entregable es operacional: API keys, rate limits, monitor de costos, plan de fallback documentado. Ver §3.7 para features concretas, política de datos y criterios de cierre. |
 | E6 | Modelo de datos formal | Diagrama ER + RLS policies + ciclo de vida |
 | E7 | Roadmap Fase 2 | Biblioteca comunitaria, analíticos, marketplace |
