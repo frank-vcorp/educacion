@@ -1,6 +1,6 @@
 # SPEC MVP — MÓDULO DOCENTE
 
-**Versión:** 0.8.1 — añadida nota sobre M5 parcial. M1-M4 cerradas, M5 cerrada de arquitectura, **detalles UX del portal director pendientes de validación con tía Lola (ex-directora) + 1-2 directores adicionales**. Encuesta ampliada con bloque 8 (director).
+**Versión:** 0.9 — resueltos Alta de ENT-001 (I1, I2, I5, I6, I7, I10, H4). M1-M4 cerradas + M5 arquitectura cerrada. Pendiente Media/Baja de ENT-001.
 **Fecha:** 2026-08-13
 **Estado:** ESPECIFICACIÓN PARTICULAR #1 (la primera a detallar)
 **Origen:** Discovery con fundador (3 rondas, 12 decisiones cerradas) + ronda de investigación profunda (NEM oficial, LFPDPPP 2025, mercado edtech MX, UX drag-and-drop) + investigación sobre contrato curricular oficial de la planeación NEM (elementos obligatorios SEP) + análisis de cadencia real de cambios normativos 2022-2026 + diseño del Monitor de Vigilancia + diseño del motor de catalogación de contenidos preescolar + iteración de diseño de la planeación (M1-M3) basada en diferenciación vs Kumu
@@ -47,10 +47,12 @@ Kumu **no** integra el flujo post-exportación. Ese ciclo es el **moat**.
 ## 1. OBJETIVO DEL MVP
 
 Que un maestro (caso arquetipo: tía Lola, preescolar) pueda:
-1. **Crear una clase** en menos de 5 minutos usando bloques pre-armados derivados del catálogo NEM.
-2. **Componer su planeación mensual** arrastrando esas clases a un calendario.
-3. **Exportar la planeación en PDF** lista para entregar al director.
+1. **Crear un proyecto/situación** en menos de 15 minutos usando bloques pre-armados derivados del catálogo NEM (Flujo A).
+2. **Componer su planeación mensual** arrastrando esos proyectos a un calendario en menos de 5 minutos (Flujo B).
+3. **Exportar la planeación en PDF** lista para entregar al director (incluido en los 5 min de Flujo B).
 4. **Llenar la bitácora del día** en menos de 30 segundos desde el celular.
+
+**Tiempo total objetivo por planeación mensual completa:** **< 20 minutos** desglosados: 15 min crear proyecto + 5 min calendarizar + exportar. Vs 4-6 horas actuales.
 
 Sin login social complejo. Sin pagos. Sin IA generativa. Sin alumnos ni padres ni dirección automatizando todavía.
 
@@ -139,8 +141,9 @@ Sin login social complejo. Sin pagos. Sin IA generativa. Sin alumnos ni padres n
    - Actividad que funcionó mejor (selector de bloque dentro del proyecto del día).
    - Dificultades (texto libre, opcional).
    - Evidencia (foto opcional desde cámara).
-3. Guarda → alimenta analíticos básicos (futuro) **y queda asociada al proyecto**, no a "una clase".
-4. Tiempo objetivo: **< 30 s**.
+3. **Política de fotos (v0.9):** la foto solo puede mostrar **el trabajo del niño** (productos, dibujos, manipulables). **NO se permite foto del niño mismo.** La app muestra un mensaje explícito al subir: *"La foto es del trabajo del niño, no del niño."* Si la maestra sube algo distinto, queda bajo su responsabilidad ética, pero la app NO facilita el caso contrario. Esto cumple la reforma Senado 26-dic-2025 sin agregar fricción al flujo natural.
+4. Guarda → alimenta analíticos básicos (futuro) **y queda asociada al proyecto**, no a "una clase".
+5. Tiempo objetivo: **< 30 s**.
 
 ### Flujo D: Director revisa (solo MVP de validación)
 1. Director abre su panel → ve lista de planeaciones recibidas **con su entrega curricular completa** (no solo PDF aislado).
@@ -206,11 +209,12 @@ Sin login social complejo. Sin pagos. Sin IA generativa. Sin alumnos ni padres n
 | Mar-Abr | Calor extremo, agua escasa | Calor urbano, polen, alergias |
 | May-Jun | Lluvias torrenciales, calor | Lluvias + encharcamientos, fin de ciclo |
 
-**Privacidad y datos sensibles:**
-- La CCT no es dato personal (es identificador público SEP).
-- La zona del CCT tampoco es dato personal.
-- **No almacenar GPS** ni ubicación del dispositivo.
-- Cumplimiento LFPDPPP 2025 mantenido.
+**Privacidad y datos sensibles (corregido en v0.9):**
+- La CCT sola es identificador público SEP, **no es dato personal** aislada.
+- **Pero combinada** con nombre del docente + celular de contacto + correo electrónico, **SÍ forma un conjunto de datos personales** bajo tratamiento (LFPDPPP 2025 art. 3 fr. XIV).
+- Por tanto, **toda la información M2 + M5 requiere base legal explícita**: consentimiento del titular (LFPDPPP 2025 art. 8) o alguna de las excepciones del art. 10.
+- **No almacenar GPS** ni ubicación del dispositivo bajo ninguna circunstancia.
+- Aviso de privacidad del producto (E4 Compliance) cubrirá este tratamiento.
 
 **Investigación pendiente** (worktree `ct-research-cct-zona`): buscar dataset público SEP/datos.gob.mx que mapee CCT → zona rural/urbana/indígena. Si existe, el catálogo `cct_zona.json` se llena en 1h; si no, se cura manualmente con 50 CCTs founder-friendly.
 
@@ -231,7 +235,7 @@ Sin login social complejo. Sin pagos. Sin IA generativa. Sin alumnos ni padres n
 1. Resumen "qué te falta" automático (sesiones vs. mínimo NEM 185 días).
 2. Sugerencias contextuales del banco CCT-zona para días vacíos (link a M2).
 3. Comparación con meses anteriores — **con interruptor on/off en Ajustes, default OFF** (decisión T6 del founder).
-4. Botón "Planificar mes completo" — genera esqueleto basado en banco de zona + catálogo de bloques + calendario escolar + pendientes del mes anterior.
+4. Botón "Planificar mes completo" — **propone un esqueleto de fechas tentativas** basadas en banco de zona + catálogo de bloques + calendario escolar + pendientes del mes anterior, **pero NO rellena contenido**. La maestra debe confirmar bloque por bloque, sesión por sesión. La app sigue el principio "pull, no push". Esto es distinto a "rellenar días automáticamente" (anti-feature explícita).
 
 **Reglas duras para evitar saturación y ansiedad (decisión T7 del founder):**
 - **Máximo 1 sugerencia activa por sesión.** Si la maestra aceptó/rechazó, no aparece otra hasta dentro de 3 días.
@@ -284,7 +288,7 @@ Sin login social complejo. Sin pagos. Sin IA generativa. Sin alumnos ni padres n
 
 **Tensiones abiertas (T13-T16) y cómo se manejan en MVP:**
 
-- **T13 — Curaduría multilingüe y pluricultural.** Resolución: el MVP arranca con 1 variante por bloque (la versión urbana CDMX estándar). Las variantes rurales y plurilingües crecen con la red de maestras fundadoras. MVP no pretende cubrir 4 realidades completas desde día 1.
+- **T13 — Curaduría multilingüe y pluricultural.** Resolución: el MVP arranca con **2 variantes mínimas por bloque** (no 1): una variante **urbana genérica** (lenguaje neutro aplicable a contextos citadinos) + una variante **rural genérica** (lenguaje aplicable a contextos rurales). Esta decisión cubre razonablemente el caso arquetipo de Lola (rural-preescolar) y al usuario urbano. Las variantes plurilingües y regionales crecen tras MVP. La elección entre variantes se hace por la configuración M4 de la maestra (ubicación urbana/rural); si no configuró, default urbano.
 - **T14 — Configuración incorrecta.** Resolución: la app muestra el "por qué" de cada sugerencia y permite editar la configuración en cualquier momento.
 - **T15 — Cero-configuración vs fricción.** Resolución: el default se pre-carga con base en M2 (CCT-zona), la maestra puede editar en 1 click, no es cero-configuración pero sí pre-inicializada.
 - **T16 — Traducción a L1 indígena.** Resolución: NO incluida en MVP. Documentada como Fase 2 con red de traductoras nativas; no traducir automáticamente (riesgo de mala calidad).
@@ -294,6 +298,8 @@ Sin login social complejo. Sin pagos. Sin IA generativa. Sin alumnos ni padres n
 La sección de "tu escuela en sus propias palabras" se coloca al inicio del Flujo A (después del CCT y antes del problema del contexto), permitiendo que cuando la maestra llegue al banco de bloques M1 ya esté filtrado por su realidad.
 
 #### M5 — Entrega real al director (diseño ARQUITECTÓNICO cerrado; UX específica del portal director PENDIENTE de validación con director real)
+
+> **Banner de bloqueador legal (v0.9):** M5 trata datos personales del director (celular, nombre, mensaje recibido, comentarios). Esto requiere aviso de privacidad + base legal formal bajo LFPDPPP 2025. **E4 Compliance es bloqueador** antes de habilitar M5 en producción para usuarios reales. Para pruebas internas con tía Lola y contactos de confianza, basta con consentimiento verbal informal documentado en bitácora. Ver E4 (pendiente).
 
 **Concepto:** la entrega de la planeación no se pierde en un WhatsApp. Queda como un objeto verificable, con URL firmada que el director abre sin registro y puede marcar/comentar; si decide registrarse, lo hace con OTP por WhatsApp al celular que la maestra usó para llegar a él (prueba cruzada de identidad).
 
@@ -449,14 +455,17 @@ La app necesita un **catálogo local** con:
   **Modelar como entidad de primer nivel**, no como string libre. El maestro selecciona 1+ ejes por bloque de clase.
 - **PDA por campo y fase** (texto oficial del DOF; editable por el maestro como texto libre, pero versionada).
 - **Biblioteca de bloques** con plantillas iniciales:
-  - Apertura (3-5 plantillas).
-  - Desarrollo guiado (3-5).
-  - Actividad práctica (3-5).
-  - Microlección (3-5).
-  - Evaluación formativa (3-5).
-  - Cierre reflexivo (3-5).
+  - 6 tipos de bloque canónicos, cada uno con variantes por **campo formativo × fase**:
+    - **Apertura** — activar saberes previos, pregunta detonadora, conexión cotidiana.
+    - **Desarrollo guiado** — andamiaje conceptual, modelaje por la maestra.
+    - **Actividad práctica** — exploración, juego, producción del niño (variantes por edad).
+    - **Microlección** — exposición corta con apoyo visual.
+    - **Evaluación formativa** — observación, rúbrica, lista de cotejo, diario.
+    - **Cierre reflexivo** — metacognición, socialización, sentido del aprendizaje.
 
-**Total inicial:** ~30 plantillas. Editables y duplicables. Sin IA.
+**Total inicial (Fase 2 MVP preescolar):** **~150 bloques curados** = 4 campos formativos × 6 tipos × ~5-7 variantes + transversales. Editables, duplicables, sin IA.
+
+> Nota de coherencia (v0.9): §1 menciona "bloques pre-armados". §3.6.M1 fija el catálogo en ~150 bloques. §5 describía antes ~30 plantillas — se alinea en v0.9 a 150 para que sea consistente.
 
 **Origen de datos:** digitalización **manual** del Plan 2022 + Programas Sintéticos FASES 2-6 (DOF 2023). NO scraping automático de CONALITEG.
 
