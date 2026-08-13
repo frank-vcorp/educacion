@@ -1,11 +1,15 @@
 # Google Form — Encuesta para maestros de NEM
 
-**Versión:** 0.3 — legible + prompt de referencia
+**Versión:** 0.4 — título y descripción definidos con precisión
 **Fecha:** 2026-08-13
 **Estado:** LISTO PARA CREAR — fuente legible humana
-**Audiencia:** maestra de educación básica en México (preescolar, primaria, secundaria). Genérico para que Lola pueda compartir con colegas.
+**Audiencia:** maestras y maestros de educación básica en México (pública o privada, preescolar a secundaria). Genérico para que Lola pueda compartir con colegas.
 **Política de datos:** SIN datos personales. SIN CCT. SIN nombre del director. SIN celular. Esto baja fricción y mantiene LFPDPPP-friendly.
 **Persistencia:** las respuestas NO se guardan en este repo. Solo el Google Sheet asociado al Form.
+
+**Título definido:** `Cómo planificas en NEM — Encuesta para docentes de preescolar, primaria y secundaria`
+
+**Descripción definida:** "Encuesta anónima para maestras y maestros de educación básica (pública o privada). Estamos construyendo una herramienta que te ayuda a hacer tus planeaciones NEM más rápido y mejor. Tus respuestas nos dicen qué necesita esa herramienta. Esta encuesta NO pide tu nombre, correo, CCT ni ningún dato personal. Te toma 10-15 minutos. Si quieres, compártela con otro(a) maestro(a)."
 
 ---
 
@@ -26,16 +30,61 @@ Usa el prompt compacto para crear el form inicial, luego abre el form en Google 
 
 ## Configuración general del form (para todas las opciones)
 
-**Título:** "Tu forma de planear — Encuesta para maestros"
+### Título del form (copia literal)
 
-**Descripción:**
-> Encuesta anónima para entender cómo haces tus planeaciones NEM. Tus respuestas se usan solo para mejorar la herramienta que estoy construyendo. Cero datos personales.
+```
+Cómo planificas en NEM — Encuesta para docentes de preescolar, primaria y secundaria
+```
 
-**Configuración crítica** (Settings ⚙):
-- ✅ **NO recolectar email** (clave — desactivado).
-- ✅ **Show progress bar** activado.
-- ✅ **Limit to 1 response** desactivado.
-- ✅ Confirmación al enviar: *"¡Gracias! Tu respuesta quedó registrada. Si quieres, pasa este link a un(a) colega maestro(a)."*
+**Por qué este título:**
+- "Cómo planificas" — habla en segunda persona, directo (no "sobre planeación").
+- "en NEM" — especifica el marco normativo sin explicarlo (ellas ya saben).
+- "Encuesta para docentes" — audiencia explícita, suena oficial pero accesible.
+- Lista los 3 niveles — no se siente excluyente.
+- Longitud ~75 caracteres — cabe bien en vista móvil de Google Forms.
+
+### Descripción del form (copia literal)
+
+```
+Encuesta anónima para maestras y maestros de educación básica (pública o privada). 
+Estamos construyendo una herramienta que te ayuda a hacer tus planeaciones NEM 
+más rápido y mejor. Tus respuestas nos dicen qué necesita esa herramienta. 
+Esta encuesta NO pide tu nombre, correo, CCT ni ningún dato personal. 
+Te toma 10-15 minutos. Si quieres, compártela con otro(a) maestro(a).
+```
+
+**Por qué esta descripción:**
+- Habla de "educación básica (pública o privada)" — incluye privadas que también usan NEM.
+- "Estamos construyendo una herramienta" — transparencia sobre qué hacemos con los datos.
+- "más rápido y mejor" — beneficio concreto (no promesa vacía).
+- "NO pide tu nombre, correo, CCT ni ningún dato personal" — tranquilidad explícita.
+- "Te toma 10-15 minutos" — gestión de expectativas.
+- "Si quieres, compártela con otro(a) maestro(a)" — llamada a la acción de propagación.
+
+### Mensaje de confirmación al enviar (copia literal)
+
+```
+¡Gracias por tu tiempo! Tu respuesta quedó registrada. 
+
+Si quieres compartir tu experiencia con un(a) colega, el link del formulario 
+está disponible para que se lo envíes por WhatsApp o donde prefieras.
+```
+
+**Por qué este mensaje:**
+- Agradece en 2do persona (no "Se ha registrado su respuesta" impersonal).
+- Refuerza la acción de compartir (WhatsApp específicamente, porque es donde viven las maestras).
+
+### Configuración técnica (Settings ⚙)
+
+| Opción | Valor |
+|---|---|
+| **Recolectar direcciones de correo electrónico** | ❌ Desactivado (CLAVE — esto no es opcional) |
+| **Limitar a 1 respuesta** | ❌ Desactivado (queremos que múltiples maestras puedan responder) |
+| **Mostrar barra de progreso** | ✅ Activado |
+| **Mostrar enlace para enviar otra respuesta** | ✅ Activado |
+| **Permitir editar respuestas después de enviar** | ❌ Desactivado (mantiene limpieza de datos) |
+| **Mensaje de confirmación** | El de arriba |
+| **Orden de preguntas** | Aleatorio desactivado (orden fijo) |
 
 ---
 
@@ -55,6 +104,7 @@ Esta primera sección no pide nombre ni email ni CCT. Solo características prof
 ### Pregunta 2
 **Tipo:** Múltiple choice · obligatoria
 **Pregunta:** ¿Cuántos años llevas dando clases?
+**Ayuda:** Incluye prácticas profesionales, servicio social, interinato y cualquier plaza, no solo base definitiva.
 **Opciones:**
 - Menos de 5
 - Entre 5 y 15
@@ -63,6 +113,7 @@ Esta primera sección no pide nombre ni email ni CCT. Solo características prof
 ### Pregunta 3
 **Tipo:** Múltiple choice · obligatoria
 **Pregunta:** ¿Cuántos alumnos tienes por grupo (aproximado)?
+**Ayuda:** Considera el tamaño promedio de tus grupos este ciclo escolar. Si tienes varios, usa el más común.
 **Opciones:**
 - 1-15
 - 16-25
@@ -72,6 +123,7 @@ Esta primera sección no pide nombre ni email ni CCT. Solo características prof
 ### Pregunta 4
 **Tipo:** Múltiple choice · obligatoria
 **Pregunta:** ¿Dónde planeas la mayoría de las veces?
+**Ayuda:** Indica el espacio donde REALMENTE te sientas a planear, no el "ideal" o el que te gustaría.
 **Opciones:**
 - En casa de noche con celular
 - En casa con laptop
@@ -91,6 +143,7 @@ Esta primera sección no pide nombre ni email ni CCT. Solo características prof
 ### Pregunta 6
 **Tipo:** Múltiple choice · obligatoria
 **Pregunta:** ¿Cada cuánto entregas una planeación al director?
+**Ayuda:** Considera únicamente las planeaciones que entregas formalmente a la dirección, no las que haces para ti.
 **Opciones:**
 - Cada semana
 - Cada quince días
@@ -105,6 +158,7 @@ Esta primera sección no pide nombre ni email ni CCT. Solo características prof
 ### Pregunta 8
 **Tipo:** Múltiple choice · obligatoria
 **Pregunta:** ¿Más o menos cuánto tiempo te toma hacer UNA planeación completa?
+**Ayuda:** Una planeación completa = problemática + contenidos + actividades + evaluación + lo necesario para entregarla lista al director.
 **Opciones:**
 - Menos de 1 hora
 - Entre 1 y 3 horas
@@ -115,6 +169,7 @@ Esta primera sección no pide nombre ni email ni CCT. Solo características prof
 ### Pregunta 9
 **Tipo:** Múltiple choice · obligatoria
 **Pregunta:** ¿Cómo la entregas al director?
+**Ayuda:** Elige el canal más habitual. Si usas varios, marca el que más uses.
 **Opciones:**
 - Impresa en papel
 - Por correo electrónico (PDF, Word)
@@ -129,6 +184,7 @@ Esta primera sección no pide nombre ni email ni CCT. Solo características prof
 ### Pregunta 11
 **Tipo:** Múltiple choice · obligatoria
 **Pregunta:** ¿El director te regresa la planeación con cambios?
+**Ayuda:** "Con cambios" = te pide correcciones, ajustes, o te regresa para rehacer algo.
 **Opciones:**
 - Sí, casi siempre me pide correcciones o cambios
 - A veces, pero solo algunas veces
@@ -147,6 +203,7 @@ Esta primera sección no pide nombre ni email ni CCT. Solo características prof
 ### Pregunta 13
 **Tipo:** Múltiple choice · obligatoria
 **Pregunta:** ¿Usas el "núcleo" o las actividades que la SEP publica para cada tema?
+**Ayuda:** El "núcleo" SEP es el contenido/base oficial que la SEP publica como guía para los PDA del Plan 2022.
 **Opciones:**
 - Sí, siempre me baso en eso
 - A veces las consulto
@@ -157,6 +214,7 @@ Esta primera sección no pide nombre ni email ni CCT. Solo características prof
 ### Pregunta 14
 **Tipo:** Múltiple choice · obligatoria
 **Pregunta:** ¿Te sería útil que esos núcleos ya estuvieran cargados en una herramienta y tú solo armaras la clase con ellos (como "bloques" para arrastrar)?
+**Ayuda:** Imagina que abres una herramienta y los núcleos ya están ahí, solo arrastras los que aplican y los acomodas.
 **Opciones:**
 - Sí, eso me ahorraría mucho tiempo
 - Tal vez, habría que verlo
@@ -166,6 +224,7 @@ Esta primera sección no pide nombre ni email ni CCT. Solo características prof
 ### Pregunta 15
 **Tipo:** Múltiple choice · obligatoria
 **Pregunta:** ¿Cómo relacionas cada clase con los "campos formativos" (Lenguajes, Saberes y Pensamiento Científico, Ética, Naturaleza y Sociedades, De lo Humano y lo Comunitario)?
+**Ayuda:** Los 4 campos formativos son el corazón del Plan 2022 NEM. Cada clase se vincula a uno o varios.
 **Opciones:**
 - Lo tengo claro y no me cuesta
 - Lo tengo que pensar o buscar cada vez
@@ -330,7 +389,9 @@ Esta primera sección no pide nombre ni email ni CCT. Solo características prof
 Antes de pegarlo, abre mentalmente las **preguntas de las SECCIONES 1-7 de este archivo** como referencia. Si Gemini se equivoca o simplifica algo, lo notarás.
 
 ```
-Crea Google Form "Tu forma de planear" descripción "Encuesta anónima NEM. Cero datos personales". Sin email, con progress bar, sin límite de respuestas.
+Crea Google Form con título "Cómo planificas en NEM — Encuesta para docentes de preescolar, primaria y secundaria" y esta descripción: "Encuesta anónima para maestras y maestros de educación básica (pública o privada). Estamos construyendo una herramienta que te ayuda a hacer tus planeaciones NEM más rápido y mejor. Tus respuestas nos dicen qué necesita esa herramienta. Esta encuesta NO pide tu nombre, correo, CCT ni ningún dato personal. Te toma 10-15 minutos. Si quieres, compártela con otro(a) maestro(a)."
+
+Configuración: NO recolectar email, "Show progress bar" activado, sin límite de respuestas por usuario, mensaje de confirmación exacto: "¡Gracias por tu tiempo! Tu respuesta quedó registrada. Si quieres compartir tu experiencia con un(a) colega, el link del formulario está disponible para que se lo envíes por WhatsApp o donde prefieras."
 
 Q1 [Multiple, required] ¿En qué nivel das clases? Opciones: Preescolar|Primaria|Secundaria|Otro
 Q2 [Multiple, required] ¿Años dando clases? Opciones: Menos de 5|Entre 5 y 15|Más de 15
@@ -387,7 +448,7 @@ Si encuentras discrepancias, corrige manualmente en el editor de Google Forms.
 
 ## Mensaje sugerido para compartir con tía Lola
 
-> "Hola tía Lola. Te paso una encuesta rápida (10-15 min) sobre cómo haces tus planeaciones NEM. Es para una herramienta que estoy construyendo. **Es anónima** — no te pide nombre ni CCT ni email. Si te late, pásale el link a otro(a) maestro(a). ¡Gracias!" — Link: [PEGAR LINK AQUÍ]
+> "Hola tía Lola. Te paso una encuesta que estoy usando para construir una herramienta que ayude a los maestros a hacer planeaciones NEM más rápido. Es **anónima** — no pide nombre, correo, CCT ni ningún dato personal. Te toma unos 10-15 minutos. Si te late y conoces a otros maestros que quieran opinar, pásales el mismo link. ¡Gracias!" — Link: [PEGAR LINK AQUÍ]
 
 ---
 
