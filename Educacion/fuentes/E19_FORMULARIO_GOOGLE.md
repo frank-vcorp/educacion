@@ -1,11 +1,13 @@
 # Google Form — Encuesta para maestros de NEM
 
-**Versión:** 0.4 — título y descripción definidos con precisión
+**Versión:** 0.5 — archivo limpio, sin prompts
 **Fecha:** 2026-08-13
-**Estado:** LISTO PARA CREAR — fuente legible humana
+**Estado:** DOCUMENTO DEL FORM (legible, listo para crear manualmente o pasar a Gemini)
 **Audiencia:** maestras y maestros de educación básica en México (pública o privada, preescolar a secundaria). Genérico para que Lola pueda compartir con colegas.
 **Política de datos:** SIN datos personales. SIN CCT. SIN nombre del director. SIN celular. Esto baja fricción y mantiene LFPDPPP-friendly.
 **Persistencia:** las respuestas NO se guardan en este repo. Solo el Google Sheet asociado al Form.
+
+> **¿Quieres el prompt para Gemini?** Está en `E19b_PROMPT_GEMINI.md` (archivo separado deliberadamente). Este `.md` solo contiene las preguntas del form, sin código de prompts IA mezclado.
 
 **Título definido:** `Cómo planificas en NEM — Encuesta para docentes de preescolar, primaria y secundaria`
 
@@ -15,20 +17,17 @@
 
 ## Cómo se usa este archivo
 
-**Hay 3 formas de crear el Form, ordenadas por facilidad:**
+**Hay 2 formas de crear el Form:**
 
 ### OPCIÓN 1 (recomendada) — Manual en Google Forms (5 minutos)
 Tú lees las preguntas de este archivo y las pegas en Google Forms. Más control, sin dependencia de IA.
 
-### OPCIÓN 2 — Gemini Workspace con prompt compacto (1 minuto)
-Tienes un prompt compacto al final del archivo que cabe en el límite de 5000 chars de Gemini. **Antes de pegar el prompt**, lee las preguntas bien redactadas de este archivo para que sepas qué esperar. Si Gemini "comprime" o cambia algo, lo detectas.
-
-### OPCIÓN 3 — Híbrido
-Usa el prompt compacto para crear el form inicial, luego abre el form en Google Forms y **compara** cada pregunta contra este .md. Si Gemini generó algo "raro", lo corriges manualmente.
+### OPCIÓN 2 — Gemini Workspace (1 minuto)
+Abre `E19b_PROMPT_GEMINI.md`, pega el prompt en Gemini in Workspace. Gemini crea el form. **Después compara cada pregunta contra este `.md`** — si Gemini "comprime" o cambia algo, lo corriges manualmente.
 
 ---
 
-## Configuración general del form (para todas las opciones)
+## Configuración general del form
 
 ### Título del form (copia literal)
 
@@ -54,7 +53,7 @@ Te toma 10-15 minutos. Si quieres, compártela con otro(a) maestro(a).
 ```
 
 **Por qué esta descripción:**
-- Habla de "educación básica (pública o privada)" — incluye privadas que también usan NEM.
+- "educación básica (pública o privada)" — incluye privadas que también usan NEM.
 - "Estamos construyendo una herramienta" — transparencia sobre qué hacemos con los datos.
 - "más rápido y mejor" — beneficio concreto (no promesa vacía).
 - "NO pide tu nombre, correo, CCT ni ningún dato personal" — tranquilidad explícita.
@@ -305,7 +304,7 @@ Esta primera sección no pide nombre ni email ni CCT. Solo características prof
 **Tipo:** Múltiple choice · obligatoria
 **Pregunta:** ¿Hoy usas alguna app o plataforma para tus planeaciones?
 **Opciones:**
-- Sí, uso una app específica (¿cuál? — por favor agrégalo en Observaciones o escríbelo en el campo libre)
+- Sí, uso una app específica
 - Sí, pero solo para guardar archivos (Drive, OneDrive, etc.)
 - No, todo lo hago en Word/PDF
 - No, todo lo hago a mano
@@ -382,91 +381,13 @@ Esta primera sección no pide nombre ni email ni CCT. Solo características prof
 
 ---
 
-## OPCIÓN 2 — Prompt compacto para Gemini Workspace (3501 caracteres)
+## Archivos relacionados
 
-> **IMPORTANTE:** Gemini Workspace NO puede leer archivos de tu repo local. Solo lee archivos de **Google Drive** si los subes y los menciones con `@`. Por lo tanto, este prompt **se pega completo** a Gemini y se crea el form en una sola llamada.
-
-Antes de pegarlo, abre mentalmente las **preguntas de las SECCIONES 1-7 de este archivo** como referencia. Si Gemini se equivoca o simplifica algo, lo notarás.
-
-```
-Crea Google Form con título "Cómo planificas en NEM — Encuesta para docentes de preescolar, primaria y secundaria" y esta descripción: "Encuesta anónima para maestras y maestros de educación básica (pública o privada). Estamos construyendo una herramienta que te ayuda a hacer tus planeaciones NEM más rápido y mejor. Tus respuestas nos dicen qué necesita esa herramienta. Esta encuesta NO pide tu nombre, correo, CCT ni ningún dato personal. Te toma 10-15 minutos. Si quieres, compártela con otro(a) maestro(a)."
-
-Configuración: NO recolectar email, "Show progress bar" activado, sin límite de respuestas por usuario, mensaje de confirmación exacto: "¡Gracias por tu tiempo! Tu respuesta quedó registrada. Si quieres compartir tu experiencia con un(a) colega, el link del formulario está disponible para que se lo envíes por WhatsApp o donde prefieras."
-
-Q1 [Multiple, required] ¿En qué nivel das clases? Opciones: Preescolar|Primaria|Secundaria|Otro
-Q2 [Multiple, required] ¿Años dando clases? Opciones: Menos de 5|Entre 5 y 15|Más de 15
-Q3 [Multiple, required] ¿Cuántos alumnos por grupo? Opciones: 1-15|16-25|26-35|Más de 35
-Q4 [Multiple, required] ¿Dónde planeas? Opciones: En casa de noche con celular|En casa con laptop|En la escuela antes/después de clase|En la escuela en recesos|Otro
-Q5 [Text, optional] (Si Q4=Otro) Especifíca:
-Q6 [Multiple, required] ¿Cada cuánto entregas planeación? Opciones: Cada semana|Cada quince días|Cada mes|Cuando me la piden|Otro
-Q7 [Text, optional] (Si Q6=Otro) Especifíca:
-Q8 [Multiple, required] ¿Cuánto te toma UNA planeación? Opciones: Menos de 1 hora|Entre 1 y 3 horas|Entre 3 y 6 horas|Más de 6 horas|No me quiero acordar
-Q9 [Multiple, required] ¿Cómo la entregas? Opciones: Impresa en papel|Por correo electrónico|Por WhatsApp|Subida a alguna plataforma|Otro
-Q10 [Text, optional] (Si Q9=Otro) Especifíca:
-Q11 [Multiple, required] ¿El director te regresa con cambios? Opciones: Sí, casi siempre|A veces, pero no muchas|Casi nunca|Nunca, tal cual
-Q12 [Paragraph, required] ¿Qué parte te quita más tiempo o frustra?
-Q13 [Multiple, required] ¿Usas el "núcleo" SEP? Opciones: Sí, siempre|A veces las consulto|Conozco pero no las sigo|No las conozco bien|Otra
-Q14 [Multiple, required] ¿Útil que esos núcleos ya estuvieran cargados como bloques arrastrables? Opciones: Sí, ahorraría mucho tiempo|Tal vez, habría que verlo|No, prefiero escribir todo|No sé qué quieres decir
-Q15 [Multiple, required] ¿Relación con campos formativos? Opciones: Lo tengo claro y no me cuesta|Lo pienso cada vez|Por cumplir formato|Se me complica
-Q16 [Multiple, required] ¿Tomas notas post-clase? Opciones: Sí, en cuaderno|Sí, a veces|En una hoja y la pierdo|No, en mi cabeza|Otro
-Q17 [Multiple, required] ¿Cuánto te toma? Opciones: Menos de 1 minuto|1-5 minutos|5-15 minutos|Más de 15|No tomo notas|Otro
-Q18 [Multiple, required] ¿Reportas evidencias a alguien? Opciones: Sí, al director|Sí, a supervisión|Sí, a papás|No|Otro
-Q19 [Multiple, required] ¿Olvidas temas después de semanas? Opciones: Sí, muchas veces|Sí, a veces|Pocas veces|No
-Q20 [Paragraph, optional] ¿Qué te ayudaría a no perder esa info?
-Q21 [Multiple, required] Comodidad con celular Opciones: Muy cómoda|Solo lo básico|Me cuesta, prefiero papel|Solo llamadas/WhatsApp
-Q22 [Multiple, required] Datos móviles en escuela Opciones: Sí, siempre|A veces se cae|No, casi nunca
-Q23 [Multiple, required] ¿App actual? Opciones: Sí, específica|Solo guardar archivos|No, Word/PDF|No, a mano
-Q24 [Checkbox, required] Usarías app de bloques si Opciones: Me ahorra tiempo real|Es bonita|El director la aceptara|No tengo que aprender mucho|Sirve sin internet|Otra
-Q25 [Paragraph, optional] ¿Otro motivo no listado?
-Q26 [Multiple, required] ¿Director revisa o archiva? Opciones: Revisa y retroalimenta|La pasa sin revisar|Solo archiva|Depende
-Q27 [Multiple, required] ¿Pagas de tu bolsa? Opciones: Sí, bastante|Sí, lo mínimo|Poca cosa|No, cubre escuela
-Q28 [Multiple, required] ¿Pagarías $300 MXN/mes si ahorra 3-4 h? Opciones: Sí, sin pensarlo|Tal vez|Probablemente no|No, yo no pago|Otra
-Q29 [Paragraph, optional] ¿Otro(a) maestro(a) que pueda contestar?
-Q30 [Paragraph, optional] ¿Algo más?
-
-Confirmación al enviar: "¡Gracias! Tu respuesta quedó registrada. Pásale a otro(a) colega."
-
-Devuelve SOLO el link.
-```
-
-**Tamaño:** 3501 caracteres (cabe holgadamente en 5000 chars).
+- **`E19_FORMULARIO_GOOGLE.md`** — este archivo. Documento del form, legible y limpio.
+- **`E19b_PROMPT_GEMINI.md`** — prompt para Gemini Workspace separado, con pasos y validación.
+- **`Encuesta_Tia_Lola.md`** — encuesta original en formato markdown (sin tipos de Google Forms). Documento histórico.
 
 ---
 
-## Después de que Gemini cree el Form (Opción 2) — Validación cruzada
+**Fin del archivo v0.5.**
 
-Abre el form generado en Google Forms y compara contra las secciones de este `.md`. **Cosas que más probable se rompen con Gemini**:
-
-1. **Q5, Q7, Q10, Q25** — las preguntas "Si elegiste Otro" condicionales. Gemini a veces las crea como preguntas normales, no como condicionales. Corregir manualmente.
-2. **Q12** — texto largo con ayuda "Escribe lo que te moleste". Verificar que aparezca.
-3. **Q24** — casillas de verificación (no múltiple). Verificar que permita seleccionar varias, no una sola.
-4. **Confirmación** — el mensaje al enviar debe decir "¡Gracias! Tu respuesta quedó registrada."
-
-Si encuentras discrepancias, corrige manualmente en el editor de Google Forms.
-
----
-
-## Mensaje sugerido para compartir con tía Lola
-
-> "Hola tía Lola. Te paso una encuesta que estoy usando para construir una herramienta que ayude a los maestros a hacer planeaciones NEM más rápido. Es **anónima** — no pide nombre, correo, CCT ni ningún dato personal. Te toma unos 10-15 minutos. Si te late y conoces a otros maestros que quieran opinar, pásales el mismo link. ¡Gracias!" — Link: [PEGAR LINK AQUÍ]
-
----
-
-## Política de evidencia (decidida)
-
-- Respuestas viven en Google Sheets (gratis, automático).
-- Este repo conserva SOLO el documento de diseño de la encuesta (este archivo).
-- Si en el futuro quieres análisis cuantitativo, exportas el CSV desde Google Sheets en el momento.
-- Respetas privacidad y simplificas LFPDPPP.
-
----
-
-## Relación con Encuesta_Tia_Lola.md
-
-`Educacion/Encuesta_Tia_Lola.md` es el documento "maestro" original con preguntas y contexto pedagógico completo. Este archivo `E19_FORMULARIO_GOOGLE.md` es la **versión desplegable** optimizada para Google Forms con tipos de pregunta y validaciones.
-
-**NO eliminamos** `Encuesta_Tia_Lola.md` — sigue siendo útil como referencia y para futuras iteraciones.
-
----
-
-**Fin del archivo v0.3.**
