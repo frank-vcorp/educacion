@@ -1,0 +1,54 @@
+{
+  "version": "0.1",
+  "ultima_corrida": "2026-08-13T04:33:34.864080+00:00",
+  "fuentes": {
+    "F1": {
+      "nombre": "DOF - Seccion Poder Ejecutivo / SEP",
+      "url": "https://www.dof.gob.mx/",
+      "hash": null,
+      "primera_corrida": null,
+      "ultima_deteccion": null,
+      "ultima_corrida_ok": null
+    },
+    "F2": {
+      "nombre": "Acuerdo 14/08/22 (Plan de Estudios)",
+      "url": "https://sidof.segob.gob.mx/notas/docFuente/5661845",
+      "hash": "sha256:2c4c9729a84684fa4cdc32c69b029ff99cd5ce973083645fd6202ea9da8ef711",
+      "primera_corrida": "2026-08-13T04:32:03.175405+00:00",
+      "ultima_deteccion": "2026-08-13 04:32:47 UTC",
+      "ultima_corrida_ok": "2026-08-13T04:33:26.979802+00:00"
+    },
+    "F3": {
+      "nombre": "Acuerdo 06/08/23 (modificacion NEM)",
+      "url": "https://sidof.segob.gob.mx/notas/docFuente/5698663",
+      "hash": "sha256:b42213f6dc06d5de248a8a62266c42ac0c21954909ed05d32d6aabb369a2bfff",
+      "primera_corrida": "2026-08-13T04:32:04.888002+00:00",
+      "ultima_deteccion": null,
+      "ultima_corrida_ok": "2026-08-13T04:33:28.756517+00:00"
+    },
+    "F4": {
+      "nombre": "Calendario Escolar SEP",
+      "url": "https://www.planeacion.sep.gob.mx/CalendarioEscolar.aspx",
+      "hash": "sha256:24e88234864fbda20e34418fad3b81fb471ac891a3756a42da34b3c3c92e2908",
+      "primera_corrida": "2026-08-13T04:32:06.640775+00:00",
+      "ultima_deteccion": null,
+      "ultima_corrida_ok": "2026-08-13T04:33:30.484487+00:00"
+    },
+    "F5": {
+      "nombre": "LFPDPPP (Ley Federal Proteccion Datos)",
+      "url": "https://mley.mx/LFPDPPP",
+      "hash": "sha256:5d8adeb89d73ca51a26821aefee6918443c06268e0f1a850c1fd7446464c97db",
+      "primera_corrida": "2026-08-13T04:32:08.897620+00:00",
+      "ultima_deteccion": "2026-08-13 04:33:33 UTC",
+      "ultima_corrida_ok": "2026-08-13T04:33:33.339096+00:00"
+    },
+    "F6": {
+      "nombre": "CONALITEG catalogo libros",
+      "url": "https://libros.conaliteg.gob.mx/",
+      "hash": "sha256:fcfbbfa0e79b86b098f98733448f14b416093da892b75248d20101738df99045",
+      "primera_corrida": "2026-08-13T04:32:10.387618+00:00",
+      "ultima_deteccion": null,
+      "ultima_corrida_ok": "2026-08-13T04:33:34.844479+00:00"
+    }
+  }
+}

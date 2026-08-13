@@ -1,0 +1,106 @@
+{
+  "version": "0.1",
+  "fecha_creacion": "2026-08-13",
+  "descripcion": "Configuracion del Monitor de Vigilancia Normativa (E11). 6 fuentes nucleo del MVP. Editar solo si cambias URLs o keywords de extraccion.",
+  "user_agent": "Mozilla/5.0 (Atlas-Monitor/0.1; +https://github.com/frank/educacion-monitor) Python-requests",
+  "rate_limit_segundos": 1.0,
+  "timeout_segundos": 30,
+  "max_bytes_antes_truncar": 524288,
+  "max_log_retention_semanas": 8,
+  "fuentes": [
+    {
+      "id": "F1",
+      "nombre": "DOF - Seccion Poder Ejecutivo / SEP",
+      "url": "https://www.dof.gob.mx/",
+      "metodo": "GET",
+      "tipo": "html",
+      "tipo_cambio_esperado": ["A", "B"],
+      "keywords_extraccion": [
+        "Plan de Estudio",
+        "NEM",
+        "educacion preescolar",
+        "educacion primaria",
+        "LFPDPPP",
+        "calendario escolar"
+      ],
+      "notas": "Portada del DOF. Cambios de tipo A/B en acuerdos SEP."
+    },
+    {
+      "id": "F2",
+      "nombre": "Acuerdo 14/08/22 (Plan de Estudios)",
+      "url": "https://sidof.segob.gob.mx/notas/docFuente/5661845",
+      "metodo": "GET",
+      "tipo": "html",
+      "tipo_cambio_esperado": ["A"],
+      "keywords_extraccion": [
+        "Plan de Estudio",
+        "Plan y Programas",
+        "educacion basica",
+        "modifica"
+      ],
+      "notas": "Acuerdo fundacional NEM. Cambios aqui = ACTUAR inmediato."
+    },
+    {
+      "id": "F3",
+      "nombre": "Acuerdo 06/08/23 (modificacion NEM)",
+      "url": "https://sidof.segob.gob.mx/notas/docFuente/5698663",
+      "metodo": "GET",
+      "tipo": "html",
+      "tipo_cambio_esperado": ["A"],
+      "keywords_extraccion": [
+        "Plan de Estudio",
+        "modifica el diverso",
+        "reforma educativa",
+        "educacion basica"
+      ],
+      "notas": "Modificacion al Plan de Estudios. Cambios aqui = ACTUAR inmediato."
+    },
+    {
+      "id": "F4",
+      "nombre": "Calendario Escolar SEP",
+      "url": "https://www.planeacion.sep.gob.mx/CalendarioEscolar.aspx",
+      "metodo": "GET",
+      "tipo": "html",
+      "tipo_cambio_esperado": ["B"],
+      "keywords_extraccion": [
+        "calendario escolar",
+        "Consejo Tecnico Escolar",
+        "CTE",
+        "Fase Intensiva",
+        "reingreso"
+      ],
+      "notas": "Calendario Escolar del proximo ciclo. Cambios = REVISAR."
+    },
+    {
+      "id": "F5",
+      "nombre": "LFPDPPP (Ley Federal Proteccion Datos)",
+      "url": "https://mley.mx/LFPDPPP",
+      "metodo": "GET",
+      "tipo": "html",
+      "tipo_cambio_esperado": ["A"],
+      "keywords_extraccion": [
+        "LFPDPPP",
+        "Ley Federal de Proteccion de Datos",
+        "INAI",
+        "ultima reforma",
+        "articulo"
+      ],
+      "notas": "Ley deProteccion de Datos. Cualquier reforma = ACTUAR (compliance)."
+    },
+    {
+      "id": "F6",
+      "nombre": "CONALITEG catalogo libros",
+      "url": "https://libros.conaliteg.gob.mx/",
+      "metodo": "GET",
+      "tipo": "html",
+      "tipo_cambio_esperado": ["C"],
+      "keywords_extraccion": [
+        "CONALITEG",
+        "libros de texto",
+        "catalogo",
+        "educacion basica"
+      ],
+      "notas": "Catalogo publico de libros. Cambios = REVISAR (PMC/libros)."
+    }
+  ]
+}

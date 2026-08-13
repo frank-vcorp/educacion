@@ -1,0 +1,21 @@
+=== Corrida iniciada 2026-08-13T04:33:24.856328+00:00 ===
+Config: 6 fuentes, rate=1.0s
+  [FETCH] F1 DOF - Seccion Poder Ejecutivo / SEP -> https://www.dof.gob.mx/
+  [ERROR] F1 fallo de red: HTTPSConnectionPool(host='www.dof.gob.mx', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLCertVerificationError(1, "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'www.dof.gob.mx'. (_ssl.c:1081)")))
+  [FETCH] F2 Acuerdo 14/08/22 (Plan de Estudios) -> https://sidof.segob.gob.mx/notas/docFuente/5661845
+  [OK] F2 49921B hash=sha256:2c4c9729a84684fa4... truncado=False
+  [NOOP] F2 sin cambios detectados.
+  [FETCH] F3 Acuerdo 06/08/23 (modificacion NEM) -> https://sidof.segob.gob.mx/notas/docFuente/5698663
+  [OK] F3 23261B hash=sha256:b42213f6dc06d5de2... truncado=False
+  [NOOP] F3 sin cambios detectados.
+  [FETCH] F4 Calendario Escolar SEP -> https://www.planeacion.sep.gob.mx/CalendarioEscolar.aspx
+  [OK] F4 10978B hash=sha256:24e88234864fbda20... truncado=False
+  [NOOP] F4 sin cambios detectados.
+  [FETCH] F5 LFPDPPP (Ley Federal Proteccion Datos) -> https://mley.mx/LFPDPPP
+  [OK] F5 81040B hash=sha256:5d8adeb89d73ca51a... truncado=False
+  [CAMBIO] F5 severidad=ACTUAR kws=['LFPDPPP', 'Ley Federal de Proteccion de Datos', 'Ley General de Proteccion de Datos', 'Secretaria Anticorrupcion']
+  [ALERTA] F5 -> 2026-08-13-actuar-F5-lfpdppp_ley_federal_de_protecci_n_de_datos_personales_en_posesi_n_de_los_particu.md
+  [FETCH] F6 CONALITEG catalogo libros -> https://libros.conaliteg.gob.mx/
+  [OK] F6 32586B hash=sha256:fcfbbfa0e79b86b09... truncado=False
+  [NOOP] F6 sin cambios detectados.
+=== Corrida finalizada: 5 OK, 1 fallidas, 1 alertas ===

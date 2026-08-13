@@ -1,0 +1,9 @@
+# requirements.txt — Dependencias exactas para catalogar_fase2.py
+# Stack obligatorio del SPEC E14 §6.1
+pdfplumber>=0.11.0
+pymupdf>=1.24.0
+pydantic>=2.6.0
+
+# Opcionales (degradación elegante si faltan):
+#   - tesseract-ocr + tesseract-ocr-spa (instalación del sistema, no pip)
+#     Si no está, las páginas escaneadas quedan marcadas como requiere_intervencion.
