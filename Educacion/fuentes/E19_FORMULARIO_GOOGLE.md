@@ -1,6 +1,6 @@
 # Google Form — Encuesta para maestros de NEM
 
-**Versión:** 0.5 — archivo limpio, sin prompts
+**Versión:** 0.6 — añadidas preguntas para docentes con experiencia como directora
 **Fecha:** 2026-08-13
 **Estado:** DOCUMENTO DEL FORM (legible, listo para crear manualmente o pasar a Gemini)
 **Audiencia:** maestras y maestros de educación básica en México (pública o privada, preescolar a secundaria). Genérico para que Lola pueda compartir con colegas.
@@ -84,6 +84,8 @@ está disponible para que se lo envíes por WhatsApp o donde prefieras.
 | **Permitir editar respuestas después de enviar** | ❌ Desactivado (mantiene limpieza de datos) |
 | **Mensaje de confirmación** | El de arriba |
 | **Orden de preguntas** | Aleatorio desactivado (orden fijo) |
+
+---
 
 ---
 
@@ -374,10 +376,121 @@ Esta primera sección no pide nombre ni email ni CCT. Solo características prof
 
 ## Resumen del Form
 
-- **Total preguntas:** 30 (más 5 preguntas condicionales opcionales).
-- **Tiempo estimado de respuesta:** 10-15 minutos.
+- **Total preguntas:** 40 (más 9 preguntas condicionales opcionales en SECCIÓN 8 para directores).
+- **Tiempo estimado de respuesta:**
+  - Maestra que NO ha sido directora: 10-15 min (30 preguntas).
+  - Maestra que SÍ ha sido directora: 15-22 min (40 preguntas).
 - **Datos personales pedidos:** CERO. Ni email, ni nombre, ni CCT, ni celular.
 - **LFPDPPP-friendly:** ✅ diseñado para no requerir base legal.
+- **Inteligencia de negocio:** las preguntas de SECCIÓN 8 (director) descubren qué automatizar del panel multi-maestro. Sin esas respuestas, el "diferenciador de entrega al director" (M5) queda conjetura.
+
+---
+
+## Cómo se ven las preguntas condicionales en Google Forms
+
+La SECCIÓN 8 tiene una "puerta" en la pregunta 8.1 ("¿Has sido director(a)?"). Si la maestra responde "No, nunca he sido directora", el form salta al mensaje de "fin" (ya está en la última sección). Si responde "Sí...", hace las 9 preguntas adicionales (8.2 a 8.10).
+
+En Google Forms esto se logra dividiendo la SECCIÓN 8 en dos sub-secciones y usando **"Ir a la siguiente sección según la respuesta"** en la opción "No" de la pregunta 8.1.
+
+**Si Gemini no maneja bien la ramificación al crear el form**, se corrige manualmente en Google Forms después (no es difícil, pero Gemini no siempre lo implementa solo).
+
+---
+
+## SECCIÓN 8 — Tu experiencia como director(a) (solo si aplica)
+
+> Esta sección es para docentes que han sido **directores o directoras** de una escuela. Si nunca has ocupado ese cargo, **puedes saltarla completamente** y terminar el form. Si la llenas, nos das una visión del "otro lado del escritorio" que es valiosísima para construir la herramienta.
+
+> **Por qué la pusimos al FINAL, no al inicio:** si la pusiéramos al principio, las maestras que nunca han sido directoras verían una sección que no les aplica y abandonarían el form. Al estar al final, si llegan hasta aquí ya se comprometieron con su propia experiencia, yerran el form, y solo entonces se les pregunta por la experiencia como directora. Las que SÍ han sido directoras la llenan; las que no, la saltan.
+
+> **Para quién vale la pena:** la herramienta está diseñada para maestros Y directores (M5 entrega al director). Si una maestra fue directora, su testimonio del otro lado vale más que cualquier suposición nuestra.
+
+### Pregunta 8.1
+**Tipo:** Múltiple choice · **obligatoria** (dentro de la sección; si entras a ella, respondes)
+**Pregunta:** ¿Has sido directora o director de una escuela?
+**Ayuda:** Incluye si ocupaste el cargo por interinato, encargo, comisión o base.
+**Opciones:**
+- Sí, una vez por un periodo corto (menos de 2 años)
+- Sí, por varios años (más de 2 años)
+- Sí, actualmente lo soy
+- No, nunca he sido directora
+
+> **Si respondió "No, nunca he sido directora":** marcar fin de sección, pasa a SECCIÓN 1.
+
+---
+
+### Pregunta 8.2 (solo si la 8.1 es "Sí..." — directors)
+**Tipo:** Múltiple choice · obligatoria
+**Pregunta:** ¿De qué niveles era la escuela a tu cargo?
+**Opciones:**
+- Solo preescolar
+- Solo primaria
+- Solo secundaria
+- Preescolar y primaria (multinivel)
+- Multigrado (varios grados juntos)
+
+### Pregunta 8.3 (solo si la 8.1 es "Sí...")
+**Tipo:** Múltiple choice · obligatoria
+**Pregunta:** ¿Cuántos maestros tenías aproximadamente a cargo?
+**Opciones:**
+- 1 a 3
+- 4 a 6
+- 7 a 12
+- Más de 12
+
+### Pregunta 8.4 (solo si la 8.1 es "Sí...")
+**Tipo:** Texto largo (paragraph) · **obligatoria**
+**Pregunta:** Cuando recibías una planeación de un maestro, ¿qué hacías con ella? Cuéntanos el flujo completo, aunque sea informal.
+**Texto de ayuda:** Ej: "Las juntaba en una carpeta, le pasaba una copia a supervisión, me llevaba 3 horas al mes consolidarlas..."
+
+### Pregunta 8.5 (solo si la 8.1 es "Sí...")
+**Tipo:** Múltiple choice · obligatoria
+**Pregunta:** ¿Tenías un tiempo límite para responder a las planeaciones de tus maestros?
+**Opciones:**
+- Sí, había un plazo formal (cuál era)
+- Había acuerdo verbal pero no era estricto
+- No, las revisaba cuando podía
+- No las revisaba una por una, solo en bloque
+
+### Pregunta 8.6 (solo si la 8.1 es "Sí...")
+**Tipo:** Texto largo (paragraph) · **obligatoria**
+**Pregunta:** Piensa en tu época como director(a). ¿Cuáles eran LAS PARTES MÁS TEDIOSAS O REPETITIVAS del trabajo con las planeaciones? Enuméralas con la mayor honestidad posible, aunque sean cosas "obvias".
+**Texto de ayuda:** Si quieres, dime también cuánto tiempo te tomaba cada cosa.
+
+### Pregunta 8.7 (solo si la 8.1 es "Sí...")
+**Tipo:** Texto largo (paragraph) · **obligatoria**
+**Pregunta:** Si pudieras automatizar 3 cosas del trabajo del director con planeaciones, ¿cuáles serían las tres más valiosas?
+**Texto de ayuda:** Enuméralas en orden de importancia.
+
+### Pregunta 8.8 (solo si la 8.1 es "Sí...")
+**Tipo:** Múltiple choice · obligatoria
+**Pregunta:** ¿Tenías Consejo Técnico Escolar (CTE) donde se revisaban las planeaciones en conjunto?
+**Opciones:**
+- Sí, cada mes
+- Sí, cada quince días
+- Sí, pero esporádico
+- No
+- Otro
+
+### Pregunta 8.9 (solo si la 8.1 es "Sí...")
+**Tipo:** Múltiple choice · obligatoria
+**Pregunta:** ¿Cuál era el momento del año más difícil/molesto para ti como director en cuanto a planeaciones?
+**Opciones:**
+- Inicio del ciclo escolar (agosto)
+- Cierre del ciclo (junio-julio)
+- Periodo de visitas de supervisión
+- Cuando los maestros entregaban todas juntas los últimos días
+- Nunca fue problema
+- Otro
+
+### Pregunta 8.10 (solo si la 8.1 es "Sí...")
+**Tipo:** Múltiple choice · obligatoria
+**Pregunta:** ¿Viste a otros directores usar alguna herramienta digital para gestionar las planeaciones?
+**Opciones:**
+- Sí (cuál)
+- No, todo era manual/papel/WhatsApp
+- Lo intentamos pero no funcionó (cuéntanos por qué)
+
+---
 
 ---
 
