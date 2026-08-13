@@ -267,3 +267,143 @@ Cuando termines de crear el form, devuelve SOLO el link del formulario generado 
 Gemini genera el Form en tu Google Drive y te da un link. Pásalo a tía Lola con este mensaje:
 
 > "Hola tía Lola. Te paso una encuesta rápida (10-15 min) sobre cómo haces tus planeaciones NEM. Es para una herramienta que estoy construyendo. **Es anónima** — no te pide nombre ni CCT ni email. Si te late, pásale el link a otro(a) maestro(a). ¡Gracias!" — Link: [PEGAR LINK]
+
+---
+
+## OPCIÓN B-CORTA — Prompt Gemini en 2 pasos (límite 5000 chars)
+
+Como Gemini tiene límite de 5000 caracteres por prompt, divido la creación en **2 prompts consecutivos**.
+
+### PASO 1 (pega esto primero; < 4500 chars):
+
+```
+Crea un Google Form llamado "Tu forma de planear — Encuesta para maestros" con descripción "Encuesta anónima sobre cómo haces tus planeaciones NEM. Cero datos personales."
+
+Configuración: NO recolectar email, "Show progress bar" activado, sin límite de respuestas por usuario.
+
+Crea estas preguntas EN ESTRICTO ORDEN con salto de sección entre cada bloque marcado con "===":
+
+=== Sobre ti (sin identificarte) ===
+
+1. ¿En qué nivel das clases? [Múltiple, obligatoria]
+   Opciones: Preescolar | Primaria | Secundaria | Otro
+
+2. ¿Cuántos años llevas dando clases? [Múltiple, obligatoria]
+   Opciones: Menos de 5 | Entre 5 y 15 | Más de 15
+
+3. ¿Cuántos alumnos tienes por grupo? [Múltiple, obligatoria]
+   Opciones: 1-15 | 16-25 | 26-35 | Más de 35
+
+4. ¿Dónde planeas la mayoría de las veces? [Múltiple, obligatoria]
+   Opciones: En casa de noche con celular | En casa con laptop | En la escuela antes/después de clase | En la escuela en recesos | Otro
+
+5. (Solo si Q4=Otro) Específíca: [Texto corto, opcional]
+
+=== Sobre las planeaciones NEM hoy ===
+
+6. ¿Cada cuánto entregas una planeación al director? [Múltiple, obligatoria]
+   Opciones: Cada semana | Cada quince días | Cada mes | Cuando me la piden | Otro
+
+7. (Solo si Q6=Otro) Específíca: [Texto corto, opcional]
+
+8. ¿Cuánto tiempo te toma hacer UNA planeación completa? [Múltiple, obligatoria]
+   Opciones: Menos de 1 hora | Entre 1 y 3 horas | Entre 3 y 6 horas | Más de 6 horas | No me quiero acordar
+
+9. ¿Cómo la entregas al director? [Múltiple, obligatoria]
+   Opciones: Impresa en papel | Por correo electrónico | Por WhatsApp | Subida a alguna plataforma | Otro
+
+10. (Solo si Q9=Otro) Específíca: [Texto corto, opcional]
+
+11. ¿El director te regresa la planeación con cambios? [Múltiple, obligatoria]
+    Opciones: Sí, casi siempre | A veces, pero no muchas | Casi nunca, solo cuando hay errores | Nunca, las acepta tal cual
+
+12. ¿Qué parte de hacer la planeación te quita más tiempo o te frustra más?
+    [Texto largo, obligatoria]
+    Ayuda: "Escribe lo que te moleste, sin filtro. Cuanto más concreto mejor."
+
+13. ¿Usas el "núcleo" o actividades que la SEP publica para cada tema? [Múltiple, obligatoria]
+    Opciones: Sí, siempre me baso en eso | A veces las consulto | Las conozco pero no las sigo al pie | No las conozco bien / se me dificulta encontrarlas | Otra
+
+14. ¿Te sería útil que esos núcleos ya estuvieran cargados en una herramienta y tú solo armaras la clase con ellos (como bloques para arrastrar)? [Múltiple, obligatoria]
+    Opciones: Sí, eso me ahorraría mucho tiempo | Tal vez, habría que verlo | No, prefiero escribir todo desde cero | No sé qué quieres decir
+
+15. ¿Cómo relacionas cada clase con los "campos formativos" (Lenguajes, Saberes, Ética, De lo Humano)? [Múltiple, obligatoria]
+    Opciones: Lo tengo claro y no me cuesta | Lo tengo que pensar cada vez | Lo pongo por cumplir el formato | Se me complica
+
+NO termines el form aquí. Devuélveme solo "Listo para el siguiente paso" cuando termines este bloque, con el link del form hasta ahora.
+```
+
+### PASO 2 (pega esto DESPUÉS; < 4500 chars):
+
+```
+Continúa el Form "Tu forma de planear — Encuesta para maestros" agregando estas preguntas al final, MANTENIENDO el orden. NO modifiques las anteriores:
+
+=== Después de la clase ===
+
+16. Después de dar la clase, ¿tomas notas para recordar cómo te fue? [Múltiple, obligatoria]
+    Opciones: Sí, escribo en cuaderno/bitácora | Sí, pero solo a veces | En una hoja y luego la pierdo | No, lo dejo en mi cabeza | Otro
+
+17. Si tomas notas, ¿cuánto tiempo te toma hacerlo? [Múltiple, obligatoria]
+    Opciones: Menos de 1 minuto | Entre 1 y 5 minutos | Entre 5 y 15 minutos | Más de 15 minutos | No tomo notas | Otro
+
+18. ¿Tienes que reportar evidencias a alguien (fotos, productos)? [Múltiple, obligatoria]
+    Opciones: Sí, fotos al director | Sí, reportes a la supervisión | Sí, fotos o notas a los papás | No, solo el director recibe la planeación | Otro
+
+19. ¿Te ha pasado que después de varias semanas quieres recordar qué tema diste y no encuentras la info? [Múltiple, obligatoria]
+    Opciones: Sí, muchas veces | Sí, pero algunas veces | Pocas veces | No, tengo todo bien organizado
+
+20. ¿Qué te ayudaría más para no perder esa información después de la clase? [Texto largo, opcional]
+
+=== Sobre la tecnología que usas ===
+
+21. ¿Qué tan cómoda te sientes con el celular para trabajar (apps, formularios)? [Múltiple, obligatoria]
+    Opciones: Muy cómoda, lo uso para casi todo | Más o menos, solo lo básico | Me cuesta, prefiero papel | No me gusta, solo llamadas/WhatsApp
+
+22. ¿Tienes datos móviles (internet en el celular) en la escuela? [Múltiple, obligatoria]
+    Opciones: Sí, siempre | A veces se cae | No, casi nunca tengo señal
+
+23. ¿Hoy usas alguna app o plataforma para tus planeaciones? [Múltiple, obligatoria]
+    Opciones: Sí, una app específica (cuál) | Sí, solo para guardar archivos (Drive, OneDrive) | No, todo en Word/PDF | No, todo a mano
+
+24. Si existiera una app donde tú armas la planeación arrastrando bloques (sin escribir tanto), la usarías si: [Casillas, obligatoria]
+    Opciones:
+    - Me ahorra tiempo real (+1 hora a la semana)
+    - Es bonita y profesional
+    - El director la aceptara sin pedirme cambios
+    - No tengo que aprender algo complicado
+    - Sirve aunque no tenga internet
+    - Otra (campo libre)
+
+=== Sobre entrega al director ===
+
+25. Hoy, cuando entregas tu planeación al director, ¿la revisa o solo la archiva? [Múltiple, obligatoria]
+    Opciones: La revisa y me da retroalimentación útil | La pasa a supervisión sin revisarla | Solo la archiva | Depende del director
+
+26. ¿Pagas de tu bolsillo por algo para tus clases (materiales, apps, cursos)? [Múltiple, obligatoria]
+    Opciones: Sí, bastante | Sí, lo mínimo | Poca cosa | No, todo lo cubre la escuela
+
+27. Si una herramienta te ahorrara 3-4 horas a la semana y costara $300 MXN/mes, ¿la pagarías tú de tu bolsa? [Múltiple, obligatoria]
+    Opciones: Sí, sin pensarlo | Tal vez, tendría que ver cuánto ahorra | Probablemente no | No, yo no pago nada | Otra
+
+=== Cierre ===
+
+28. (Opcional) ¿Conoces a otro(a) maestro(a) que pueda contestar también? Pásale este link. [Texto largo, opcional]
+
+29. (Opcional, última) ¿Algo más que quieras decir sobre planeaciones o esta encuesta? [Texto largo, opcional]
+
+Configuración final del form:
+- Confirmación al enviar: "¡Gracias! Tu respuesta quedó registrada. Si quieres, pasa este link a un(a) colega maestro(a)."
+- Devuelve SOLO el link del form terminado en una sola línea.
+```
+
+## Por qué este prompt cabe en 5000 caracteres
+
+- Cada prompt individual está **muy por debajo de 4500 chars** (verificado: 3492 y 2891).
+- Dividir en 2 pasos es robusto: si la primera ejecución se interrumpe, el form queda a la mitad con un link parcial que puedes seguir editando.
+- NO omitimos ninguna pregunta — el Paso 1 lleva Q1-Q15 y el Paso 2 lleva Q16-Q29 con los mismos textos literales.
+
+## Instrucciones operativas
+
+1. **Pega el Paso 1** en Gemini in Workspace → dale Crear → te devuelve "Listo para el siguiente paso" + link parcial.
+2. **Pega el Paso 2** con el form abierto desde el paso 1 → dale Crear → te devuelve el link final.
+3. **Comparte el link final** a tía Lola con el mensaje del archivo.
