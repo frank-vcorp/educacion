@@ -237,6 +237,55 @@ Esta pregunta fue afinada tras evidencia real capturada en WhatsApp: la tía Lol
 - Las preguntas de discovery sobre maestras NO deben asumir vocabulario técnico. Pregunta primero por su día a día ("¿qué haces los domingos?") antes de preguntar por la NEM.
 - Los términos del Plan 2022 son **palabras de política pública, no de salón de clases.** Documentar esto en `founder/learning.md` o similar para no repetirlo en futuros entregables.
 
+---
+
+## Insight 2 — El Programa Sintético es un TRÁMITE OBLIGATORIO, no una decisión libre
+
+Capturado en WhatsApp (10:43, justo después de nuestra conversación de v9):
+
+> **Lola: "En general es si usas el material de apoyo que te da la NEM"**
+> **Lola: "O tu generas tu propio material por otros medios ya vez que tiene pagian con contenidos y eso"**
+> **Lola: "Para planear a fuerzas tienes que utilizar tu programa sintético"**
+
+**Lo que Lola está diciendo realmente:**
+
+- **"a fuerzas"** = por obligación, no por convicción.
+- **"tienes que"** = no es opcional, es mandatorio.
+- **"tu programa sintético"** = el de su grado/fase, no "el del Plan 2022" en abstracto.
+
+**Esto cambia 4 cosas grandes del producto:**
+
+| Concepto | Antes | Ahora (con este insight) |
+|---|---|---|
+| **Qué es el producto** | "Una herramienta para maestras expertas" | **"Un alivio burocrático"** para maestras obligadas a usar el Programa Sintético |
+| **Diferenciador real** | "Más bonita que Kumu" | **"Termina la planeación en 20 min en vez de 4-6 horas"** |
+| **Mercado meta** | Maestras tech-savvy | **El 100% de las maestras** — todas viven el Plan 2022 como trámite |
+| **Rol del catálogo M1** | Recomendable | **Esencial — sin esto, el producto no resuelve el dolor** |
+
+**Implicaciones específicas:**
+
+1. **Reframe del producto en onboarding y landing:** NO decir "¿Quieres planificar mejor con la NEM?". Decir **"Termina tu planeación mensual en 20 minutos"** o **"Cumple con la NEM en una fracción del tiempo"**. El dolor es burocracia obligatoria; el alivio es velocidad.
+
+2. **La maestra puede NO conocer el Programa Sintético y aún querer la herramienta** porque el dolor es "tengo que hacerlo cada mes y me toma horas". El producto le resuelve el dolor SIN requerirle entenderlo.
+
+3. **El producto debe aceptar el material propio de la maestra también.** "Generas tu propio material por otros medios" → el banco M1 debe permitir **importar/pegar cuadernillos propios** y mezclarlos con el catálogo oficial. Esto ya estaba en M1 (niveles 🔒🔓✏️), se valida.
+
+4. **Argumento de venta a directora/supervisión:** "cumple al 100% con la NEM sin horas extra de la maestra". Es un win-win: la maestra termina antes; la dirección recibe algo alineado.
+
+**Lo que este insight invalida del SPEC original:**
+
+- ❌ **"El banco contextual M2 (zona CCT) es la pieza central"** — NO es la pieza central. El dolor central es burocracia, no contexto cultural.
+- ✅ **Mantiene:** El catálogo M1 con bloques componibles ES la pieza central del producto, no el contexto CCT.
+
+**Implicaciones de discovery:**
+
+- En próximas entrevistas a maestras, **preguntar primero por el dolor burocrático** ("¿qué parte de la planeación odias más?") ANTES de preguntar por la NEM.
+- En la landing, **decir el dolor primero**: "Horas de planeación convertidas en clicks" ANTES del producto.
+
+**Acción inmediata cuando volvamos con respuestas:**
+
+- Cuando tengamos todas las respuestas del form, **revisar Q12** ("¿Qué parte de hacer la planeación te quita más tiempo o te frustra más?"): los verbos y的痛苦 ahí van a confirmar este insight o contradecirlo.
+
 ### Pregunta 14
 **Tipo:** Múltiple choice · obligatoria
 **Pregunta:** ¿Te sería útil que los PDA de los Programas Sintéticos ya estuvieran cargados en una herramienta, y tú solo armaras la clase con ellos (como "bloques" para arrastrar)?
