@@ -1,6 +1,6 @@
 # SPEC MVP — MÓDULO DOCENTE
 
-**Versión:** 0.11 — cerrados los 9 Media de ENT-001 (I3, I4, I8, H1, H2, H3, S1, S2, S3). §7 ahora cubre M2-M5 (no solo M1). §6.2 multi-tenant añadido. §4 entidad Entrega actualizada con campos M5. §3.6.M2 plan B documentado. E3+E14 fusionados. Pendiente: cerrar Baja + investigación CCT por agente + encuesta a Lola + diseño E2 con datos reales.
+**Versión:** 0.12 — E15 cerrada con resultado positivo: **SÍ existe dataset público oficial del Catálogo CCT SEP 2024** (414 MB, CC-BY-4.0). Plan B descartado; se sustituye por ETL sobre el dataset nacional completo con joins a INEGI/CONAPO/INPI. Coste ETL: 6-10 h-hombre. Detalles en `fuentes/E15_INVESTIGACION_CCT_ZONA.md`.
 **Fecha:** 2026-08-13
 **Estado:** ESPECIFICACIÓN PARTICULAR #1 (la primera a detallar)
 **Origen:** Discovery con fundador (3 rondas, 12 decisiones cerradas) + ronda de investigación profunda (NEM oficial, LFPDPPP 2025, mercado edtech MX, UX drag-and-drop) + investigación sobre contrato curricular oficial de la planeación NEM (elementos obligatorios SEP) + análisis de cadencia real de cambios normativos 2022-2026 + diseño del Monitor de Vigilancia + diseño del motor de catalogación de contenidos preescolar + iteración de diseño de la planeación (M1-M3) basada en diferenciación vs Kumu
@@ -216,12 +216,14 @@ Sin login social complejo. Sin pagos. Sin IA generativa. Sin alumnos ni padres n
 - **No almacenar GPS** ni ubicación del dispositivo bajo ninguna circunstancia.
 - Aviso de privacidad del producto (E4 Compliance) cubrirá este tratamiento.
 
-**Investigación pendiente** (worktree `ct-research-cct-zona`): buscar dataset público SEP/datos.gob.mx que mapee CCT → zona rural/urbana/indígena. Si existe, el catálogo `cct_zona.json` se llena en 1h; si no, se cura manualmente con 50 CCTs founder-friendly.
+**Investigación cerrada (v0.12, E15 resultado positivo):** SÍ existe dataset público oficial **Catálogo Nacional de Centros de Trabajo SEP 2024** (414 MB, CC-BY-4.0) en `https://repodatos.atdt.gob.mx/api_update/sep/catalogo_centros_trabajo_sep/Catalogo_SIC_2024.csv`. Contiene CCT + cve_ent + cve_mun + cve_loc + nivel + turno + subnivel + latitud/longitud + sostenimiento. **NO trae "zona rural/urbana/indígena" pero se deriva** vía joins con INEGI AGEEML (rural/urbano por localidad), CONAPO Metrópolis 2020 (zona metropolitana por municipio), INPI Pueblos Indígenas (territorio indígena). Detalles en `fuentes/E15_INVESTIGACION_CCT_ZONA.md`.
 
-**Plan B documentado (v0.11, S2):** si E15 confirma que NO existe dataset público viable, M2 opera con:
-- La maestra selecciona manualmente su zona entre 4 opciones categóricas (urbana / rural-genérica / indígena-genérica / mixta-multigrado) en onboarding (después del CCT).
-- App curará un banco de **50 CCTs founder-friendly** manualmente en 1-2 semanas (con tía Lola, sus colegas, y datos de dirección del founder).
-- T13 (las 2 variantes) sigue funcionando con fallback si CCT no está: urbana por default, rural seleccionable.
+**Implicaciones v0.12:**
+- Plan B (50 CCTs founder-friendly) **descartado**.
+- M2 opera sobre **catálogo nacional completo** (cientos de miles de CCTs) tras ETL.
+- Coste del ETL estimado: **6-10 h-hombre** (descarga + joins + materialización + validación).
+- INTEGRA recibe instrucción de integrar el ETL en el pipeline de build.
+- T13 (las 2 variantes) sigue funcionando igual; el banco de situaciones por CCT-zona ahora SÍ se puede poblar de forma sistemática.
 
 #### M3 — Vista mensual proactiva con interruptor y reglas duras
 
