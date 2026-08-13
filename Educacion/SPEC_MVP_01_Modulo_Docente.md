@@ -1,6 +1,6 @@
 # SPEC MVP — MÓDULO DOCENTE
 
-**Versión:** 0.9 — resueltos Alta de ENT-001 (I1, I2, I5, I6, I7, I10, H4). M1-M4 cerradas + M5 arquitectura cerrada. Pendiente Media/Baja de ENT-001.
+**Versión:** 0.10 — decisión estratégica: **la IA integrada del producto es MiniMax (M3)**, única (sin fallback), contexto del docente anonimizado permitido, CERO datos de menores. Añadida §3.7 "IA MiniMax" con features concretas, API key, política de datos, costos, riesgos. Reabierto E5 como entregable "Configuración MiniMax en producción".
 **Fecha:** 2026-08-13
 **Estado:** ESPECIFICACIÓN PARTICULAR #1 (la primera a detallar)
 **Origen:** Discovery con fundador (3 rondas, 12 decisiones cerradas) + ronda de investigación profunda (NEM oficial, LFPDPPP 2025, mercado edtech MX, UX drag-and-drop) + investigación sobre contrato curricular oficial de la planeación NEM (elementos obligatorios SEP) + análisis de cadencia real de cambios normativos 2022-2026 + diseño del Monitor de Vigilancia + diseño del motor de catalogación de contenidos preescolar + iteración de diseño de la planeación (M1-M3) basada en diferenciación vs Kumu
@@ -376,6 +376,118 @@ La sección de "tu escuela en sus propias palabras" se coloca al inicio del Fluj
 
 **Por qué esta pausa importa:** diseñé la arquitectura de M5 con la información que tenía, pero las features concretas del portal director (qué hacer con las 5 planeaciones, cómo consolidar, qué mostrar al supervisor) requieren datos reales del usuario. Sin esa validación, M5 seguiría siendo "Kumu + URL firmada", no un sistema diferenciado.
 
+### 3.7. IA MiniMax — Decisión estratégica de producto
+
+**Decisión del fundador (v0.10):** la inteligencia artificial integrada en el producto es **MiniMax M3** (de la fundación MiniMax). Decisiones cerradas:
+
+- **Proveedor único, sin fallback.** Si MiniMax cae, las features de IA fallan gracefully; el resto del producto sigue funcionando con catálogo, calendario, entrega y portal director.
+- **Aplicación selectiva.** MiniMax se integra solo donde realmente aporta valor. No se mete por moda. Cada feature con IA debe justificar su existencia en términos de ahorro de tiempo o mejora de calidad pedagógica.
+- **Política de datos hacia MiniMax:** puede recibir **contexto del docente anonimizado** (CCT-zona, grado, fase, características M4, texto pedagógico). NO nombres, NO celulares, NO CCT completa (se ofusca), NO datos de menores (ver regla dura más abajo).
+- **Regla dura LFPDPPP:** CERO datos de menores cruzan a MiniMax en ninguna feature, sin excepciones, sin consentimiento. Esta regla es código de producto, no política editable.
+
+#### 3.7.1. Features MVP que usan MiniMax
+
+Estas son las cuatro features con IA, justificadas una por una.
+
+**F1 — Variantes de bloques adaptadas al contexto (vinculado a M1 + M4):**
+- Entrada: bloque del catálogo (estructura + contenido sugerido urbano) + CCT-zona + características M4.
+- Acción: MiniMax genera **una variante local** del contenido del bloque adaptada al contexto. NO inventa la estructura, NO propone campos formativos nuevos, NO añade PDA. Solo adapta el texto.
+- Ejemplo: bloque F2-SyPC-002 (Lluvia-suelo) urbano "plantas del balcón" → variante rural "plantas de la milpa familiar" / variante plurilingüe en tsotsil.
+- Salida: 1 variante por bloque por sesión. La maestra puede editar o descartar.
+
+**F2 — Help-in-line en redacción (vinculado a M1 paso 8-9):**
+- Entrada: texto que la maestra está escribiendo en un bloque (apertura, cierre, producto integrador).
+- Acción: botón "Ayúdame a redactar" → MiniMax ofrece 2 opciones:
+  - Expandir a versión más formal (lenguaje NEM reconocible por la supervisión).
+  - Simplificar para edad específica (3 años vs 5 años vs 8 años).
+- NO reescribe todo ni propone nuevas ideas. Solo expande/simplifica lo que ella ya empezó.
+
+**F3 — Pulido final del PDF (vinculado a §3.5 contrato curricular):**
+- Antes de generar el PDF, MiniMax hace una pasada final sobre campos abiertos (objetivo, propósito, producto integrador). Solo estilístico: sin cambiar contenido pedagógico, sin alterar PDA referenciados.
+- Salida: texto ligeramente pulido en los campos que la app marca como "pulibles".
+- NO aplica a: bloques del catálogo, nombres de proyectos, PDA oficiales.
+
+**F4 — Resumen narrativo para la maestra (Fase 2, no MVP):**
+- Cuando la maestra termina una planeación, MiniMax genera una "vista narrativa" tipo "¿esto es lo que vas a hacer en tus próximas semanas". Solo si la maestra lo pide explícitamente.
+- Diferido a Fase 2 porque la app de catálogo/bloques/calendario ya da valor sin IA, y esta feature requiere más iteración.
+
+#### 3.7.2. Política de datos concreta (lo que SÍ y NO se manda a MiniMax)
+
+| Tipo de dato | Permitido a MiniMax | Bloqueado |
+|---|---|---|
+| Texto pedagógico (contenido de bloque, abertura, cierre) | ✅ Sí | |
+| CCT completa (10 dígitos) | NO ❌ | Se ofusca a `CCT-**[REDACTED]**-zona-{state}/{municipio}` |
+| CCT-zona categorizada (urbana/rural/indígena) | ✅ Sí (ya es categórica, no identifica persona) | |
+| Grado que imparte la maestra (preescolar, 1°, 2°...) | ✅ Sí | |
+| Fase NEM | ✅ Sí | |
+| Características M4 (la configuración configurativa de la escuela) | ✅ Sí | |
+| Nombre del docente | NO ❌ | Sustituir por token aleatorio de sesión |
+| Email / celular del docente | NO ❌ | Nunca sale del backend |
+| Email / celular del director | NO ❌ | Nunca sale del backend |
+| Datos de alumnos (nombres, notas, observaciones) | **REGLA DURA: NO bajo ninguna circunstancia** | Filter a nivel de código antes de cualquier llamada a MiniMax |
+| Fotos de bitácora (del trabajo del niño, NO del niño mismo) | NO ❌ | No se envía como contexto |
+| Comentarios del director sobre la planeación | NO ❌ | Privacidad del director |
+
+**Implementación:** un módulo `ia_anonymizer.py` que aplica estas reglas a TODO prompt antes de salir del backend. Tests unitarios que verifican que ningún dato personal cruza.
+
+#### 3.7.3. Arquitectura técnica propuesta
+
+**Proveedor:** MiniMax (modelo M3). API compatible con OpenAI-style. SDK open-source compatible.
+
+**Endpoint y autenticación:** API key de MiniMax almacenada en variable de entorno del backend (NUNCA en frontend). Sin endpoint público expuesto. Llamadas server-side.
+
+**Latencia objetivo:** < 3 segundos por respuesta de feature. Si MiniMax tarda más de 8s, timeout y degradar sin IA.
+
+**Costo estimado (a confirmar en E5):** variable por feature. Features con prompts pequeños (<500 tokens) y respuestas cortas (<500 tokens) tienen costo despreciable. Estimación inicial: con 1000 planeaciones/mes, costo MiniMax < USD 30/mes, asumiendo precios comparables a OpenAI. **Verificar precios reales en E5 antes de productivizar.**
+
+**Cache:** prompts idénticos (mismo bloque, misma CCT-ofuscada) cachean respuesta por 30 días. Reduce costo y latencia.
+
+**Rate limiting:** 5 llamadas/minuto por usuario. Si excede, queue con respuesta "IA no disponible ahora". Sin saturación del backend.
+
+#### 3.7.4. Compliance LFPDPPP 2025 — implicaciones específicas para MiniMax
+
+1. **Transferencia internacional.** MiniMax es servidor en China (jurisdicción diferente). LFPDPPP 2025 art. 36-38 regulan transferencias internacionales. Requiere **consentimiento expreso del titular** (docente) o alguna excepción (art. 37).
+2. **Decisiones automatizadas.** LFPDPPP 2025 art. 76-78 obligan a:
+   - Informar al titular que está interactuando con IA.
+   - Permitir revisión humana de cualquier decisión automatizada.
+   - Explicabilidad cuando el sistema toma una decisión con impacto (ej: "el bloque X se sugirió porque...").
+3. **Decisión automatizada de la app:** las features F1, F2, F3 son **de sugerencia, no de decisión**. La maestra edita, descarta o acepta. NO se ejecuta nada automáticamente por IA. **Esto reduce el riesgo regulatorio** vs. una plataforma que automatiza decisiones de evaluación del alumno.
+4. **Aviso de privacidad (E4 Compliance):** debe mencionar explícitamente: "Las funciones de asistencia pedagógica del producto utilizan el modelo MiniMax para generar sugerencias textuales. Los prompts NO contienen datos personales directos. Más información: [link]."
+
+#### 3.7.5. Anti-features explícitas (lo que MiniMax NO hará en MVP)
+
+- ❌ **NO hace evaluación del alumno** (no tiene datos y no le llegan, por regla dura).
+- ❌ **NO genera reportes a la supervisión** (es contenido agregado del docente, requiere decisión automatizada de orden superior).
+- ❌ **NO redacta el proyecto entero desde cero** (la maestra es autora; la IA solo adapta/edita lo que ella empezó).
+- ❌ **NO propone campos formativos ni PDA nuevos** (el catálogo oficial NEM es la fuente; la IA no lo modifica).
+- ❌ **NO tiene memoria entre sesiones** (cada llamada es stateless, sin acumulación de datos de usuario).
+- ❌ **NO se entrena con datos del producto.** MiniMax es un modelo congelado; no hay fine-tuning ni RLHF con datos de los usuarios de la plataforma.
+
+#### 3.7.6. Riesgos conocidos y mitigación
+
+| # | Riesgo | Mitigación |
+|---|---|---|
+| **R-IA1** | MiniMax cae o se vuelve inaccesible geográficamente | Degradación sin IA. Features que dependían de IA muestran "IA no disponible ahora, hazlo manual". |
+| **R-IA2** | Cambio regulatorio de México sobre IAs extranjeras | E10/E11 ya cubren el monitoreo. Plan de migración a modelo local open-source cuantizado (LLaMA/Mistral) es Fase 2 si necesario. |
+| **R-IA3** | Sesgo del modelo hacia ejemplos urbanos (MiniMax entrenado mayormente con datos generales) | Curar las 2 variantes base (urbana + rural) desde la app, no desde IA. La IA solo adapta, no inventa. |
+| **R-IA4** | Costo se dispara por uso inesperado | Rate limiting + cache + monitoring de costos en tiempo real (CloudWatch o equivalente). |
+| **R-IA5** | Fuga de datos por error de prompt engineering | Módulo `ia_anonymizer.py` único camino. Tests que verifican que ningún PII sale. Auditoría mensual de logs. |
+| **R-IA6** | Sesgos del modelo en contenido pedagógico (inventa PDA no oficiales) | Regla explícita en el prompt: "Solo adapta texto, NO inventes campos formativos ni PDA. PDA referenciados en el catálogo oficial." |
+
+#### 3.7.7. Validación antes de productivizar (criterio de cierre IA)
+
+Una feature con IA se considera **lista para MVP** solo cuando cumple estas cinco condiciones:
+
+1. **Output revisable.** La maestra puede editar o descartar.
+2. **No inventa.** La estructura (PDA, campos, ejes) viene del catálogo; la IA solo adapta texto.
+3. **Anónimo verificado.** El módulo `ia_anonymizer.py` testea que el log de la llamada NO contiene PII prohibido.
+4. **Costo unitario medible.** Con 1000 planeaciones/mes, el costo MiniMax por planeación < USD 0.05.
+5. **Latencia < 3s p95.** El 95% de las llamadas responde en menos de 3 segundos.
+
+#### 3.7.8. Relación con E5
+
+E5 (Análisis IA) reabre como **"Configuración MiniMax en producción"**. El entregable ahora es operacional, no de investigación: lista de configuración de API keys, rate limits configurados, monitor de costos, plan de fallback documentado.
+
 ### 3.5. CONTRATO CURRICULAR NEM — Lo que el PDF debe contener para ser válido
 
 El PDF exportado debe incluir **obligatoriamente** estas secciones (consenso SEP + guías manuales CTE + editoriales validadas):
@@ -483,6 +595,8 @@ La app necesita un **catálogo local** con:
 | Storage de evidencias | Supabase Storage (bucket privado) | Para bitácora, fotos |
 | Generación PDF | Server-side (Playwright o Puppeteer) | Formato NEM reconocible, adjunto a planeación |
 | PWA / offline | Service Worker + IndexedDB local | Bitácora offline (escuela sin señal) |
+| **IA integrada** | **MiniMax M3 (de la fundación MiniMax)** vía API compatible OpenAI-style. Ver §3.7 para features concretas y política de datos | Decisión estratégica v0.10. Única IA, sin fallback. Datos anonimizados. CERO datos de menores. |
+| **Módulo de anonimización** | `ia_anonymizer.py` server-side antes de cada llamada. Tests unitarios que verifican que ningún PII cruza | Compliance LFPDPPP 2025 |
 | Deploy | Vercel (frontend) + Supabase Cloud | Costo MVP mínimo |
 
 ### 6.1. Decisiones UX drag-and-drop (móvil primero)
@@ -525,7 +639,7 @@ Estos NO son parte del MVP, pero el MVP los **desbloquea**:
 | E2 | SPEC del módulo Director completo | Panel con revisión, comentarios, calendario agregado, alertas |
 | E3 | Catálogo NEM digitalizado | JSON estructurado de fases, campos, ejes, PDA — trabajo manual, 40-80h estimadas |
 | E4 | Compliance LFPDPPP 2025 | Análisis formal de qué datos se pueden tratar, bases legales, aviso de privacidad para IA futuro, exclusiones voluntarias documentadas |
-| E5 | Análisis IA | Qué casos de uso, qué límites, qué proveedor, costo por uso |
+| E5 | **Configuración MiniMax en producción** | Decisión v0.10: MiniMax M3 como IA única. Este entregable es operacional: API keys, rate limits, monitor de costos, plan de fallback documentado. Ver §3.7 para features concretas, política de datos y criterios de cierre. |
 | E6 | Modelo de datos formal | Diagrama ER + RLS policies + ciclo de vida |
 | E7 | Roadmap Fase 2 | Biblioteca comunitaria, analíticos, marketplace |
 | E8 | Plan de adopción | Cómo se consigue el primer usuario no-fundador |
@@ -550,6 +664,7 @@ Estos NO son parte del MVP, pero el MVP los **desbloquea**:
 8. **Fase 1 (educación inicial) sin programa sintético oficial.** Si se incluye en el MVP, debe etiquetarse como "extensión no oficial". Riesgo de credibilidad pedagógica si se exhibe como NEM-alineado.
 9. **Reforma Senado 26-dic-2025 sobre imagen/voz/datos de menores.** Prohíbe uso comercial sin consentimiento expreso escrito. No impacta MVP directamente (no hay datos de alumnos), pero documenta una restricción permanente para cualquier feature futura de seguimiento individual.
 10. **UX móvil — drag-and-drop impreciso.** Patrón documentado: drag con el dedo falla el 30-40% de las veces en pantallas pequeñas. Mitigación: botón "Agregar al día" como acción primaria en móvil, drag como secundario; haptic feedback y undo button.
+11. **IA MiniMax — transferencia internacional de datos.** Decisión de proveedor único (M3, servidor en China). LFPDPPP 2025 art. 36-38 requiere consentimiento expreso o excepción documentada. Mitigación: aviso de privacidad específico para IA + módulo `ia_anonymizer.py` que aplica reglas de ofuscación antes de cada llamada + tests automatizados. Ver §3.7.
 
 ---
 
