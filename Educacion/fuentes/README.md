@@ -28,6 +28,7 @@ fuentes/
 | 0.3 | `E14_CATALOGACION_AUTONOMA_FASE_2.md` | Especificación | Diseño del motor de catalogación autónoma para Fase 2 (preescolar). Pipeline de 4 capas: extracción PDF → validación humana → modelo relacional → carga en Supabase. Schema SQL objetivo definido. |
 | 0.4 | `ENT-001_REVISION_EXHAUSTIVA.md` | Checkpoint | Revisión exhaustiva del SPEC MVP v0.8.1 + Encuesta v2 antes de entrega a Lola. 22 hallazgos: 6 Alta (bloqueante), 9 Media, 7 Baja. Plan de resolución incluido. |
 | 0.5 | `E17_UX_COMO_DIFERENCIADOR.md` | Especificación | UX como diferenciador explícito: 10 principios P-UX1 a P-UX10, decisiones concretas (tipografía sistema, paleta 4 colores, iconos Lucide, sin gamificación), 6 tests de validación T-UX1 a T-UX6. Acompaña al SPEC §6.3. |
+| 0.6 | `E19_FORMULARIO_GOOGLE.md` | Operativo | Encuesta para tía Lola + colegas en formato Google Forms (27 preguntas + 7 condicionales, sin CCT/celular/nombre del director, anónima). Genera el Form en 5 min siguiendo los pasos del archivo, o usa la Opción B para generarlo automáticamente con Apps Script. Las respuestas quedan en Google Sheets, no en el repo. |
 
 ## 1. Inventario de archivos descargados
 
