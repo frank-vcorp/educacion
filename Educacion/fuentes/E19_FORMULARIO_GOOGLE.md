@@ -1,11 +1,79 @@
 # Google Form — Encuesta para maestros de NEM
 
-**Versión:** 0.1
+**Versión:** 0.2
 **Fecha:** 2026-08-13
-**Estado:** LISTO PARA CREAR
+**Estado:** ACTIVO — OPCIÓN C (prompt compacto 3501 chars)
 **Audiencia:** maestra de educación básica en México (preescolar, primaria, secundaria). Genérico para que Lola pueda compartir con colegas.
 **Política de datos:** SIN datos personales. SIN CCT. SIN nombre del director. SIN celular. Esto baja fricción y mantiene LFPDPPP-friendly.
 **Persistencia:** las respuestas NO se guardan en este repo. Solo el Google Sheet asociado al Form.
+
+**IMPORTANTE:** Gemini Workspace crea forms con UNA llamada por sesión. Si necesitas ampliar un form existente, exporta como JSON y úsalo con `@` en una nueva sesión (no se puede agregar preguntas en una segunda llamada directa).
+
+---
+
+## OPCIÓN C — RECOMENDADA — Un solo prompt ultra-compacto (3501 chars)
+
+Pega **todo este bloque de una sola vez** en Gemini Workspace. Resultado: el form completo, listo para enviar.
+
+```
+Crea Google Form "Tu forma de planear" descripción "Encuesta anónima NEM. Cero datos personales". Sin email, con progress bar.
+
+Q1 [Multiple, required] ¿En qué nivel das clases? Opciones: Preescolar|Primaria|Secundaria|Otro
+Q2 [Multiple, required] ¿Años dando clases? Opciones: Menos de 5|Entre 5 y 15|Más de 15
+Q3 [Multiple, required] ¿Cuántos alumnos por grupo? Opciones: 1-15|16-25|26-35|Más de 35
+Q4 [Multiple, required] ¿Dónde planeas? Opciones: En casa de noche con celular|En casa con laptop|En la escuela antes/después de clase|En la escuela en recesos|Otro
+Q5 [Text, optional] (Si Q4=Otro) Especifíca:
+Q6 [Multiple, required] ¿Cada cuánto entregas planeación? Opciones: Cada semana|Cada quince días|Cada mes|Cuando me la piden|Otro
+Q7 [Text, optional] (Si Q6=Otro) Especifíca:
+Q8 [Multiple, required] ¿Cuánto te toma UNA planeación? Opciones: Menos de 1 hora|Entre 1 y 3 horas|Entre 3 y 6 horas|Más de 6 horas|No me quiero acordar
+Q9 [Multiple, required] ¿Cómo la entregas? Opciones: Impresa en papel|Por correo electrónico|Por WhatsApp|Subida a alguna plataforma|Otro
+Q10 [Text, optional] (Si Q9=Otro) Especifíca:
+Q11 [Multiple, required] ¿El director te regresa con cambios? Opciones: Sí, casi siempre|A veces, pero no muchas|Casi nunca|Nunca, tal cual
+Q12 [Paragraph, required] ¿Qué parte te quita más tiempo o frustra?
+Q13 [Multiple, required] ¿Usas el "núcleo" SEP? Opciones: Sí, siempre|A veces las consulto|Conozco pero no las sigo|No las conozco bien|Otra
+Q14 [Multiple, required] ¿Útil que esos núcleos ya estuvieran cargados como bloques arrastrables? Opciones: Sí, ahorraría mucho tiempo|Tal vez, habría que verlo|No, prefiero escribir todo|No sé qué quieres decir
+Q15 [Multiple, required] ¿Relación con campos formativos? Opciones: Lo tengo claro y no me cuesta|Lo pienso cada vez|Por cumplir formato|Se me complica
+Q16 [Multiple, required] ¿Tomas notas post-clase? Opciones: Sí, en cuaderno|Sí, a veces|En una hoja y la pierdo|No, en mi cabeza|Otro
+Q17 [Multiple, required] ¿Cuánto te toma? Opciones: Menos de 1 minuto|1-5 minutos|5-15 minutos|Más de 15|No tomo notas|Otro
+Q18 [Multiple, required] ¿Reportas evidencias a alguien? Opciones: Sí, al director|Sí, a supervisión|Sí, a papás|No|Otro
+Q19 [Multiple, required] ¿Olvidas temas después de semanas? Opciones: Sí, muchas veces|Sí, a veces|Pocas veces|No
+Q20 [Paragraph, optional] ¿Qué te ayudaría a no perder esa info?
+Q21 [Multiple, required] Comodidad con celular Opciones: Muy cómoda|Solo lo básico|Me cuesta, prefiero papel|Solo llamadas/WhatsApp
+Q22 [Multiple, required] Datos móviles en escuela Opciones: Sí, siempre|A veces se cae|No, casi nunca
+Q23 [Multiple, required] ¿App actual? Opciones: Sí, específica|Solo guardar archivos|No, Word/PDF|No, a mano
+Q24 [Checkbox, required] Usarías app de bloques si Opciones: Me ahorra tiempo real|Es bonita|El director la aceptara|No tengo que aprender mucho|Sirve sin internet|Otra
+Q25 [Multiple, required] ¿Director revisa o archiva? Opciones: Revisa y retroalimenta|La pasa sin revisar|Solo archiva|Depende
+Q26 [Multiple, required] ¿Pagas de tu bolsa? Opciones: Sí, bastante|Sí, lo mínimo|Poca cosa|No, cubre escuela
+Q27 [Multiple, required] ¿Pagarías $300 MXN/mes si ahorra 3-4 h? Opciones: Sí, sin pensarlo|Tal vez|Probablemente no|No, yo no pago|Otra
+Q28 [Paragraph, optional] ¿Otro(a) maestro(a) que pueda contestar?
+Q29 [Paragraph, optional] ¿Algo más?
+
+Confirmación al enviar: "¡Gracias! Tu respuesta quedó registrada. Pásale a otro(a) colega."
+
+Devuelve SOLO el link.
+```
+
+**Tamaño:** 3501 caracteres (cabe holgadamente en 5000).
+**Resultado:** 29 preguntas, todas las reglas aplicadas (sin email, sin CCT, sin datos personales).
+
+---
+
+## Cómo ampliar un form existente con Gemini (si necesitas agregar preguntas después)
+
+1. Ve a Google Forms → abre el form → ⋮ menú → **"Download responses to CSV"** (o usa las opciones de descarga).
+2. Opcional: descarga también el form como archivo `.zip` desde Drive (clic derecho → Download).
+3. En una **nueva sesión de Gemini**, escribe:
+
+```
+Tengo este form exportado de Google Forms. Quiero agregar las siguientes preguntas al final, sin tocar las existentes. Usa el archivo adjunto como base.
+
+@archivo_form.zip
+
+Preguntas a agregar:
+Q30 [Multiple, required] ...
+```
+
+4. Gemini **NO puede editar forms creados por Gemini directamente**, pero sí puede generar el JSON de configuración. Una alternativa es: Gemini te genera las preguntas en JSON y tú las pegas manualmente al form abierto en Google Forms (click en cada sección → agregar pregunta).
 
 ---
 
