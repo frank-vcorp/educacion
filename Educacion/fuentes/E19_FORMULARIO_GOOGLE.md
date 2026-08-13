@@ -203,19 +203,20 @@ Esta primera sección no pide nombre ni email ni CCT. Solo características prof
 
 ### Pregunta 13
 **Tipo:** Múltiple choice · obligatoria
-**Pregunta:** ¿Usas el "núcleo" o las actividades que la SEP publica para cada tema?
-**Ayuda:** El "núcleo" SEP es el contenido/base oficial que la SEP publica como guía para los PDA del Plan 2022.
+**Pregunta:** Cuando planificas una clase, ¿te basas en lo que viene en los Programas Sintéticos o Planes de la SEP (los PDFs que manda la SEP con los PDA por campo formativo)?
+**Ayuda:** Ejemplos concretos: "Lenguajes preescolar Fase 2", "Saberes y Pensamiento Científico primaria Fase 3", o el cuadernillo "Programa sintético Fase X" que llega al inicio del ciclo. Esto es lo que la SEP llama "PDA" (Procesos de Desarrollo de Aprendizaje) y antes le decían "núcleo" o "contenido esperado".
 **Opciones:**
 - Sí, siempre me baso en eso
-- A veces las consulto
-- Las conozco pero no las sigo al pie de la letra
-- No las conozco bien / se me dificulta encontrarlas
+- A veces los consulto
+- Los conozco pero no los sigo al pie de la letra
+- No los conozco bien / se me dificulta encontrarlos
+- No estoy segura de qué son / nunca los he visto
 - Otra
 
 ### Pregunta 14
 **Tipo:** Múltiple choice · obligatoria
-**Pregunta:** ¿Te sería útil que esos núcleos ya estuvieran cargados en una herramienta y tú solo armaras la clase con ellos (como "bloques" para arrastrar)?
-**Ayuda:** Imagina que abres una herramienta y los núcleos ya están ahí, solo arrastras los que aplican y los acomodas.
+**Pregunta:** ¿Te sería útil que los PDA de los Programas Sintéticos ya estuvieran cargados en una herramienta, y tú solo armaras la clase con ellos (como "bloques" para arrastrar)?
+**Ayuda:** Imagina que abres una herramienta y los PDA ya están ahí, solo arrastras los que aplican a tu clase.
 **Opciones:**
 - Sí, eso me ahorraría mucho tiempo
 - Tal vez, habría que verlo

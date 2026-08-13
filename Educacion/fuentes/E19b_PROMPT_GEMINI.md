@@ -46,8 +46,8 @@ Q9 [Multiple, required] ¿Cómo la entregas? Opciones: Impresa en papel|Por corr
 Q10 [Text, optional] (Si Q9=Otro) Especifíca:
 Q11 [Multiple, required] ¿El director te regresa con cambios? Opciones: Sí, casi siempre|A veces, pero no muchas|Casi nunca|Nunca, tal cual
 Q12 [Paragraph, required] ¿Qué parte te quita más tiempo o frustra?
-Q13 [Multiple, required] ¿Usas el "núcleo" SEP? Opciones: Sí, siempre|A veces las consulto|Conozco pero no las sigo|No las conozco bien|Otra
-Q14 [Multiple, required] ¿Útil que esos núcleos ya estuvieran cargados como bloques arrastrables? Opciones: Sí, ahorraría mucho tiempo|Tal vez, habría que verlo|No, prefiero escribir todo|No sé qué quieres decir
+Q13 [Multiple, required] Cuando planificas una clase, ¿te basas en lo que viene en los Programas Sintéticos o Planes de la SEP (los PDFs que manda la SEP con los PDA por campo formativo)? Opciones: Sí, siempre me baso en eso|A veces los consulto|Los conozco pero no los sigo al pie de la letra|No los conozco bien / se me dificulta encontrarlos|No estoy segura de qué son / nunca los he visto|Otra
+Q14 [Multiple, required] ¿Te sería útil que los PDA de los Programas Sintéticos ya estuvieran cargados en una herramienta, y tú solo armaras la clase con ellos (como bloques para arrastrar)? Opciones: Sí, eso me ahorraría mucho tiempo|Tal vez, habría que verlo|No, prefiero escribir todo desde cero|No sé qué quieres decir
 Q15 [Multiple, required] ¿Relación con campos formativos? Opciones: Lo tengo claro y no me cuesta|Lo pienso cada vez|Por cumplir formato|Se me complica
 Q16 [Multiple, required] ¿Tomas notas post-clase? Opciones: Sí, en cuaderno|Sí, a veces|En una hoja y la pierdo|No, en mi cabeza|Otro
 Q17 [Multiple, required] ¿Cuánto te toma? Opciones: Menos de 1 minuto|1-5 minutos|5-15 minutos|Más de 15|No tomo notas|Otro
