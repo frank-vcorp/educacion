@@ -203,14 +203,13 @@ Esta primera sección no pide nombre ni email ni CCT. Solo características prof
 
 ### Pregunta 13
 **Tipo:** Múltiple choice · obligatoria
-**Pregunta:** Cuando planificas una clase, ¿te basas en lo que viene en los Programas Sintéticos o Planes de la SEP (los PDFs que manda la SEP con los PDA por campo formativo)?
-**Ayuda:** Ejemplos concretos: "Lenguajes preescolar Fase 2", "Saberes y Pensamiento Científico primaria Fase 3", o el cuadernillo "Programa sintético Fase X" que llega al inicio del ciclo. Esto es lo que la SEP llama "PDA" (Procesos de Desarrollo de Aprendizaje) y antes le decían "núcleo" o "contenido esperado".
+**Pregunta:** ¿Conoces los nuevos contenidos que la SEP publicó con el Plan 2022 ("Programas Sintéticos" o "PDA" — los cuadernillos que llegaron al inicio del ciclo 2023-2024)?
+**Ayuda:** Si te suenan陌生的 los términos "Programa Sintético", "PDA" o "Plan 2022", probablemente no los has visto. La SEP los llama formalmente así; antes (en Planes 2011/2017) les decían "aprendizajes esperados" o "estándares". Si nunca los has hojeado, marca la opción que aplica — no es una pregunta con trampa, solo queremos saber hasta dónde los conoces.
 **Opciones:**
-- Sí, siempre me baso en eso
-- A veces los consulto
-- Los conozco pero no los sigo al pie de la letra
-- No los conozco bien / se me dificulta encontrarlos
-- No estoy segura de qué son / nunca los he visto
+- Sí, los conozco y los uso al planear
+- Sí los conozco pero no los sigo al pie de la letra
+- Me suenan vagamente pero no los he leído con calma
+- No, no los conozco / nunca los he visto
 - Otra
 
 ### Pregunta 14
@@ -225,13 +224,14 @@ Esta primera sección no pide nombre ni email ni CCT. Solo características prof
 
 ### Pregunta 15
 **Tipo:** Múltiple choice · obligatoria
-**Pregunta:** ¿Cómo relacionas cada clase con los "campos formativos" (Lenguajes, Saberes y Pensamiento Científico, Ética, Naturaleza y Sociedades, De lo Humano y lo Comunitario)?
-**Ayuda:** Los 4 campos formativos son el corazón del Plan 2022 NEM. Cada clase se vincula a uno o varios.
+**Pregunta:** ¿Cómo relacionas cada clase con los "campos formativos" del Plan 2022? (Lenguajes / Saberes y Pensamiento Científico / Ética, Naturaleza y Sociedades / De lo Humano y lo Comunitario).
+**Ayuda:** Los campos formativos son las 4 grandes áreas del Plan 2022: Lenguajes, Saberes y Pensamiento Científico, Ética/Naturaleza/Sociedades, y De lo Humano y lo Comunitario. Si nunca los has visto, marca la última opción — son los 4 "cascos" del Plan 2022 que agrupan los PDA.
 **Opciones:**
 - Lo tengo claro y no me cuesta
 - Lo tengo que pensar o buscar cada vez
 - Lo pongo más por cumplir el formato que por convicción
 - Se me complica
+- No conozco los campos formativos / no sabía que el Plan 2022 los tenía
 
 ---
 
