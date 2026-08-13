@@ -1,9 +1,9 @@
 # SPEC MVP — MÓDULO DOCENTE
 
-**Versión:** 0.6 — añadido E14 (Catalogación Autónoma Fase 2 — Preescolar)
+**Versión:** 0.8.1 — añadida nota sobre M5 parcial. M1-M4 cerradas, M5 cerrada de arquitectura, **detalles UX del portal director pendientes de validación con tía Lola (ex-directora) + 1-2 directores adicionales**. Encuesta ampliada con bloque 8 (director).
 **Fecha:** 2026-08-13
 **Estado:** ESPECIFICACIÓN PARTICULAR #1 (la primera a detallar)
-**Origen:** Discovery con fundador (3 rondas, 12 decisiones cerradas) + ronda de investigación profunda (NEM oficial, LFPDPPP 2025, mercado edtech MX, UX drag-and-drop) + investigación sobre contrato curricular oficial de la planeación NEM (elementos obligatorios SEP) + análisis de cadencia real de cambios normativos 2022-2026 + diseño del Monitor de Vigilancia + diseño del motor de catalogación de contenidos preescolar
+**Origen:** Discovery con fundador (3 rondas, 12 decisiones cerradas) + ronda de investigación profunda (NEM oficial, LFPDPPP 2025, mercado edtech MX, UX drag-and-drop) + investigación sobre contrato curricular oficial de la planeación NEM (elementos obligatorios SEP) + análisis de cadencia real de cambios normativos 2022-2026 + diseño del Monitor de Vigilancia + diseño del motor de catalogación de contenidos preescolar + iteración de diseño de la planeación (M1-M3) basada en diferenciación vs Kumu
 **Alineado a:** `plataforma_nem_concepto_maestro.md` (documento maestro, intacto)
 **Protocolo de mantenimiento:** ver `fuentes/E10_PROTOCOLO_SINCRONIZACION_NORMATIVA.md`
 **Diseño del monitor de vigilancia:** ver `fuentes/E11_MONITOR_VIGILANCIA_NORMATIVA.md`
@@ -17,7 +17,17 @@
 
 Esto se traduce operativamente en que **el MVP integra el flujo completo**: planeación → entrega al director → clase → bitácora → evidencia → reporte del grupo. No termina cuando el maestro exporta un PDF.
 
-**Por qué importa:** Kumu (kumu.la) — competidor directo en México — ya hace planeación NEM con IA + biblioteca + Kumu Familiar + calendario. Kumu **no** integra el flujo post-exportación. Ese ciclo es el **moat**.
+**Diferenciación concreta vs Kumu (kumu.la):**
+
+| Kumu / otros generadores | Nuestra propuesta (M1-M5) |
+|---|---|
+| IA redacta bloques desde cero cada vez | **M1 — Bloques componibles** de catálogo curado (PDA oficial atado) |
+| Problema del contexto: requisito burocrático al final | **M2 — Problema del contexto primero**, contextualizado a la zona del CCT |
+| Calendario vacío hasta que arrastras uno a uno | **M3 — Vista mensual proactiva** que te dice qué falta sin obligarte |
+| Maestro escribe todo desde cero (ejemplos urbanos para todos) | **M4 — Ensamblaje de características de la escuela** (configurativo, no identitario) que adapta el banco de bloques |
+| "Generar PDF y enviar por WhatsApp" | **M5 (arquitectura cerrada) — Entrega real al director** vía URL firmada + OTP WhatsApp; **UX concreta del portal director pendiente** de validar con director real |
+
+Kumu **no** integra el flujo post-exportación. Ese ciclo es el **moat**.
 
 ---
 
@@ -79,32 +89,48 @@ Sin login social complejo. Sin pagos. Sin IA generativa. Sin alumnos ni padres n
 
 ## 3. FLUJOS FELICES (los únicos que importan en MVP)
 
-### Flujo A: Crear un proyecto o situación (NEM)
+> **Importante v0.7:** los flujos integran las mejoras M1-M3. M2 redefine el orden: el Flujo A empieza por la realidad del CCT-zona, no por la materia.
+
+### Flujo A: Crear un proyecto o situación (NEM) — con M2 y M1
 1. Docente abre app → vista de proyectos (lista de proyectos/situaciones propios).
 2. Click en "Nuevo proyecto/situación" → primero debe elegir **unidad didáctica**: `situación de aprendizaje` (preescolar) | `proyecto` (primaria/sec) | `unidad didáctica` | `sesión`.
-3. Captura los **elementos curriculares obligatorios** (validados por la app):
-   - Nombre del proyecto
-   - Problema del contexto (campo obligatorio, no acepta vacío)
-   - Propósito
-   - 1-4 campos formativos (selector; advertencia si solo 1 en primaria/sec)
-   - 1+ ejes articuladores (selector)
-   - 1+ PDA (selector del catálogo)
-   - Contenido (del catálogo o texto libre)
-   - **Producto integrador** (obligatorio: texto breve de qué entregarán los alumnos al final)
-4. App genera **plantilla de bloques** vacía: `inicio | desarrollo | cierre`, con número de sesiones configurable.
-5. Docente arrastra **bloques pre-armados** del catálogo NEM al inicio, desarrollo y cierre.
-6. Cada bloque se enlaza a un campo formativo y un PDA del proyecto.
-7. Guarda → el proyecto queda en su banco personal.
-8. Tiempo objetivo: **< 10 min** para un proyecto completo (vs. 4-6 horas actuales en una planeación completa).
+3. **(M2) Pantalla "Empezar por tu realidad":** pregunta inicial *"¿Qué está pasando en tu comunidad este mes que te gustaría convertir en aprendizaje para tus niños?"*. Apoyan 2 affordances:
+   - Banco de **situaciones típicas** contextualizado por **CCT-zona** (5-10 por zona, curadas; cambiar la maestra puede).
+   - Caja blanca editable "o escribe la tuya" — **siempre protagonista**, sea o no zona conocida.
+   - Opción "Subir foto del patio" — placeholder para IA multimodal futura.
+4. Una vez elegida la situación, **cascada en cascada**:
+   - App sugiere 2-3 **campos formativos** naturalmente conectados a esa situación.
+   - Sugiere 2-3 **PDA** probables.
+   - Sugiere un **producto integrador** posible.
+   - **TODO EDITABLE** — esto es punto de partida, no camisa de fuerza.
+5. La maestra confirma nombre del proyecto, problema del contexto (validado no-vacío), propósito, campos formativos (≥1 preescolar; ≥2 primaria/sec), ejes (≥1), PDA (≥1), contenido, producto integrador (obligatorio).
+6. App genera **plantilla de bloques** vacía: `inicio | desarrollo | cierre`, con número de sesiones configurable.
+7. **(M1)** Docente arrastra bloques pre-armados del **catálogo curado** al inicio, desarrollo y cierre. Cada bloque lleva atado su PDA y ejes del catálogo oficial NEM.
+8. **(M1 — 3 niveles de flexibilidad por bloque):**
+   - **Cerrado** (estructura + contenido sugerido): arrastra y listo.
+   - **Abierto** (estructura + tema sugerido): arrastra y reescribe.
+   - **En blanco** (solo estructura vacía con PDA pre-asignado): arrastra y escribe todo.
+9. La maestra **puede crear bloques personalizados** "+ Bloque nuevo" → elige tipo y PDA → escribe lo suyo → guarda en su banco personal.
+10. Guarda → el proyecto queda en su banco personal.
+11. Tiempo objetivo: **< 15 min** para un proyecto completo (vs. 4-6 horas actuales en una planeación completa).
 
-### Flujo B: Componer planeación (drag-and-drop)
+### Flujo B: Componer planeación (drag-and-drop) — con M3
 1. Docente abre vista calendario del mes (preescolar) o semana (primaria/sec).
-2. Las celdas muestran **los proyectos/situaciones programados**, no "clases sueltas" como en versiones iniciales de este SPEC.
-3. Arrastra proyectos a celdas (o usa el botón "Agregar" en móvil).
-4. Duplica, mueve entre días, elimina.
-5. Click "Exportar PDF" → genera documento con **formato NEM completo** (ver §3.5): datos generales, elementos curriculares, secuencia por sesiones, evaluación formativa, ajustes razonables, firma y visto bueno.
-6. Click "Entregar al director" → el PDF se publica en su panel (en MVP: solo visibilidad).
-7. Tiempo objetivo: **< 5 min** para calendarizar + exportar (sumado al Flujo A: ~15 min para una planeación mensual completa vs. 4-6 horas actuales).
+2. **(M3) El calendario muestra código de colores por estado:**
+   - █ Verde: día con proyecto completo (>80% bloques cubiertos).
+   - ▓ Amarillo: día con proyecto pero pocos bloques.
+   - ★ Rojo: día con actividad sin proyecto definido.
+   - ░ Gris: día vacío (con sugerencia discreta del banco CCT-zona).
+3. **(M3) Resumen "qué te falta":**
+   - "Te faltan X sesiones para llegar al mínimo NEM (185 días)."
+   - "Tienes Y días sin proyecto definido."
+4. **(M3) Sugerencias contextuales** — máximo 1 activa por sesión, tono discreto, sin contar regresivamente.
+5. **(M3) Comparación con meses anteriores** — **interruptor on/off en Ajustes** (default OFF). La frase: *"Mostrar comparación con meses anteriores"*.
+6. Arrastra proyectos a celdas (o usa el botón "Agregar" en móvil).
+7. Duplica, mueve entre días, elimina.
+8. Click "Exportar PDF" → genera documento con **formato NEM completo** (ver §3.5): datos generales, elementos curriculares, secuencia por sesiones, evaluación formativa, ajustes razonables, firma y visto bueno.
+9. Click "Entregar al director" → el PDF se publica en su panel (en MVP: solo visibilidad).
+10. Tiempo objetivo: **< 5 min** para calendarizar + exportar (sumado al Flujo A: ~20 min para una planeación mensual completa vs. 4-6 horas actuales).
 
 ### Flujo C: Bitácora rápida (celular)
 1. Docente abre app → click "Bitácora de hoy".
@@ -121,6 +147,228 @@ Sin login social complejo. Sin pagos. Sin IA generativa. Sin alumnos ni padres n
 2. Click → visualiza el PDF generado por el maestro + resumen de elementos curriculares: campos formativos, PDA cubiertos, producto integrador, ajustes razonables.
 3. Marca como "recibido" / "comentario simple".
 4. **NO hay edición ni flujo de aprobación formal.** Esto es producto de transición al siguiente entregable.
+
+### 3.6. MEJORAS M1-M5 (detalle de diseño)
+
+#### M1 — Bloques pre-armados componibles
+
+**Concepto:** "Lego pedagógico" — piezas conTAXONOMÍA FIJA (PDA, ejes, tipo, fase) pero CONTENIDO FLEXIBLE (la maestra edita o reescribe).
+
+| Atributo del bloque | Quién decide |
+|---|---|
+| Forma del bloque (tipo, estructura, duración estimada) | El sistema (catálogo fijo) |
+| PDA, ejes, campo formativo, fase | El sistema (PDA atado al catálogo oficial DOF) |
+| Contenido textual sugerido | El sistema (lenguaje pedagógico validado) |
+| Reescritura de contenido | La maestra |
+| Creación de bloques personalizados en blanco | La maestra |
+
+**Tamaño del catálogo estimado (Fase 2 MVP):**
+- ~150 bloques: 4 campos × 5 tipos × ~7 variantes + transversales.
+- Tamaño real se define tras el OCR del PDF (ver E14 + agente `catalogo-ocr-fase2`).
+
+**3 niveles de flexibilidad por bloque (visualizado con icono):**
+
+| Icono | Nivel | Comportamiento |
+|---|---|---|
+| 🔒 | Cerrado | Estructura + contenido sugerido, editable pero "listo" |
+| 🔓 | Abierto | Estructura + tema sugerido, contenido editable |
+| ✏️ | En blanco | Solo estructura + PDA atado, contenido 100% de la maestra |
+
+**Por qué NO se usa IA generativa para redactar bloques:**
+- Alineación NEM verificable (PDA atado a fuente oficial).
+- Tiempo predecible (arrastrar 12 bloques < leer/editar 12 bloques IA).
+- Autoría de la maestra permanece.
+- IA entra SOLO como variante futura ("genera variante corta de [bloque X] para zona rural de Oaxaca").
+
+#### M2 — Problema del contexto primero, contextualizado por CCT-zona
+
+**Concepto:** la maestra empieza mirando su realidad, no la materia.
+
+**Decisión clave:** entrada por **CCT (Clave de Centro de Trabajo, 10 dígitos SEP)**, NO por GPS. Razón:
+- CCT es dato público SEP (no es dato personal LFPDPPP).
+- CCT dice la verdad: la maestra puede vivir lejos y dar clases en zona distinta.
+- CCT identifica estado + municipio + nivel + turno automáticamente.
+
+**Pipeline CCT → banco contextual:**
+1. La maestra escribe su CCT al registrarse (lo carga en su credencial, lo conoce de memoria).
+2. Catálogo local `cct_zona.json` mapea CCT → {estado, municipio, zona_tipo, nivel, turno}.
+3. Si la CCT está en el catálogo: mostrar banco de 5-10 situaciones típicas curadas para ESA zona.
+4. Si la CCT no está: fallback a banco genérico + énfasis en "escribe la tuya".
+
+**Estructura del banco de situaciones (inicial):**
+
+| Temporada | Situaciones típicas (rural Hidalgo) | Situaciones típicas (urbana CDMX) |
+|---|---|---|
+| Ago-Sep | Inicio de ciclo, migración, lengua | Nuevo grupo, calor urbano, multiculturalidad |
+| Oct-Nov | Día de muertos, milpa, frío | Contaminación, estiaje, festividades |
+| Dic | Posadas, frío extremo | Frío urbano, vacaciones, desigualdad visible |
+| Ene-Feb | Sequía, heladas, tequio | Regreso a clases, gripe estacional |
+| Mar-Abr | Calor extremo, agua escasa | Calor urbano, polen, alergias |
+| May-Jun | Lluvias torrenciales, calor | Lluvias + encharcamientos, fin de ciclo |
+
+**Privacidad y datos sensibles:**
+- La CCT no es dato personal (es identificador público SEP).
+- La zona del CCT tampoco es dato personal.
+- **No almacenar GPS** ni ubicación del dispositivo.
+- Cumplimiento LFPDPPP 2025 mantenido.
+
+**Investigación pendiente** (worktree `ct-research-cct-zona`): buscar dataset público SEP/datos.gob.mx que mapee CCT → zona rural/urbana/indígena. Si existe, el catálogo `cct_zona.json` se llena en 1h; si no, se cura manualmente con 50 CCTs founder-friendly.
+
+#### M3 — Vista mensual proactiva con interruptor y reglas duras
+
+**Concepto:** el calendario te dice qué tienes y qué te falta, **sin culparte ni obligarte**.
+
+**Vista principal del calendario (código de colores):**
+
+| Estado | Color | Significado |
+|---|---|---|
+| Día con proyecto completo (>80% bloques cubiertos) | Verde | Estado OK |
+| Día con proyecto pero pocos bloques | Amarillo | Atención moderada |
+| Día con actividad sin proyecto definido | Rojo | Malestar típico del modelo viejo |
+| Día vacío | Gris | Hueco honesto + sugerencia discreta |
+
+**Funcionalidades pull (la app sugiere, la maestra confirma):**
+1. Resumen "qué te falta" automático (sesiones vs. mínimo NEM 185 días).
+2. Sugerencias contextuales del banco CCT-zona para días vacíos (link a M2).
+3. Comparación con meses anteriores — **con interruptor on/off en Ajustes, default OFF** (decisión T6 del founder).
+4. Botón "Planificar mes completo" — genera esqueleto basado en banco de zona + catálogo de bloques + calendario escolar + pendientes del mes anterior.
+
+**Reglas duras para evitar saturación y ansiedad (decisión T7 del founder):**
+- **Máximo 1 sugerencia activa por sesión.** Si la maestra aceptó/rechazó, no aparece otra hasta dentro de 3 días.
+- **Tono discreto.** Frases tipo *"Si quieres explorar más opciones, está este banco contextual"* — sin contador rojo, sin "te faltan X días" en formato tarea-pendiente.
+
+**Anti-features explícitas:**
+- ❌ NO llena días automáticamente sin OK de la maestra.
+- ❌ NO rellena con "actividad complementaria" genérica.
+- ❌ NO exige cubrir N sesiones por mes (lo decide la CCT/escuela).
+
+#### M4 — Ensamblaje de características de la escuela (configurativo, no identitario)
+
+**Concepto:** la realidad de cada escuela no es un "perfil cerrado" sino una **combinación de características ensamblables**. La maestra configura SU realidad con checkboxes/sliders; la app filtra y adapta el banco de bloques y los ejemplos.
+
+**Decisión clave (refutación del founder):** NO usar perfiles cerrados tipo "rural / urbana / indígena / multigrado". Esos perfiles imponen etiquetas inexactas y congelan la identidad. La realidad es **ensamblable** y modificable en cualquier momento.
+
+**Catálogo inicial de características configurables:**
+
+| Eje | Características (ejemplos) |
+|---|---|
+| **Contexto geográfico** | Ubicación (ciudad/pueblo/ejido/comunidad/otro) · Servicios (agua estable/por pipa, luz estable/intermitente/sin luz, internet sí/no) · Idiomas en el aula (solo español / español + L1 indígena / multilingüe) |
+| **Perfil del grupo** | Tamaño (5-10 / 11-20 / 21-30 / 31-40 / 40+) · Niveles (unigrado / multigrado 2 / multigrado 3) · Edades · Inclusión (NEE transitoria / NEE permanente / L1 indígena / sin NEE) |
+| **Recursos disponibles** | Materiales (reciclados / comprados / donados / limitados / abundantes) · Tecnología (sin dispositivos / solo docente / alumnos / aula digital) · Espacio exterior (patio grande / pequeño / sin patio / campo abierto) |
+| **Contexto familiar-comunitario** | Familias (presentes / ausentes por trabajo / extensas / trabajo informal / asalariado) · Realidades a integrar (festividades / L1 indígena / migración / agrícola / servicios) |
+
+**Comportamiento de la app:**
+
+- Los **bloques del catálogo M1 (~150)** llevan metadatos `caracteristicas_requeridas: []` y `caracteristicas_incompatibles: []`.
+- Si la maestra tiene todas las características requeridas: bloque en banco principal.
+- Si le falta 1: bloque en "alternativos con adaptador" (texto adaptado).
+- Si le faltan 2+: bloque en "no aplica — ¿forzar?" (con warning).
+- **Siempre editable**: la maestra puede cambiar su configuración en cualquier momento.
+
+**Variantes del mismo bloque por contexto (no es etiqueta, es adaptación local):**
+
+| Contexto | Apertura "El agua que cae del cielo" — ejemplo |
+|---|---|
+| **Urbana CDMX** | "¿Por qué en temporada de lluvias el agua de la calle baja sucia al drenaje?" · Saberes desde balcón · Conexión con plantas del balcón · Cuaderno y colores |
+| **Rural Hidalgo** | "¿Por qué cuando llueve en tu pueblo se lleva la tierra del cerro?" · Saberes desde el patio · Conexión con plantas de la escuela · Piedras, tierra, cubeta |
+| **Plurilingüe Chiapas tsotsil** | K'usi k'alal chalel chuva ta sjabil 'oxib (¿qué pasa cuando llueve en la milpa?) · Saberes del trabajo en milpa con papás · Conexión con maíz-frijol-calabaza · Hojas de milpa, semillas |
+
+**Misma estructura pedagógica NEM, distinta manifestación local.**
+
+**Anti-features explícitas:**
+
+- ❌ **NO usamos perfiles cerrados como categorías identitarias.**
+- ❌ **NO asumimos nada desde CCT.** Las características son DECLARATIVAS, no inferidas (la CCT sólo sugiere zona en M2).
+- ❌ **NO usamos lenguaje jerárquico.** No "escuela pobre" → "con menos recursos materiales". No "escuela indígena" → "contexto cultural propio, posiblemente plurilingüe".
+- ❌ **NO etiquetamos permanentemente** a la maestra con su configuración. Es solo filtro, no identidad.
+
+**Tensiones abiertas (T13-T16) y cómo se manejan en MVP:**
+
+- **T13 — Curaduría multilingüe y pluricultural.** Resolución: el MVP arranca con 1 variante por bloque (la versión urbana CDMX estándar). Las variantes rurales y plurilingües crecen con la red de maestras fundadoras. MVP no pretende cubrir 4 realidades completas desde día 1.
+- **T14 — Configuración incorrecta.** Resolución: la app muestra el "por qué" de cada sugerencia y permite editar la configuración en cualquier momento.
+- **T15 — Cero-configuración vs fricción.** Resolución: el default se pre-carga con base en M2 (CCT-zona), la maestra puede editar en 1 click, no es cero-configuración pero sí pre-inicializada.
+- **T16 — Traducción a L1 indígena.** Resolución: NO incluida en MVP. Documentada como Fase 2 con red de traductoras nativas; no traducir automáticamente (riesgo de mala calidad).
+
+**Configuración de la escuela en el Flujo A:**
+
+La sección de "tu escuela en sus propias palabras" se coloca al inicio del Flujo A (después del CCT y antes del problema del contexto), permitiendo que cuando la maestra llegue al banco de bloques M1 ya esté filtrado por su realidad.
+
+#### M5 — Entrega real al director (diseño ARQUITECTÓNICO cerrado; UX específica del portal director PENDIENTE de validación con director real)
+
+**Concepto:** la entrega de la planeación no se pierde en un WhatsApp. Queda como un objeto verificable, con URL firmada que el director abre sin registro y puede marcar/comentar; si decide registrarse, lo hace con OTP por WhatsApp al celular que la maestra usó para llegar a él (prueba cruzada de identidad).
+
+**Estado del diseño (v0.8.1):**
+- **Arquitectura cerrada:** flujo de URL firmada + OTP WhatsApp + acciones pre-registro + registro formal + portal director.
+- **UX específica del portal director PENDIENTE:** las features concretas del panel ("vista agregada de los 5 maestros", "generador de minuta", "consolidación para supervisor", etc.) se diseñan DESPUÉS de validar con tía Lola (ex-directora) y 1-2 directores adicionales — sus respuestas a las preguntas D1-D20 de la `Encuesta_Tia_Lola.md` v2 §8.
+
+**Por qué se pausó la UX del portal:** el founder (en esta sesión) identificó que el panel director tiene que hacer tareas que NO conozco con certeza (consolidación, reporte a supervisión, gestión de CTE, etc.). Diseñar sin validar sería clonar prácticas que el fundador no comprende — riesgo de construir features que ningún director mexicano quiere.
+
+**Próximo paso:** bloquear la arquitectura en el SPEC MVP; abrir un nuevo entregable E2 (Módulo Director) cuyo UX se construye sobre las respuestas reales a la encuesta.
+
+##### Arquitectura cerrada (v0.8.1):
+
+**Acción primaria:** botón "Entregar al director" en el flujo de la maestra. Genera:
+1. PDF final guardado en estado `entregada` con timestamp + hash.
+2. **URL firmada única** para esta entrega: `https://app.dominio.com/v/<entrega_id>?token=<jwt>` con expiración a 30 días (configurable).
+3. Botones de compartir: [Copiar] + [WhatsApp pre-armado] + [QR].
+
+**Mensaje pre-armado de WhatsApp (T24 — editable por la maestra, sugerido como default):**
+
+> *"Hola director(a) [nombre]. Te paso mi planeación de [mes]. La abres con este link directo: [URL]. Si quieres registrarte en la plataforma para recibir las próximas planeaciones de tus maestros sin que te las manden por aquí, este es el portal: [URL pública plataforma]. Sin costo."*
+
+**Pantalla del director SIN registrarse** (al abrir la URL firmada):
+
+- Header: logo + nombre del maestro + escuela + CCT + timestamp de la entrega.
+- PDF embebido.
+- Resumen curricular (campos formativos, PDA cubiertos, producto integrador, ajustes razonables, problemas del contexto) — sin datos sensibles de los niños.
+- **Acciones inmediatas (sin registro, sin password):**
+  - Botón "Marcar como recibida" (timestamp).
+  - Caja de "Comentario libre" opcional (persiste ligado al token).
+  - Panel lateral con beneficios concretos de registrarse formalmente.
+- Estado guardado en BD: `recibida` con timestamp + comentario.
+
+**Registro formal del director (voluntario):**
+
+- Si el director decide registrarse → modal pide **número de celular**.
+- App envía **OTP por WhatsApp** al número declarado (no password, no email).
+- Esto **prueba identidad cruzada:** la OTP llega al celular al que la maestra envió por WhatsApp; si es otro celular diferente, la OTP no le llega y no puede pasar.
+- Tras confirmar OTP → crea cuenta → vincula a su CCT → vincula TODAS las entregas previas de su escuela (con las marcas/comentarios pre-registro preservadas).
+
+**Beneficios concretos que ve el director al registrarse** (lista preliminar, a refinar post-validación):
+
+- "Recibe todas las planeaciones de sus maestros aquí, no por WhatsApp."
+- "Recibe avisos cuando un maestro sube una planeación nueva" (opt-in).
+- "Ve el historial completo de entregas del mes/trimestre/ciclo."
+- "Puede pedir cambios sin reescribir la planeación."
+- "Una sola vista para ATP y supervisión cuando la pidan."
+- "Sabe qué maestros de su CCT ya usan la plataforma."
+
+**Anti-features explícitas:**
+
+- ❌ **NO enviamos WhatsApp ni email** automáticos al director en MVP (la maestra envía manualmente el link).
+- ❌ **NO bloqueamos ediciones** del maestro tras entregar (cada edición genera nueva entrega v2, v3...).
+- ❌ **NO tenemos flujo de aprobación formal** en MVP (es Fase 2 / E2 completo).
+- ❌ **NO hacemos scraping de números de WhatsApp** del director — la maestra los declara al entregar.
+- ❌ **NO usamos password/email** para registro del director — solo OTP WhatsApp.
+
+**Tensiones T23-T32 resultado de esta ronda:**
+- T23 (expiración 30 días): default, configurable.
+- T24 (mensaje pre-armado): editable por la maestra, default sugerido.
+- T25 (CCT no en catálogo E15): maestra agrega CCT manualmente; "pre-registro" individual funciona.
+- T26 (CCT no actualizado en SEP): tolerancia de MVP, maestra avisa "no pudimos pre-vincular".
+- T27 (costo OTP WhatsApp): cubierto por margen MVP hasta 1000 envíos/mes.
+- T28 (OTP no llega): botón "reenviar" + fallback voz.
+- T29 (celular lo pone la maestra): sí, paso obligatorio al generar la entrega.
+- T30 (número mal escrito): verificación cruzada — si OTP no llega, no entra.
+- T31 (director sin WhatsApp): MVP solo WhatsApp; SMS OTP es Fase 2.
+- T32 (comentarios pre-registro): sí se guardan, ligados al token; al registrarse se vinculan; expiran a 30 días si nunca se registra.
+
+**Dependencias que quedan:**
+- E2 (Módulo Director): diseño de UX concreta del portal, PENDIENTE de validación.
+- E6 (Modelo de datos formal): nueva tabla `entregas` con `url_firmada_token`, `url_firmada_expira_at`, `estado`, `version`, `director_celular`.
+- E15 (CCT→zona): confirma que la CCT de la maestra tiene escuelas + director precargados.
+
+**Por qué esta pausa importa:** diseñé la arquitectura de M5 con la información que tenía, pero las features concretas del portal director (qué hacer con las 5 planeaciones, cómo consolidar, qué mostrar al supervisor) requieren datos reales del usuario. Sin esa validación, M5 seguiría siendo "Kumu + URL firmada", no un sistema diferenciado.
 
 ### 3.5. CONTRATO CURRICULAR NEM — Lo que el PDF debe contener para ser válido
 
@@ -276,6 +524,8 @@ Estos NO son parte del MVP, pero el MVP los **desbloquea**:
 | E10 | **Protocolo de Sincronización Normativa** | Cadencia y checklist para mantener actualizado el catálogo NEM, calendario escolar y compliance. Reside en `fuentes/E10_PROTOCOLO_SINCRONIZACION_NORMATIVA.md` |
 | E11 | **Monitor de Vigilancia Normativa** | Diseño del monitor automatizado que detecta cambios en NEM/LFPDPPP/calendario/CONALITEG. Reside en `fuentes/E11_MONITOR_VIGILANCIA_NORMATIVA.md` |
 | E14 | **Catalogación Autónoma Fase 2 (Preescolar)** | Diseño del motor de catalogación autónoma del catálogo NEM Fase 2. Pipeline de extracción PDF + validación humana + modelo relacional + carga. Reside en `fuentes/E14_CATALOGACION_AUTONOMA_FASE_2.md` |
+| E15 | **Investigación CCT→zona (dataset público)** | Búsqueda de dataset oficial SEP/INEGI/CONAPO que mapee CCT a zona rural/urbana/indígena. Acelera el catálogo M2. Output reside en worktree `ct-research-cct-zona`. |
+| E16 | **Mejoras M1-M5 (Diseño de la planeación diferenciada)** | Diseño completo de las 5 mejoras que cierran el diferenciador vs Kumu. M1 (bloques) cerrada; M2 (problema del contexto primero) cerrada con CCT-zona; M3 (vista proactiva) cerrada con interruptor y reglas duras; M4 (características ensamblables) cerrada; M5 (entrega real) arquitectura cerrada, UX concreta del portal director PENDIENTE de validación con director real. |
 
 ---
 
@@ -296,25 +546,31 @@ Estos NO son parte del MVP, pero el MVP los **desbloquea**:
 
 ## 10. PRÓXIMO PASO SUGERIDO
 
-Validar la **sección 3 (flujos)** y el **diferenciador central** con tía Lola antes de escribir código. Si los flujos no resuenan con ella, o si "entregar al director / bitácora continua" no es dolor para ella, todo lo demás es cosmético.
+**Doble vía crítica** (no una sola):
 
-**Acción inmediata:** Hacer una sesión de usability mental (15-30 min) donde le cuentas:
-1. Los flujos A-D tal como están escritos (sección 3), incluyendo el nuevo modelo **Proyecto / Sesión** (no "Clase").
-2. El diferenciador: "no solo hago la planeación, la entrego al director y luego bitácora/evidencia/reporte continúan automáticamente".
-3. El contrato curricular NEM (§3.5): pedirle que valide si los elementos obligatorios corresponden a lo que ella ya llena en sus formatos actuales.
+### Vía A — Validación con tía Lola (bloqueante)
 
-Y le preguntas:
-- ¿Esto coincide con cómo trabaja?
-- ¿Qué le sobra?
-- ¿Qué le falta?
-- ¿Siente el dolor de "entregar la planeación" al director (vs. solo tenerla guardada)?
-- ¿Siente el dolor de "después de la clase la evidencia se pierde"?
-- **Extra:** ¿los elementos obligatorios del PDF coinciden con lo que ella ya tiene que llenar hoy, o le exigimos cosas que no le piden?
+Validar la **sección 3 (flujos)** y el **diferenciador central** con tía Lola antes de escribir código. Si los flujos no resuenan con ella, todo lo demás es cosmético.
 
-**Hipótesis a validar:** si Lola confirma al menos 2 de estos 3 dolores, el diferenciador es real.
-   1. Dolor 1: planeación se queda en su laptop, el director la recibe tarde o en formato inconsistente.
-   2. Dolor 2: después de la clase, las evidencias y notas se pierden.
-   3. Dolor 3: al final del mes/trimestre, reconstruir el avance del grupo es trabajo extra.
+**Acción inmediata:** Llamada de 20-30 min con los dos bloques de la encuesta:
+1. **Bloque 1 (ya existente, preguntas 1-7):** sobre su trabajo como maestra. Hipótesis: confirmar al menos 2 de 3 dolores (entrega, evidencia perdida, reconstrucción del avance).
+2. **Bloque 2 (NUEVO en v2, preguntas D1-D20):** sobre su trabajo como EX-DIRECTORA. Hipótesis: descubrir qué tareas tediosas del director podemos automatizar y qué features concretas gancho engancharían al director a registrarse formalmente.
+
+Y le preguntas (al final):
+- "Tía, ¿conoces a otro(a) director(a) que pueda platicarme 15 minutos? Quiero validar fuera de ti." (Pregunta D20 — si dice que sí, multiplicamos el discovery director).
+
+### Vía B — Pantalla M5 cuando llegue la validación
+
+Con las respuestas de tía Lola (y 1-2 directores adicionales) → diseñar **E2 Módulo Director** (UX concreta del portal, vista agregada de maestros, consolidación para supervisión, etc.). Este E2 es la materialización del lado "director" de M5 que hoy está pendiente.
+
+### Vía C — Mientras tanto
+
+Los **3 agentes Atlas en background** siguen trabajando en infraestructura sin bloqueos:
+- `catalogo-ocr-fase2`: resolver el OCR del PDF escaneado para tener los 150 bloques reales.
+- `ct-research-cct-zona`: validar existencia de dataset público CCT→zona para M2 (paralelo).
+- `monitor-afinado`: terminado, en revisión.
+
+Si tienes tiempo esta semana, ejecutar Vía A es la prioridad #1 antes de seguir construyendo.
 
 ---
 
