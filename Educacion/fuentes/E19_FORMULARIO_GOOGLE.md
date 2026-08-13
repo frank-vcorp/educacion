@@ -204,13 +204,38 @@ Esta primera sección no pide nombre ni email ni CCT. Solo características prof
 ### Pregunta 13
 **Tipo:** Múltiple choice · obligatoria
 **Pregunta:** ¿Conoces los nuevos contenidos que la SEP publicó con el Plan 2022 ("Programas Sintéticos" o "PDA" — los cuadernillos que llegaron al inicio del ciclo 2023-2024)?
-**Ayuda:** Si te suenan陌生的 los términos "Programa Sintético", "PDA" o "Plan 2022", probablemente no los has visto. La SEP los llama formalmente así; antes (en Planes 2011/2017) les decían "aprendizajes esperados" o "estándares". Si nunca los has hojeado, marca la opción que aplica — no es una pregunta con trampa, solo queremos saber hasta dónde los conoces.
+**Ayuda:** Si te suenan desconocidos los términos "Programa Sintético", "PDA" o "Plan 2022", probablemente no los has visto. La SEP los llama formalmente así; antes (en Planes 2011/2017) les decían "aprendizajes esperados" o "estándares". Si nunca los has hojeado, marca la opción que aplica — no es una pregunta con trampa, solo queremos saber hasta dónde los conoces.
 **Opciones:**
 - Sí, los conozco y los uso al planear
 - Sí los conozco pero no los sigo al pie de la letra
 - Me suenan vagamente pero no los he leído con calma
 - No, no los conozco / nunca los he visto
 - Otra
+
+## Discovery Insight — basado en evidencia real de tía Lola
+
+Esta pregunta fue afinada tras evidencia real capturada en WhatsApp: la tía Lola leyó "¿Usas el núcleo o las actividades de la SEP?" y preguntó siete veces qué era cada cosa. Sus mensajes literales:
+
+> "A que te refieres con 'nucleo'" / "Lo que te de la sep" / "Osea???" / "El programa?" / "Los aprendizajes esperados?" / "Los campos Formativos?" / "No entiendo eso del núcleo 😂😅"
+
+**Lo que confirma empíricamente:**
+
+- **"Núcleo" NO es vocabulario cotidiano de maestra.** Es jerga interna curricular.
+- **"Programa Sintético" TAMPOCO lo es** para muchas maestras que recibieron el cuadernillo sin leerlo con calma.
+- **Una maestra promedio de preescolar/primaria NO maneja vocabulario del Plan 2022** aunque viva la reforma desde 2022.
+- **Confunde términos de Planes históricos**: "aprendizajes esperados" (Plan 2011), "estándares" (Plan 2017), "PDA" (Plan 2022). Los mezcla sin saber a qué Plan pertenecen.
+
+**Implicaciones de producto (siguen vigentes más allá de esta encuesta):**
+
+1. El catálogo NEM es **opcional, no obligatorio.** La app debe funcionar aunque la maestra NUNCA haya leído el Programa Sintético.
+2. **En la UI de la app**, evitar jerga curricular en botones y menús. Términos como "PDA", "campo formativo", "eje articulador" deben aparecer **dentro del producto** (donde son útiles), no en la superficie (donde asustan).
+3. Cuando el producto le sugiera contenido del catálogo a la maestra, mostrarle un **"¿qué es esto?" con un tooltip** que explique en lenguaje cotidiano.
+4. El banco contextual M2 (zona CCT) **no es suficiente** — necesita descubrir "qué es lo que tu comunidad vive", no "los PDA oficiales". Co-diseño con la maestra desde la realidad.
+
+**Implicaciones de discovery:**
+
+- Las preguntas de discovery sobre maestras NO deben asumir vocabulario técnico. Pregunta primero por su día a día ("¿qué haces los domingos?") antes de preguntar por la NEM.
+- Los términos del Plan 2022 son **palabras de política pública, no de salón de clases.** Documentar esto en `founder/learning.md` o similar para no repetirlo en futuros entregables.
 
 ### Pregunta 14
 **Tipo:** Múltiple choice · obligatoria
