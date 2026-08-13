@@ -26,6 +26,7 @@ fuentes/
 | 0.1 | `E10_PROTOCOLO_SINCRONIZACION_NORMATIVA.md` | Especificación | Cadencia y protocolo de actualización de los documentos de `fuentes/` (cambios tipo A/B/C, alertas, checklist) |
 | 0.2 | `E11_MONITOR_VIGILANCIA_NORMATIVA.md` | Especificación | Diseño del Monitor de Vigilancia: 6 fuentes núcleo, heurística de severidad INFO/REVISAR/ACTUAR, contrato de salida, modo cron semanal. Listo para implementar E13 cuando se decida. |
 | 0.3 | `E14_CATALOGACION_AUTONOMA_FASE_2.md` | Especificación | Diseño del motor de catalogación autónoma para Fase 2 (preescolar). Pipeline de 4 capas: extracción PDF → validación humana → modelo relacional → carga en Supabase. Schema SQL objetivo definido. |
+| 0.4 | `ENT-001_REVISION_EXHAUSTIVA.md` | Checkpoint | Revisión exhaustiva del SPEC MVP v0.8.1 + Encuesta v2 antes de entrega a Lola. 22 hallazgos: 6 Alta (bloqueante), 9 Media, 7 Baja. Plan de resolución incluido. |
 
 ## 1. Inventario de archivos descargados
 
