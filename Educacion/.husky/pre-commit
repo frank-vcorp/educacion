@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+# Husky pre-commit hook — SPEC_TEC_05 §6.1 / PEND-04-06.
+# Ejecuta lint-staged: prettier + eslint en archivos staged.
+# NO corre tests ni typecheck (eso va en CI Job 1).
+
+. "$(dirname -- "$0")/_/husky.sh"
+
+pnpm exec lint-staged

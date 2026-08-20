@@ -29,6 +29,15 @@ fuentes/
 | 0.4 | `ENT-001_REVISION_EXHAUSTIVA.md` | Checkpoint | Revisión exhaustiva del SPEC MVP v0.8.1 + Encuesta v2 antes de entrega a Lola. 22 hallazgos: 6 Alta (bloqueante), 9 Media, 7 Baja. Plan de resolución incluido. |
 | 0.5 | `E17_UX_COMO_DIFERENCIADOR.md` | Especificación | UX como diferenciador explícito: 10 principios P-UX1 a P-UX10, decisiones concretas (tipografía sistema, paleta 4 colores, iconos Lucide, sin gamificación), 6 tests de validación T-UX1 a T-UX6. Acompaña al SPEC §6.3. |
 | 0.6 | `E19_FORMULARIO_GOOGLE.md` | Operativo | Encuesta para tía Lola + colegas en formato Google Forms (27 preguntas + 7 condicionales, sin CCT/celular/nombre del director, anónima). Genera el Form en 5 min siguiendo los pasos del archivo, o usa la Opción B para generarlo automáticamente con Apps Script. Las respuestas quedan en Google Sheets, no en el repo. |
+| 0.7 | `E20_PRINCIPIOS_DISENNO_PRODUCTO.md` | Especificación | 9 principios de diseño de producto derivados del walkthrough de Tía Lola (P-PD1 a P-PD9). Complementa los 10 principios UX de E17 con foco en funcionalidad. |
+| 0.8 | `E21_CATALOGO_RECURSOS_AULA.md` | Especificación | Inventario personal de recursos del aula con 6 categorías pedagógicas curadas. Incluye F-IA1 (auto-sugerido de uso por IA). |
+| 0.9 | `E22_CIERRE_DISCOVERY.md` | Especificación | Cierre del discovery: consolida 10 decisiones formales (D-FIN-1 a D-FIN-10) para el MVP. Anexo al SPEC que define alcance de features, criterios de cierre y roadmap. |
+| 0.10 | `ENT-002_HALLAZGOS_PROYECTOS_REALES.md` | Hallazgos | 6 hallazgos del análisis de 2 proyectos NEM reales de maestra en activo (Buenas Decisiones + EMOCIONES). Base para D-FIN-2/3/6/7/8/9. |
+| 0.11 | `ENT-003_DECISIONES_MVP.md` | Decisiones | Decisiones del founder: alumnos en MVP, onboarding 5 pantallas, PDF triple, catálogos externos. Base para D-FIN-2/4/5. |
+| 0.12 | `Formato-Planeacion-Preescolar-Editorial-MD-1.md` | Referencia | Formato completo Editorial MD con 6 momentos + codiseño (input del walkthrough). |
+| 0.13 | `Formato-Planeacion-Preescolar-Editorial-MD.docx` | Referencia | Original DOCX de Editorial MD (no descargable, fuente del markdown anterior). |
+| 0.14 | `programa_sintetico_fase2_v2024.pdf` | Normativa | Programa Sintético Fase 2 oficial SEP (texto nativo, 80 pp, 2 MB). PDF fuente del catálogo NEM completo. |
+| 0.15 | `programa_sintetico_fase_2_preescolar (1).md` | Normativa | Transcripción estructurada en markdown del PDF anterior para recuperación por IA. 1280 líneas. |
 
 ## 1. Inventario de archivos descargados
 

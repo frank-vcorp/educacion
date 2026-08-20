@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Viewer Catálogo NEM Fase 2</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #FAFAF8;
+    color: #1A1A1A;
+    padding: 24px;
+    line-height: 1.5;
+  }
+  header {
+    max-width: 1200px;
+    margin: 0 auto 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #1F8A4C;
+  }
+  h1 { font-size: 24px; color: #1F8A4C; margin-bottom: 8px; }
+  .subtitle { color: #5C6770; font-size: 14px; }
+  .container { max-width: 1200px; margin: 0 auto; }
+  .drop-zone {
+    border: 3px dashed #5C6770;
+    border-radius: 12px;
+    padding: 48px;
+    text-align: center;
+    background: #fff;
+    margin-bottom: 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: #1F8A4C;
+    background: #f0f9f4;
+  }
+  .drop-zone p { color: #5C6770; margin-bottom: 8px; }
+  .drop-zone .hint { font-size: 13px; color: #888; }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 16px;
+    border-left: 4px solid #1F8A4C;
+  }
+  .stat-card.warn { border-left-color: #D4A017; }
+  .stat-card.error { border-left-color: #A02B2B; }
+  .stat-label { font-size: 12px; color: #5C6770; text-transform: uppercase; }
+  .stat-value { font-size: 28px; font-weight: 700; color: #1A1A1A; margin-top: 4px; }
+  .stat-detail { font-size: 12px; color: #5C6770; margin-top: 4px; }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    border-bottom: 2px solid #e0e0e0;
+    flex-wrap: wrap;
+  }
+  .tab {
+    padding: 12px 20px;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    font-size: 14px;
+    color: #5C6770;
+    font-weight: 500;
+  }
+  .tab:hover { color: #1A1A1A; }
+  .tab.active {
+    color: #1F8A4C;
+    border-bottom-color: #1F8A4C;
+    font-weight: 700;
+  }
+  .tab .badge {
+    background: #D4A017;
+    color: #fff;
+    border-radius: 10px;
+    padding: 1px 8px;
+    font-size: 11px;
+    margin-left: 6px;
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .search-bar {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    font-size: 14px;
+    margin-bottom: 16px;
+    font-family: inherit;
+  }
+  .search-bar:focus { outline: none; border-color: #1F8A4C; }
+
+  .filter-chips {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .chip {
+    padding: 6px 12px;
+    border-radius: 16px;
+    border: 1px solid #d0d0d0;
+    background: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    color: #5C6770;
+  }
+  .chip.active { background: #1F8A4C; color: #fff; border-color: #1F8A4C; }
+
+  .entity-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border-left: 4px solid #1F8A4C;
+  }
+  .entity-card.review {
+    border-left-color: #D4A017;
+    background: #fffbf0;
+  }
+  .entity-card.placeholder {
+    border-left-color: #A02B2B;
+    background: #fef5f5;
+  }
+
+  .entity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .entity-code {
+    font-family: monospace;
+    font-size: 13px;
+    color: #5C6770;
+    background: #f0f0f0;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .entity-status {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .status-confirmed { background: #d4edda; color: #155724; }
+  .status-review { background: #fff3cd; color: #856404; }
+  .status-placeholder { background: #f8d7da; color: #721c24; }
+
+  .entity-title {
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+  .entity-text {
+    color: #1A1A1A;
+    margin-bottom: 8px;
+    line-height: 1.6;
+  }
+  .entity-text.empty {
+    color: #A02B2B;
+    font-style: italic;
+  }
+  .entity-meta {
+    font-size: 12px;
+    color: #5C6770;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .entity-meta-item { display: flex; gap: 4px; }
+  .entity-meta-label { font-weight: 600; }
+
+  .actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  button.action {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1px solid #1F8A4C;
+    background: #fff;
+    color: #1F8A4C;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  button.action:hover { background: #1F8A4C; color: #fff; }
+  button.action.primary { background: #1F8A4C; color: #fff; }
+  button.action.primary:hover { background: #18703d; }
+
+  .modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .modal-bg.active { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal h2 { font-size: 20px; margin-bottom: 16px; }
+  .modal textarea {
+    width: 100%;
+    min-height: 150px;
+    padding: 12px;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  .modal .modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .legend {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: #fff;
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+
+  .export-area {
+    background: #1A1A1A;
+    color: #d4d4d4;
+    padding: 16px;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.4;
+    max-height: 400px;
+    overflow-y: auto;
+    margin-top: 16px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Catálogo NEM Fase 2 (Preescolar)</h1>
+  <p class="subtitle">Viewer para validación humana · Generado por catalogar_fase2.py</p>
+</header>
+
+<div class="container">
+
+  <div class="drop-zone" id="dropZone">
+    <p><strong>📂 Arrastra el archivo JSON aquí</strong></p>
+    <p class="hint">o haz clic para seleccionar: <code>catalogo_fase2_crudo.json</code></p>
+    <input type="file" id="fileInput" accept=".json" style="display:none">
+  </div>
+
+  <div id="content" style="display:none">
+
+    <div class="stats" id="stats"></div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#1F8A4C"></div> Confirmado</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#D4A017"></div> Necesita revisión</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#A02B2B"></div> Placeholder (vacío)</div>
+    </div>
+
+    <div class="tabs" id="tabs"></div>
+
+    <div id="tabContents"></div>
+
+  </div>
+
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2 id="modalTitle">Editar</h2>
+    <p id="modalDesc" style="color:#5C6770; margin-bottom:12px; font-size:13px;"></p>
+    <textarea id="modalText" placeholder="Texto..."></textarea>
+    <div class="modal-actions">
+      <button class="action" onclick="closeModal()">Cancelar</button>
+      <button class="action primary" onclick="saveModal()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLORS = {
+  verde: '#1F8A4C', amarillo: '#D4A017', rojo: '#A02B2B',
+  verdeBg: '#d4edda', amarilloBg: '#fff3cd', rojoBg: '#f8d7da',
+  verdeText: '#155724', amarilloText: '#856404', rojoText: '#721c24'
+};
+
+let data = null;
+let cur = null;
+let edits = {};
+let curTab = 'campos';
+let filter = 'all';
+let search = '';
+
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const content = document.getElementById('content');
+const stats = document.getElementById('stats');
+const tabs = document.getElementById('tabs');
+const tabContents = document.getElementById('tabContents');
+
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  if (e.dataTransfer.files.length) loadFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', (e) => {
+  if (e.target.files.length) loadFile(e.target.files[0]);
+});
+
+function loadFile(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      data = JSON.parse(e.target.result);
+      edits = {};
+      content.style.display = 'block';
+      render();
+    } catch (err) {
+      alert('Error al parsear JSON: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function getVal(item, key) {
+  if (edits[item.codigo] && key in edits[item.codigo]) return edits[item.codigo][key];
+  return item[key];
+}
+
+function isPlaceholder(value) {
+  return value === null || value === undefined || value === '';
+}
+
+function render() {
+  renderStats();
+  renderTabs();
+  renderTabContent();
+}
+
+function renderStats() {
+  const pda = data.pdas || data.pda || [];
+  const conf = pda.filter(p => p.texto && !isPlaceholder(getVal(p,'texto'))).length;
+  const placeholder = pda.filter(p => isPlaceholder(getVal(p,'texto'))).length;
+  const review = pda.length - conf - placeholder;
+
+  stats.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">Campos formativos</div>
+      <div class="stat-value">${(data.campos_formativos || []).length}</div>
+      <div class="stat-detail">Total oficiales</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Ejes articuladores</div>
+      <div class="stat-value">${(data.ejes_articuladores || []).length}</div>
+      <div class="stat-detail">De 7 oficiales</div>
+    </div>
+    <div class="stat-card ${conf < pda.length ? 'warn' : ''}">
+      <div class="stat-label">PDA confirmados</div>
+      <div class="stat-value">${conf}</div>
+      <div class="stat-detail">de ${pda.length} total</div>
+    </div>
+    <div class="stat-card ${placeholder > 0 ? 'error' : ''}">
+      <div class="stat-label">PDA placeholder</div>
+      <div class="stat-value">${placeholder}</div>
+      <div class="stat-detail">Requieren texto</div>
+    </div>
+  `;
+}
+
+function renderTabs() {
+  const tabs_config = [
+    { id: 'campos', label: 'Campos formativos', count: (data.campos_formativos || []).length },
+    { id: 'ejes', label: 'Ejes articuladores', count: (data.ejes_articuladores || []).length },
+    { id: 'pda', label: 'PDA', count: (data.pda || []).length, badge: (data.pda || []).filter(p => isPlaceholder(getVal(p,'texto'))).length },
+    { id: 'contenidos', label: 'Contenidos', count: (data.contenidos || []).length },
+    { id: 'refs', label: 'Refs CONALITEG', count: (data.referencias_conaliteg || []).length },
+    { id: 'audit', label: 'Auditoría' },
+  ];
+  tabs.innerHTML = tabs_config.map(t => `
+    <button class="tab ${curTab === t.id ? 'active' : ''}" onclick="switchTab('${t.id}')">
+      ${t.label} (${t.count})${t.badge ? `<span class="badge">${t.badge}</span>` : ''}
+    </button>
+  `).join('');
+}
+
+function switchTab(id) {
+  curTab = id;
+  filter = 'all';
+  search = '';
+  renderTabs();
+  renderTabContent();
+}
+
+function renderTabContent() {
+  const content = document.getElementById('tabContents');
+  let html = `<input class="search-bar" placeholder="🔍 Buscar..." oninput="search=this.value; renderTabContent()">`;
+
+  if (curTab === 'pda') {
+    html += renderFilterChips();
+  }
+
+  html += `<div id="entityList">`;
+  html += renderEntities();
+  html += `</div>`;
+
+  content.innerHTML = html;
+
+  if (curTab === 'audit') {
+    renderAudit();
+  }
+}
+
+function renderFilterChips() {
+  const chips = [
+    { id: 'all', label: 'Todos' },
+    { id: 'placeholder', label: '🔴 Placeholders' },
+    { id: 'review', label: '🟡 Revisión' },
+    { id: 'confirmed', label: '🟢 Confirmados' },
+  ];
+  return `<div class="filter-chips">${chips.map(c =>
+    `<div class="chip ${filter === c.id ? 'active' : ''}" onclick="filter='${c.id}'; renderTabContent()">${c.label}</div>`
+  ).join('')}</div>`;
+}
+
+function renderEntities() {
+  if (curTab === 'campos') return renderList(data.campos_formativos || [], 'campos');
+  if (curTab === 'ejes') return renderList(data.ejes_articuladores || [], 'ejes');
+  if (curTab === 'pda') return renderList(data.pdas || data.pda || [], 'pda');
+  if (curTab === 'contenidos') return renderList(data.contenidos || [], 'contenidos');
+  if (curTab === 'refs') return renderList(data.referencias_conaliteg || [], 'refs');
+  return '';
+}
+
+function renderList(items, type) {
+  let filtered = items;
+  if (search) {
+    filtered = filtered.filter(it => JSON.stringify(it).toLowerCase().includes(search.toLowerCase()));
+  }
+  if (type === 'pda' && filter !== 'all') {
+    filtered = filtered.filter(it => {
+      const text = getVal(it, 'texto');
+      if (filter === 'placeholder') return isPlaceholder(text);
+      if (filter === 'confirmed') return !isPlaceholder(text);
+      return true;
+    });
+  }
+
+  if (!filtered.length) return '<p style="color:#5C6770; padding:16px;">No hay items.</p>';
+
+  return filtered.map(item => renderCard(item, type)).join('');
+}
+
+function renderCard(item, type) {
+  const text = getVal(item, 'texto');
+  const placeholder = isPlaceholder(text);
+  const review = !placeholder && (item.requiere_revision || (edits[item.codigo] && 'texto' in edits[item.codigo]));
+  const cardClass = placeholder ? 'placeholder' : (review ? 'review' : '');
+
+  let status = '';
+  if (placeholder) status = '<span class="entity-status status-placeholder">Placeholder</span>';
+  else if (review) status = '<span class="entity-status status-review">Revisión</span>';
+  else status = '<span class="entity-status status-confirmed">Confirmado</span>';
+
+  let title = item.nombre || item.codigo;
+  let body = '';
+  let meta = [];
+
+  if (type === 'pda') {
+    body = `<div class="entity-text ${placeholder ? 'empty' : ''}">${placeholder ? '⚠️ Placeholder — texto vacío. Completar manualmente contra el PDF fuente.' : escapeHtml(text)}</div>`;
+    if (item.fuente_dof_pagina) meta.push(`<div class="entity-meta-item"><span class="entity-meta-label">Página DOF:</span> ${item.fuente_dof_pagina}</div>`);
+    if (item.fuente_dof_sha) meta.push(`div class="entity-meta-item"><span class="entity-meta-label">SHA PDF:</span> <code>${item.fuente_dof_sha.slice(0,12)}…</code></div>`);
+  } else if (type === 'campos') {
+    body = `<div class="entity-text">${escapeHtml(item.descripcion || '(sin descripción)')}</div>`;
+    if (item.orden) meta.push(`<div class="entity-meta-item"><span class="entity-meta-label">Orden:</span> ${item.orden}</div>`);
+  } else if (type === 'ejes') {
+    body = `<div class="entity-text">${escapeHtml(item.descripcion || '(sin descripción)')}</div>`;
+  } else if (type === 'contenidos') {
+    body = `<div class="entity-text ${isPlaceholder(text) ? 'empty' : ''}">${escapeHtml(text || '⚠️ Placeholder — texto vacío.')}</div>`;
+    if (item.campo_codigo) meta.push(`<div class="entity-meta-item"><span class="entity-meta-label">Campo:</span> ${item.campo_codigo}</div>`);
+    if (item.fase_codigo) meta.push(`<div class="entity-meta-item"><span class="entity-meta-label">Fase:</span> ${item.fase_codigo}</div>`);
+  } else if (type === 'refs') {
+    body = `<div class="entity-text">${escapeHtml(item.titulo_libro || '(sin título)')}</div>`;
+    if (item.url_publica) meta.push(`<div class="entity-meta-item"><span class="entity-meta-label">URL:</span> <a href="${item.url_publica}" target="_blank">${item.url_publica.slice(0,50)}…</a></div>`);
+    if (item.grado) meta.push(`<div class="entity-meta-item"><span class="entity-meta-label">Grado:</span> ${item.grado}</div>`);
+  }
+
+  return `
+    <div class="entity-card ${cardClass}">
+      <div class="entity-header">
+        <div>
+          <span class="entity-code">${item.codigo}</span>
+          <span class="entity-title">${escapeHtml(title)}</span>
+        </div>
+        ${status}
+      </div>
+      ${body}
+      ${meta.length ? `<div class="entity-meta">${meta.join('')}</div>` : ''}
+      <div class="actions">
+        ${(type === 'pda' || type === 'contenidos') ? `<button class="action" onclick="openModal('${item.codigo}', '${type}')">✏️ Editar texto</button>` : ''}
+        <button class="action" onclick="markReviewed('${item.codigo}')">✓ Marcar revisado</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderAudit() {
+  const pda = data.pdas || data.pda || [];
+  const cont = data.contenidos || [];
+  const placeholders = [...pda, ...cont].filter(it => isPlaceholder(getVal(it, 'texto')));
+  const reviewPda = pda.filter(p => !isPlaceholder(getVal(p,'texto')) && p.requiere_revision);
+
+  const report = `
+# Auditoría de revisión humana
+
+**Fecha:** ${new Date().toLocaleString('es-MX')}
+**Archivo:** catalogo_fase2_crudo.json
+
+## Resumen
+
+| Métrica | Valor |
+|---|---|
+| PDA totales | ${pda.length} |
+| PDA con texto confirmado | ${pda.filter(p => !isPlaceholder(getVal(p,'texto'))).length} |
+| PDA placeholder | ${pda.filter(p => isPlaceholder(getVal(p,'texto'))).length} |
+| Contenidos totales | ${cont.length} |
+| Contenidos placeholder | ${cont.filter(c => isPlaceholder(getVal(c,'texto'))).length} |
+| Referencias CONALITEG | ${(data.referencias_conaliteg || []).length} |
+
+## Items pendientes de revisión (${placeholders.length} placeholders)
+
+${placeholders.map(it => '- **' + it.codigo + '**: ' + (it.nombre || '') + ' → ⚠️ TEXT VACÍO').join('\\n')}
+
+## PDA marcados para revisión (${reviewPda.length})
+
+${reviewPda.map(p => '- **' + p.codigo + '**: ' + (p.texto || '').slice(0,100) + '...').join('\\n')}
+
+## Acciones recomendadas
+
+1. ${placeholders.length > 0 ? `✅ Revisar ${placeholders.length} placeholders` : '✅ Todos los textos están confirmados'}
+2. ${reviewPda.length > 0 ? `✅ Validar ${reviewPda.length} PDA marcados para revisión` : ''}
+3. Verificar URLs de CONALITEG
+4. Guardar cambios con "Descargar cambios"
+`;
+
+  const area = document.getElementById('tabContents');
+  area.innerHTML = `
+    <h2 style="margin-bottom:16px;">Reporte de auditoría</h2>
+    <div class="actions" style="margin-bottom:16px;">
+      <button class="action primary" onclick="downloadMarkdown()">📥 Descargar reporte .md</button>
+      <button class="action" onclick="downloadEdits()">📥 Descargar ediciones .json</button>
+    </div>
+    <pre class="export-area">${escapeHtml(report)}</pre>
+  `;
+}
+
+function openModal(codigo, type) {
+  cur = { codigo, type };
+    const items = type === 'pda' ? (data.pdas || data.pda) : data.contenidos;
+  const item = items.find(it => it.codigo === codigo);
+  const text = getVal(item, 'texto') || '';
+  document.getElementById('modalTitle').textContent = `Editar ${codigo}`;
+  document.getElementById('modalDesc').textContent = `Tipea el texto del ${type} según el PDF oficial.`;
+  document.getElementById('modalText').value = text;
+  document.getElementById('modalBg').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modalBg').classList.remove('active');
+  cur = null;
+}
+
+function saveModal() {
+  if (!cur) return;
+  const items = cur.type === 'pda' ? data.pda : data.contenidos;
+  const item = items.find(it => it.codigo === cur.codigo);
+  if (!edits[item.codigo]) edits[item.codigo] = {};
+  edits[item.codigo]['texto'] = document.getElementById('modalText').value;
+  closeModal();
+  render();
+}
+
+function markReviewed(codigo) {
+  if (!edits[codigo]) edits[codigo] = {};
+  edits[codigo]['requiere_revision'] = false;
+  render();
+}
+
+function downloadMarkdown() {
+  const pda = data.pdas || data.pda || [];
+  const cont = data.contenidos || [];
+  const placeholders = [...pda, ...cont].filter(it => isPlaceholder(getVal(it, 'texto')));
+  const report = `# Auditoría Catálogo Fase 2\\n\\n**Fecha:** ${new Date().toLocaleString('es-MX')}\\n\\nTotal: ${pda.length} PDA, ${cont.length} contenidos, ${placeholders.length} placeholders.\\n\\nVer en viewer para detalle.`;
+  download('auditoria_catalogo.md', report);
+}
+
+function downloadEdits() {
+  const json = JSON.stringify(edits, null, 2);
+  download('edits_catalogo.json', json);
+}
+
+function download(filename, text) {
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/[&<>"']/g, m => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[m]));
+}
+
+document.getElementById('modalBg').addEventListener('click', (e) => {
+  if (e.target.id === 'modalBg') closeModal();
+});
+</script>
+
+</body>
+</html>

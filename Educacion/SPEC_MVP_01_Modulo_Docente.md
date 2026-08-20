@@ -1,10 +1,10 @@
 # SPEC MVP — MÓDULO DOCENTE
 
-**Versión:** 0.13 — UX como diferenciador explícito. Añadida §6.3 con **10 principios UX innegociables (P-UX1 a P-UX10)**, decisiones concretas (tipografía sistema, paleta 4 colores, iconos Lucide, sin gamificación), **6 tests de validación pre-release (T-UX1 a T-UX6)**. Ampliados criterios de cierre §7 con T-UX1 y T-UX2 (mobile-first honesto + cold-start con 5 maestras).
-**Fecha:** 2026-08-13
-**Estado:** ESPECIFICACIÓN PARTICULAR #1 (la primera a detallar)
+**Versión:** 0.14 — Consolidación de decisiones confirmadas de `ENT-003`, `E20`, `E21` y `E22`: alumnos, onboarding, privacidad, multi-grupo, clonado, entrega por WhatsApp, CONALITEG híbrido y stack confirmado.
+**Fecha:** 2026-08-18
+**Estado:** BASELINE FUNCIONAL VIGENTE — Módulo Docente MVP
 **Origen:** Discovery con fundador (3 rondas, 12 decisiones cerradas) + ronda de investigación profunda (NEM oficial, LFPDPPP 2025, mercado edtech MX, UX drag-and-drop) + investigación sobre contrato curricular oficial de la planeación NEM (elementos obligatorios SEP) + análisis de cadencia real de cambios normativos 2022-2026 + diseño del Monitor de Vigilancia + diseño del motor de catalogación de contenidos preescolar + iteración de diseño de la planeación (M1-M3) basada en diferenciación vs Kumu
-**Alineado a:** `plataforma_nem_concepto_maestro.md` (documento maestro, intacto)
+**Alineado a:** `plataforma_nem_concepto_maestro.md` (visión de producto), `fuentes/ENT-003_DECISIONES_MVP.md`, `fuentes/E20_PRINCIPIOS_DISENNO_PRODUCTO.md`, `fuentes/E21_CATALOGO_RECURSOS_AULA.md` y `fuentes/E22_CIERRE_DISCOVERY.md` (decisiones posteriores confirmadas).
 **Protocolo de mantenimiento:** ver `fuentes/E10_PROTOCOLO_SINCRONIZACION_NORMATIVA.md`
 **Diseño del monitor de vigilancia:** ver `fuentes/E11_MONITOR_VIGILANCIA_NORMATIVA.md`
 **Diseño del motor de catalogación:** ver `fuentes/E14_CATALOGACION_AUTONOMA_FASE_2.md`
@@ -54,7 +54,7 @@ Que un maestro (caso arquetipo: tía Lola, preescolar) pueda:
 
 **Tiempo total objetivo por planeación mensual completa:** **< 20 minutos** desglosados: 15 min crear proyecto + 5 min calendarizar + exportar. Vs 4-6 horas actuales.
 
-Sin login social complejo. Sin pagos. Sin IA generativa. Sin alumnos ni padres ni dirección automatizando todavía.
+Sin login social complejo ni pagos. La IA, cuando se habilite, solo propone contenido editable y nunca decide por la docente. El MVP incluye nombres de alumnos, su rúbrica visual y una vista ligera para dirección; no incluye automatización de aprobación ni relación directa con padres.
 
 **Lo que NO es (anti-objetivo):**
 - No es una red social docente.
@@ -441,9 +441,9 @@ Estas son las cuatro features con IA, justificadas una por una.
 
 #### 3.7.3. Arquitectura técnica propuesta
 
-**Proveedor:** MiniMax (modelo M3). API compatible con OpenAI-style. SDK open-source compatible.
+**Proveedor por defecto:** MiniMax M3 mediante un conector compatible con la API de OpenAI. La integración conserva configuración externa de proveedor, modelo y URL para permitir sustitución futura sin reescritura.
 
-**Endpoint y autenticación:** API key de MiniMax almacenada en variable de entorno del backend (NUNCA en frontend). Sin endpoint público expuesto. Llamadas server-side.
+**Endpoint y autenticación:** URL, modelo y API key se configuran como variables de entorno del backend (NUNCA en frontend). Sin endpoint público expuesto. Llamadas server-side. Puede configurarse otro proveedor compatible, pero **no existe fallback automático en el MVP**: ante indisponibilidad, la experiencia degrada sin IA.
 
 **Latencia objetivo:** < 3 segundos por respuesta de feature. Si MiniMax tarda más de 8s, timeout y degradar sin IA.
 
@@ -546,14 +546,18 @@ Esto convierte tu app en **guardiana de cumplimiento NEM**, no solo un editor de
 - **Sesión** (antes "clase"): proyecto_padre, numero, fecha, bloques[], campo_formativo (heredado del proyecto), pda (heredado o específico), inicio | desarrollo | cierre (marcador de fase interna).
 - **Bloque**: tipo (`microleccion | actividad_practica | video | referencia_oficial | evaluacion_formativa | cierre_reflexivo | lectura`), descripción, recursos_embebidos opcional (URL, NO contenido CONALITEG), pda_trabajado.
 - **Programación** (antes "Planeación"): docente, periodo (mes o semana), proyectos[] con posición en calendario, PDF generado (URL), fecha de creación, fecha_entrega (al director).
+- **Grupo**: docente, ciclo escolar, nivel, grado, grupo, total aproximado de alumnos y estado activo. Una docente puede administrar hasta tres grupos simples en el MVP y selecciona el grupo activo al trabajar.
+- **Alumno**: grupo, nombre, grado, grupo, ciclo escolar y estado activo. Se captura una sola vez por ciclo, puede importarse desde CSV y permanece editable por la docente.
+- **Evaluación de alumno**: planeación, alumno, nivel visual de logro (🟢 logrado sin apoyo, 🟡 logrado con apoyo, 🟠 requiere apoyo constante, 🔴 no logrado), fecha y observaciones breves.
 - **Bitácora**: sesion, fecha, participación (1-5), actividad mejor (referencia a bloque), dificultades (texto), evidencia (URL imagen), docente.
 - **Entrega** (al director): programacion_id, version (1, 2, 3...; cada edición post-entrega genera v+1), estado (`entregada` | `recibida` | `con_comentarios` | `archivada`), doc_pdf_url, pdf_sha256, fecha_creacion (timestamp de generación), fecha_entrega (timestamp del click "Entregar al director"), fecha_recibida (timestamp del director), comentario_director (texto libre opcional, persistente ligado al token hasta registro), url_firmada_token (JWT), url_firmada_expira_at (timestamp, default 30 días), director_celular (declarado por maestra, validado por OTP), director_id (FK cuando se registra).
 - **CatalogoNEM**: versionado (Fase X / Edición 2025), campos[], ejes[], pdas[] (texto oficial del DOF).
 
-**Datos sensibles — decisión:**
-- Sin datos de alumnos en MVP. Cero.
-- Sin registros de salud, neurotipo, ni seguimiento individual.
-- Esto **posterga deliberadamente** la sección 4.4 del doc maestro (Seguimiento e inclusión). No se elimina del roadmap, se difiere a Fase 2.
+**Datos de alumnos y límites de privacidad — decisión confirmada (ENT-003 D1 / E22 D-FIN-2 y D-FIN-15):**
+- El MVP sí trata nombres de alumnos, nivel de logro y observaciones breves para permitir rúbrica e historial cronológico individual.
+- Antes de capturar nombres, la docente debe aceptar el aviso de privacidad y confirmar que cuenta con consentimiento institucional para dichos datos.
+- Siguen fuera del MVP los datos de salud, neurotipo, fotografías o voz de alumnos y cualquier uso de IA con información identificable de menores.
+- La evidencia fotográfica solo puede mostrar el trabajo del niño, nunca al niño mismo.
 
 ---
 
@@ -594,7 +598,7 @@ La app necesita un **catálogo local** con:
 
 ---
 
-## 6. PLATAFORMA Y STACK (PROPUESTA, NO DECIDIDA)
+## 6. PLATAFORMA Y STACK (DECISIONES CONFIRMADAS)
 
 | Capa | Propuesta | Razón |
 |---|---|---|
@@ -604,7 +608,7 @@ La app necesita un **catálogo local** con:
 | Storage de evidencias | Supabase Storage (bucket privado) | Para bitácora, fotos |
 | Generación PDF | Server-side (Playwright o Puppeteer) | Formato NEM reconocible, adjunto a planeación |
 | PWA / offline | Service Worker + IndexedDB local | Bitácora offline (escuela sin señal) |
-| **IA integrada** | **MiniMax M3 (de la fundación MiniMax)** vía API compatible OpenAI-style. Ver §3.7 para features concretas y política de datos | Decisión estratégica v0.10. Única IA, sin fallback. Datos anonimizados. CERO datos de menores. |
+| **IA integrada** | **MiniMax M3 por defecto** mediante conector OpenAI-compatible. Ver §3.7 para features concretas y política de datos | Proveedor, modelo y URL configurables. Sin fallback automático; datos de menores siempre excluidos. |
 | **Módulo de anonimización** | `ia_anonymizer.py` server-side antes de cada llamada. Tests unitarios que verifican que ningún PII cruza | Compliance LFPDPPP 2025 |
 | Deploy | Vercel (frontend) + Supabase Cloud | Costo MVP mínimo |
 
@@ -632,6 +636,20 @@ Confirmado por research: drag-and-drop con `dnd-kit` requiere decisiones explíc
   - Director de CCT con varios maestros: panel director muestra TODOS los maestros vinculados a su CCT.
   - Cambio de CCT de un maestro (traslado de escuela): requiere acción explícita de desvinculación; no automático.
 - **Para verificar:** un test E2E donde una maestra de CCT-A intenta ver entregas de CCT-B y la app lo bloquea.
+
+### 6.2.1. Decisiones funcionales consolidadas del cierre de discovery
+
+Las siguientes decisiones confirmadas complementan este baseline y son obligatorias para el alcance MVP. Sus detalles técnicos viven en las SPEC técnicas activas, sin sustituir el comportamiento funcional aquí descrito.
+
+**Onboarding y privacidad (E22 D-FIN-4, D-FIN-15):** el alta ocurre en un máximo de cinco pantallas: registro; selección y confirmación del CCT; configuración del grupo del ciclo; captura opcional o importación CSV de alumnos; bienvenida con un único tip contextual. En el primer acceso se presenta el aviso de privacidad completo. Si la docente no lo acepta, puede usar la app pero no registrar nombres de alumnos.
+
+**Modalidad y planeación (E22 D-FIN-6, D-FIN-9):** el wizard adapta su estructura a la modalidad escogida. El MVP entrega completo Proyecto Comunitario; las demás modalidades quedan preparadas para iteraciones posteriores. Cada sesión admite un ajuste opcional de texto libre para el plan B.
+
+**CONALITEG (E22 D-FIN-10):** los libros oficiales se visualizan en línea desde el portal oficial y, cuando la docente los haya consultado con red, pueden estar disponibles sin conexión mediante caché para su grado. La plataforma mantiene atribución visible a CONALITEG/SEP y enlace al portal oficial; no reemplaza la propiedad ni el origen oficial de los contenidos.
+
+**Multi-grupo y clonado (E22 D-FIN-16, D-FIN-17):** una docente puede gestionar hasta tres grupos simples. Puede duplicar una planeación hacia otro grupo o ciclo: se copia la estructura, sesiones, bloques y recursos; quedan vacíos alumnos y evaluaciones para el grupo destino. El alcance no incluye sincronización multi-grupo avanzada ni compartir alumnos entre grupos.
+
+**Entrega al director (E22 D-FIN-5, D-FIN-19):** al entregar una planeación, la docente obtiene una vista firmada para el director sin registro y puede abrir WhatsApp con un mensaje prearmado y editable que incluye el enlace. La entrega permite visualizar, compartir e imprimir/guardar el documento; la generación de un archivo PDF binario descargable se mantiene como una capacidad pendiente de materialización técnica y no se debe representar como ya implementada.
 
 ### 6.3. UX como diferenciador (v0.13)
 
@@ -778,14 +796,14 @@ Estos NO son parte del MVP, pero el MVP los **desbloquea**:
 ## 9. RIESGOS CONOCIDOS (sin mitigar todavía)
 
 1. **Preescolar ≠ primaria/secundaria.** Ya vimos que cambia periodicidad y unidad. Mitigación: parametrización desde día 1, no hardcode.
-2. **Reforma LFPDPPP 2025 (vigente desde 21-mar-2025).** Incluye obligaciones específicas para IA y decisiones automatizadas. INAI desapareció → autoridad es **Secretaría Anticorrupción y Buen Gobierno**. Si entra IA o datos de menores, requiere compliance formal. Mitigación MVP: cero IA generativa, cero datos de alumnos; documentar exclusiones (E9).
+2. **Reforma LFPDPPP 2025 (vigente desde 21-mar-2025).** Incluye obligaciones específicas para IA y decisiones automatizadas. INAI desapareció → autoridad es **Secretaría Anticorrupción y Buen Gobierno**. El MVP trata nombres, niveles de logro y observaciones breves de alumnos, por lo que exige aviso de privacidad y aceptación antes de su captura; salud, neurotipo, imagen/voz e IA con datos de menores siguen excluidos. El consentimiento formal de padres/tutores se programa para la fase legal posterior al MVP.
 3. **PDF NEM reconocible.** Si los directores no aceptan el PDF tal cual, MVP falla criterio 4. Mitigación: validar formato con 3-5 directores reales ANTES de cerrar diseño de exportador.
 4. **Offline sync.** Complejidad no trivial. Mitigación: empezar con online-first, offline solo para bitácora (alcance pequeño).
 5. **Catálogo NEM desactualizado.** Si SEP emite nueva versión o nueva fase, hay que actualizar. Mitigación: tabla versionada, alerta de "versión NEM cargada".
 6. **Catálogo NEM — esfuerzo de catalogación.** Trabajo manual de 40-80h para transcribir ~96 PDA oficiales. **No delegable a programador.** Tesis de fundador. Riesgo de cronograma si se subestima.
 7. **Competencia directa: Kumu (kumu.la).** Ya tiene planeación NEM con IA + biblioteca + Kumu Familiar + calendario. **Diferenciador documentado:** flujo completo docente (incluye director + bitácora + analíticos longitudinales del grupo). Si el MVP imita a Kumu en planeación+IA, **no hay diferenciación**. Mitigación: foco obsesivo en el flujo post-exportación (entrega al director → bitácora → evidencia → reporte).
 8. **Fase 1 (educación inicial) sin programa sintético oficial.** Si se incluye en el MVP, debe etiquetarse como "extensión no oficial". Riesgo de credibilidad pedagógica si se exhibe como NEM-alineado.
-9. **Reforma Senado 26-dic-2025 sobre imagen/voz/datos de menores.** Prohíbe uso comercial sin consentimiento expreso escrito. No impacta MVP directamente (no hay datos de alumnos), pero documenta una restricción permanente para cualquier feature futura de seguimiento individual.
+9. **Reforma Senado 26-dic-2025 sobre imagen/voz/datos de menores.** Prohíbe uso comercial sin consentimiento expreso escrito. El MVP no captura imagen o voz de alumnos; la evidencia se limita al trabajo producido por ellos. Esta restricción es permanente para cualquier evolución de seguimiento individual.
 10. **UX móvil — drag-and-drop impreciso.** Patrón documentado: drag con el dedo falla el 30-40% de las veces en pantallas pequeñas. Mitigación: botón "Agregar al día" como acción primaria en móvil, drag como secundario; haptic feedback y undo button.
 11. **IA MiniMax — transferencia internacional de datos.** Decisión de proveedor único (M3, servidor en China). LFPDPPP 2025 art. 36-38 requiere consentimiento expreso o excepción documentada. Mitigación: aviso de privacidad específico para IA + módulo `ia_anonymizer.py` que aplica reglas de ofuscación antes de cada llamada + tests automatizados. Ver §3.7.
 

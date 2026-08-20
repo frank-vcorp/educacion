@@ -1,0 +1,748 @@
+{
+  "metadata_extraccion": {
+    "fecha": "2026-08-16T04:18:14.304540+00:00",
+    "script_version": "catalogar_fase2.py v0.3",
+    "pdf_fuente": "Educacion/fuentes/01_normativa_nem/programa_sintetico_fase2_v2024.pdf",
+    "pdf_sha256": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+    "pdf_ocr_cacheado": null,
+    "total_paginas_pdf": 80,
+    "pdfplumber_exito": true,
+    "pymupdf_disponible": true,
+    "tesseract_disponible": true,
+    "ocrmypdf_disponible": true,
+    "ocr_habilitado": false,
+    "metodo_extraccion_texto": "nativo_solo"
+  },
+  "catalogo_version": {
+    "codigo": "PLAN_2022_ED_2025_FASE_2",
+    "nombre": "Plan de Estudio 2022 — Fase 2 (Preescolar)",
+    "fecha_vigencia": "2025-08-01",
+    "fuente_dof": "Acuerdo 14/08/22 + Anexo 06/08/23",
+    "fuente_sha256": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+    "fecha_carga": "2026-08-16T04:18:14.304956+00:00",
+    "cargado_por": "SOFIA + founder",
+    "metadata": {
+      "metodo_extraccion": "nativo_solo",
+      "pdf_ocr_cacheado": null,
+      "pdf_fuente": "Educacion/fuentes/01_normativa_nem/programa_sintetico_fase2_v2024.pdf"
+    }
+  },
+  "campos_formativos": [
+    {
+      "codigo": "LENGUAJES",
+      "nombre": "Lenguajes",
+      "orden": 1,
+      "descripcion": "El campo formativo Lenguajes tiene como propósito que las niñas y los niños se apropien de las prácticas sociales del lenguaje para participar en la vida social, expresar ideas, emociones y construir significados. Involucra la lengua oral, la lengua escrita, las lenguas indígenas, las artes y los lenguajes visuales, sonoros y corporales."
+    },
+    {
+      "codigo": "SABERES_PENSAMIENTO_CIENTIFICO",
+      "nombre": "Saberes y Pensamiento Científico",
+      "orden": 2,
+      "descripcion": "Promueve que las niñas y los niños construyan explicaciones del mundo natural y social mediante la observación, la experimentación y el razonamiento. Involucra matemáticas, ciencias naturales y experimentales, y pensamiento crítico."
+    },
+    {
+      "codigo": "ETICA_NATURALEZA_SOCIEDADES",
+      "nombre": "Ética, Naturaleza y Sociedades",
+      "orden": 3,
+      "descripcion": "Aborda la relación entre las personas, la naturaleza y la sociedad desde una perspectiva ética. Promueve la reflexión sobre el entorno, el cuidado del ambiente, la convivencia y la responsabilidad social."
+    },
+    {
+      "codigo": "LO_HUMANO_LO_COMUNITARIO",
+      "nombre": "De lo Humano y lo Comunitario",
+      "orden": 4,
+      "descripcion": "Reconoce la identidad personal y colectiva como construcción social, y promueve el bienestar integral, la salud, la convivencia, la educación emocional y la formación para la vida en comunidad."
+    }
+  ],
+  "ejes_articuladores": [
+    {
+      "codigo": "INCLUSION",
+      "nombre": "Inclusión",
+      "orden": 1,
+      "descripcion": "Parte del reconocimiento de que cada persona tiene capacidades, ritmos y estilos de aprendizaje distintos, y de que el sistema educativo debe generar las condiciones para que todos participen y aprendan."
+    },
+    {
+      "codigo": "PENSAMIENTO_CRITICO",
+      "nombre": "Pensamiento crítico",
+      "orden": 2,
+      "descripcion": "Implica el ejercicio de un análisis reflexivo y argumentado sobre los hechos, las ideas y los problemas, para tomar decisiones informadas y responsables."
+    },
+    {
+      "codigo": "INTERCULTURALIDAD_CRITICA",
+      "nombre": "Interculturalidad crítica",
+      "orden": 3,
+      "descripcion": "Reconoce la diversidad cultural del país y promueve el diálogo entre saberes, cosmovisiones y prácticas sociales para construir relaciones equitativas."
+    },
+    {
+      "codigo": "IGUALDAD_GENERO",
+      "nombre": "Igualdad de género",
+      "orden": 4,
+      "descripcion": "Promueve condiciones equitativas entre mujeres y hombres, e impulsa el reconocimiento de los derechos humanos y la no discriminación."
+    },
+    {
+      "codigo": "VIDA_SALUDABLE",
+      "nombre": "Vida saludable",
+      "orden": 5,
+      "descripcion": "Favorece el desarrollo integral mediante el cuidado del cuerpo, la alimentación, la actividad física y el bienestar emocional."
+    },
+    {
+      "codigo": "APROPIACION_CULTURAS_LECTURA",
+      "nombre": "Apropiación de las culturas a través de la lectura y la escritura",
+      "orden": 6,
+      "descripcion": "Reconoce la lectura y la escritura como prácticas sociales y culturales que permiten a las personas participar en la vida pública y en el ejercicio de la ciudadanía."
+    },
+    {
+      "codigo": "ARTES_EXPERIENCIAS_ESTETICAS",
+      "nombre": "Artes y experiencias estéticas",
+      "orden": 7,
+      "descripcion": "Promueve el acercamiento a las manifestaciones artísticas y la valoración de las experiencias estéticas como parte del desarrollo humano."
+    }
+  ],
+  "fases": [
+    {
+      "codigo": "FASE_1",
+      "numero": 1,
+      "nombre": "Inicial",
+      "rango_edad": "0-3 años"
+    },
+    {
+      "codigo": "FASE_2",
+      "numero": 2,
+      "nombre": "Preescolar",
+      "rango_edad": "3-6 años"
+    },
+    {
+      "codigo": "FASE_3",
+      "numero": 3,
+      "nombre": "Primaria (1°-3°)",
+      "rango_edad": "6-9 años"
+    },
+    {
+      "codigo": "FASE_4",
+      "numero": 4,
+      "nombre": "Primaria (4°-6°)",
+      "rango_edad": "9-12 años"
+    },
+    {
+      "codigo": "FASE_5",
+      "numero": 5,
+      "nombre": "Secundaria (1°-3°)",
+      "rango_edad": "12-15 años"
+    },
+    {
+      "codigo": "FASE_6",
+      "numero": 6,
+      "nombre": "Medio Superior",
+      "rango_edad": "15-18 años"
+    }
+  ],
+  "pdas": [
+    {
+      "codigo": "PDA-F2-LNG-001",
+      "texto": "Reconoce que y espera su turno comunicarse.",
+      "fuente_dof_pagina": 20,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "LENGUAJES"
+      ],
+      "ejes_asociados": []
+    },
+    {
+      "codigo": "PDA-F2-LNG-002",
+      "texto": "Describe lugares a partir de los rasgos\no personajes de Narra con secuen- de su cultura y de otras\nlas historias o tex- cia lógica, histo- regiones.",
+      "fuente_dof_pagina": 20,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "LENGUAJES"
+      ],
+      "ejes_asociados": []
+    },
+    {
+      "codigo": "PDA-F2-LNG-003",
+      "texto": "Descubre en los entre otros, y con\njuegos del lenguaje, ello crea otras for-\npalabras nuevas y se mas de expresión.",
+      "fuente_dof_pagina": 21,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "LENGUAJES"
+      ],
+      "ejes_asociados": []
+    },
+    {
+      "codigo": "PDA-F2-LNG-004",
+      "texto": "Identifica que algunos\nMuestra interés por nombres propios son\nindagar significa- de origen indígena y\ndos de palabras, extranjero.",
+      "fuente_dof_pagina": 22,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "LENGUAJES"
+      ],
+      "ejes_asociados": []
+    },
+    {
+      "codigo": "PDA-F2-LNG-005",
+      "texto": "Comenta lo que le Explica lo que le como formas, trazos,\ngusta, le provocan provocan las mani- personas, objetos o\no le hacen sentir las festaciones artísti- sonidos y ritmos.",
+      "fuente_dof_pagina": 25,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "LENGUAJES"
+      ],
+      "ejes_asociados": []
+    },
+    {
+      "codigo": "PDA-F2-LNG-006",
+      "texto": "Reconoce que\nexisten opiniones\ndiferentes en torno\na la diversidad\nde manifestacio-\nnes artísticas y\nculturales.",
+      "fuente_dof_pagina": 25,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "LENGUAJES"
+      ],
+      "ejes_asociados": []
+    },
+    {
+      "codigo": "PDA-F2-SPC-001",
+      "texto": "Consulta diferentes comunica y registra\nfuentes de infor- sus hallazgos.",
+      "fuente_dof_pagina": 32,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "SABERES_PENSAMIENTO_CIENTIFICO"
+      ],
+      "ejes_asociados": []
+    },
+    {
+      "codigo": "PDA-F2-SPC-002",
+      "texto": "Comparte algunos la de los demás.",
+      "fuente_dof_pagina": 33,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "SABERES_PENSAMIENTO_CIENTIFICO"
+      ],
+      "ejes_asociados": []
+    },
+    {
+      "codigo": "PDA-F2-SPC-003",
+      "texto": "Observa y nom- ejemplo, al contami-\nbra en su lengua Describe los cambios narla o dañarla.",
+      "fuente_dof_pagina": 34,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "SABERES_PENSAMIENTO_CIENTIFICO"
+      ],
+      "ejes_asociados": []
+    },
+    {
+      "codigo": "PDA-F2-SPC-004",
+      "texto": "Conoce formas de\ncontar en otras cul-\nturas, como la maya,\nque usa rayas y pun-\ntos para representar\nlos números.",
+      "fuente_dof_pagina": 36,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "SABERES_PENSAMIENTO_CIENTIFICO"
+      ],
+      "ejes_asociados": []
+    },
+    {
+      "codigo": "PDA-F2-SPC-005",
+      "texto": "Identifica for- construcción, mode-\nmas geométricas lado, doblado de\nen objetos de su papel o con dibujos.",
+      "fuente_dof_pagina": 37,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "SABERES_PENSAMIENTO_CIENTIFICO"
+      ],
+      "ejes_asociados": []
+    },
+    {
+      "codigo": "PDA-F2-SPC-006",
+      "texto": "Distingue y reproduce secuencias.",
+      "fuente_dof_pagina": 37,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "SABERES_PENSAMIENTO_CIENTIFICO"
+      ],
+      "ejes_asociados": []
+    },
+    {
+      "codigo": "PDA-F2-SPC-007",
+      "texto": "Juega con el tangram\npara hacer com-\nposiciones y arma\nrompecabezas.",
+      "fuente_dof_pagina": 37,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "SABERES_PENSAMIENTO_CIENTIFICO"
+      ],
+      "ejes_asociados": []
+    },
+    {
+      "codigo": "PDA-F2-SPC-008",
+      "texto": "Experimenta, de\nmanera colaborativa,\ncon elementos y\nobjetos del entorno\ny reconoce si hay\ncambios o transfor-\nmaciones en ellos,\nmanteniendo nor-\nmas de seguridad.",
+      "fuente_dof_pagina": 39,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "SABERES_PENSAMIENTO_CIENTIFICO"
+      ],
+      "ejes_asociados": []
+    },
+    {
+      "codigo": "PDA-F2-SPC-009",
+      "texto": "Escucha los sonidos comportamiento al modifica sus suposi-\nque producen los combinar los recursos ciones iniciales.",
+      "fuente_dof_pagina": 40,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "SABERES_PENSAMIENTO_CIENTIFICO"
+      ],
+      "ejes_asociados": []
+    },
+    {
+      "codigo": "PDA-F2-SPC-010",
+      "texto": "Experimenta con\ndiversos objetos o\ninstrumentos musi-\ncales, para producir y\ncombinar diferentes\nsonidos.",
+      "fuente_dof_pagina": 40,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "SABERES_PENSAMIENTO_CIENTIFICO"
+      ],
+      "ejes_asociados": []
+    },
+    {
+      "codigo": "PDA-F2-SPC-011",
+      "texto": "Encuentra formas y artefactos tecnoló- medir ingredientes o\ncreativas de usar gicos, y comparte sus remover tierra para\njuguetes, objetos y descubrimientos con sembrar.",
+      "fuente_dof_pagina": 41,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "SABERES_PENSAMIENTO_CIENTIFICO"
+      ],
+      "ejes_asociados": []
+    },
+    {
+      "codigo": "PDA-F2-ENS-001",
+      "texto": "Identifica acciones lia y escuela para recursos naturales.",
+      "fuente_dof_pagina": 46,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "ETICA_NATURALEZA_SOCIEDADES"
+      ],
+      "ejes_asociados": []
+    },
+    {
+      "codigo": "PDA-F2-ENS-002",
+      "texto": "Distingue acciones producirlos, así como\nAsocia los alimen- que son benéficas al elaborar o fabricar\ntos que consume, para su entorno, prendas de vestir.",
+      "fuente_dof_pagina": 46,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "ETICA_NATURALEZA_SOCIEDADES"
+      ],
+      "ejes_asociados": []
+    },
+    {
+      "codigo": "PDA-F2-ENS-003",
+      "texto": "México y los explica\nConoce y disfruta con sus propias pala-\nlugares de relevan- bras; reconoce los\ncia natural, cultural lugares y momentos\ne histórica de su apropiados para\ncomunidad y país, usarlos.",
+      "fuente_dof_pagina": 48,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "ETICA_NATURALEZA_SOCIEDADES"
+      ],
+      "ejes_asociados": []
+    },
+    {
+      "codigo": "PDA-F2-ENS-004",
+      "texto": "Colabora con la cul- ponsabilidades que para construir\ntura de paz en su tendrá en su hogar y un ambiente de\nhogar y escuela, al escuela, y explica por equidad e inclusión.",
+      "fuente_dof_pagina": 51,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "ETICA_NATURALEZA_SOCIEDADES"
+      ],
+      "ejes_asociados": []
+    },
+    {
+      "codigo": "PDA-F2-LNG-007",
+      "texto": "Representa la ima-\ngen que tiene de sí\ny de sus pares con\napoyo de diversos\nrecursos de los len-\nguajes artísticos.",
+      "fuente_dof_pagina": 56,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "LENGUAJES"
+      ],
+      "ejes_asociados": []
+    },
+    {
+      "codigo": "PDA-F2-LNG-008",
+      "texto": "Reconoce o se per- en riesgo su inte-\ncata cuando sus Muestra respeto y gridad o la de otras\npares necesitan empatía hacia la personas.",
+      "fuente_dof_pagina": 58,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "LENGUAJES"
+      ],
+      "ejes_asociados": []
+    },
+    {
+      "codigo": "PDA-F2-HUM-001",
+      "texto": "Practica hábitos de de alimentos.",
+      "fuente_dof_pagina": 61,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "LO_HUMANO_LO_COMUNITARIO"
+      ],
+      "ejes_asociados": []
+    },
+    {
+      "codigo": "PDA-F2-HUM-002",
+      "texto": "Identifica acciones, Lleva a cabo accio- otros.",
+      "fuente_dof_pagina": 61,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": true,
+      "razon_revision": "PDA extraído por heurística de sección 'Procesos de desarrollo de aprendizaje'. Founder debe validar texto y página contra PDF.",
+      "campos_asociados": [
+        "LO_HUMANO_LO_COMUNITARIO"
+      ],
+      "ejes_asociados": []
+    }
+  ],
+  "contenidos": [
+    {
+      "codigo": "CONT-F2-LNG-001",
+      "texto": null,
+      "campo_codigo": "LENGUAJES",
+      "fase_codigo": "FASE_2",
+      "fuente_dof_pagina": 5,
+      "requiere_revision_humana": true,
+      "razon_revision": "Contenido no extraíble: PDF escaneado. Founder debe listar contenidos específicos del campo."
+    },
+    {
+      "codigo": "CONT-F2-SPC-002",
+      "texto": null,
+      "campo_codigo": "SABERES_PENSAMIENTO_CIENTIFICO",
+      "fase_codigo": "FASE_2",
+      "fuente_dof_pagina": 5,
+      "requiere_revision_humana": true,
+      "razon_revision": "Contenido no extraíble: PDF escaneado. Founder debe listar contenidos específicos del campo."
+    },
+    {
+      "codigo": "CONT-F2-ENS-003",
+      "texto": null,
+      "campo_codigo": "ETICA_NATURALEZA_SOCIEDADES",
+      "fase_codigo": "FASE_2",
+      "fuente_dof_pagina": 5,
+      "requiere_revision_humana": true,
+      "razon_revision": "Contenido no extraíble: PDF escaneado. Founder debe listar contenidos específicos del campo."
+    },
+    {
+      "codigo": "CONT-F2-HUM-004",
+      "texto": null,
+      "campo_codigo": "LO_HUMANO_LO_COMUNITARIO",
+      "fase_codigo": "FASE_2",
+      "fuente_dof_pagina": 5,
+      "requiere_revision_humana": true,
+      "razon_revision": "Contenido no extraíble: PDF escaneado. Founder debe listar contenidos específicos del campo."
+    }
+  ],
+  "pda_por_campo_fase": [
+    {
+      "pda_codigo": "PDA-F2-LNG-001",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "LENGUAJES"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-002",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "LENGUAJES"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-003",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "LENGUAJES"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-004",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "LENGUAJES"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-005",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "LENGUAJES"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-006",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "LENGUAJES"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-001",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "SABERES_PENSAMIENTO_CIENTIFICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-002",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "SABERES_PENSAMIENTO_CIENTIFICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-003",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "SABERES_PENSAMIENTO_CIENTIFICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-004",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "SABERES_PENSAMIENTO_CIENTIFICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-005",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "SABERES_PENSAMIENTO_CIENTIFICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-006",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "SABERES_PENSAMIENTO_CIENTIFICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-007",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "SABERES_PENSAMIENTO_CIENTIFICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-008",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "SABERES_PENSAMIENTO_CIENTIFICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-009",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "SABERES_PENSAMIENTO_CIENTIFICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-010",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "SABERES_PENSAMIENTO_CIENTIFICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-011",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "SABERES_PENSAMIENTO_CIENTIFICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-001",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "ETICA_NATURALEZA_SOCIEDADES"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-002",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "ETICA_NATURALEZA_SOCIEDADES"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-003",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "ETICA_NATURALEZA_SOCIEDADES"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-004",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "ETICA_NATURALEZA_SOCIEDADES"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-007",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "LENGUAJES"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-008",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "LENGUAJES"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-001",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "LO_HUMANO_LO_COMUNITARIO"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-002",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "LO_HUMANO_LO_COMUNITARIO"
+    }
+  ],
+  "pda_ejes": [],
+  "referencias_conaliteg": [
+    {
+      "grado": "1° preescolar",
+      "campo": "Lenguajes",
+      "titulo_libro": null,
+      "url_publica": null,
+      "isbn": null,
+      "edicion": "2024",
+      "notas": "requiere_revision_humana: pendiente verificación CONALITEG"
+    },
+    {
+      "grado": "1° preescolar",
+      "campo": "Saberes y Pensamiento Científico",
+      "titulo_libro": null,
+      "url_publica": null,
+      "isbn": null,
+      "edicion": "2024",
+      "notas": "requiere_revision_humana: pendiente verificación CONALITEG"
+    },
+    {
+      "grado": "1° preescolar",
+      "campo": "Ética, Naturaleza y Sociedades",
+      "titulo_libro": null,
+      "url_publica": null,
+      "isbn": null,
+      "edicion": "2024",
+      "notas": "requiere_revision_humana: pendiente verificación CONALITEG"
+    },
+    {
+      "grado": "1° preescolar",
+      "campo": "De lo Humano y lo Comunitario",
+      "titulo_libro": null,
+      "url_publica": null,
+      "isbn": null,
+      "edicion": "2024",
+      "notas": "requiere_revision_humana: pendiente verificación CONALITEG"
+    },
+    {
+      "grado": "2° preescolar",
+      "campo": "Lenguajes",
+      "titulo_libro": null,
+      "url_publica": null,
+      "isbn": null,
+      "edicion": "2024",
+      "notas": "requiere_revision_humana: pendiente verificación CONALITEG"
+    },
+    {
+      "grado": "2° preescolar",
+      "campo": "Saberes y Pensamiento Científico",
+      "titulo_libro": null,
+      "url_publica": null,
+      "isbn": null,
+      "edicion": "2024",
+      "notas": "requiere_revision_humana: pendiente verificación CONALITEG"
+    },
+    {
+      "grado": "2° preescolar",
+      "campo": "Ética, Naturaleza y Sociedades",
+      "titulo_libro": null,
+      "url_publica": null,
+      "isbn": null,
+      "edicion": "2024",
+      "notas": "requiere_revision_humana: pendiente verificación CONALITEG"
+    },
+    {
+      "grado": "2° preescolar",
+      "campo": "De lo Humano y lo Comunitario",
+      "titulo_libro": null,
+      "url_publica": null,
+      "isbn": null,
+      "edicion": "2024",
+      "notas": "requiere_revision_humana: pendiente verificación CONALITEG"
+    },
+    {
+      "grado": "3° preescolar",
+      "campo": "Lenguajes",
+      "titulo_libro": null,
+      "url_publica": null,
+      "isbn": null,
+      "edicion": "2024",
+      "notas": "requiere_revision_humana: pendiente verificación CONALITEG"
+    },
+    {
+      "grado": "3° preescolar",
+      "campo": "Saberes y Pensamiento Científico",
+      "titulo_libro": null,
+      "url_publica": null,
+      "isbn": null,
+      "edicion": "2024",
+      "notas": "requiere_revision_humana: pendiente verificación CONALITEG"
+    },
+    {
+      "grado": "3° preescolar",
+      "campo": "Ética, Naturaleza y Sociedades",
+      "titulo_libro": null,
+      "url_publica": null,
+      "isbn": null,
+      "edicion": "2024",
+      "notas": "requiere_revision_humana: pendiente verificación CONALITEG"
+    },
+    {
+      "grado": "3° preescolar",
+      "campo": "De lo Humano y lo Comunitario",
+      "titulo_libro": null,
+      "url_publica": null,
+      "isbn": null,
+      "edicion": "2024",
+      "notas": "requiere_revision_humana: pendiente verificación CONALITEG"
+    }
+  ],
+  "auditoria_carga": [
+    {
+      "accion": "agregado",
+      "observacion": "PDA placeholder generado por extracción automática con OCR limitado o PDF escaneado",
+      "autor": "atlas-script"
+    }
+  ]
+}

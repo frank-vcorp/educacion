@@ -1,0 +1,1640 @@
+{
+  "metadata_extraccion": {
+    "fecha": "2026-08-16T04:34:22.255660+00:00",
+    "script_version": "extractor_v2024.py v1.0",
+    "pdf_fuente": "/home/frank/repos/educacion/Educacion/fuentes/01_normativa_nem/programa_sintetico_fase2_v2024.pdf",
+    "pdf_sha256": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+    "total_paginas_pdf": 80,
+    "paginas_con_texto_nativo": 69,
+    "cobertura_textual_pct": 86.2,
+    "metodo_extraccion_texto": "nativo_pdfplumber_tablas",
+    "pdf_naturaleza": "texto_nativo_indesign",
+    "urls_conaliteg_validadas": true,
+    "fecha_validacion_conaliteg": "2026-08-16T07:01:00+02:00",
+    "total_referencias_conaliteg": 19,
+    "urls_conaliteg_especificas": true,
+    "total_urls_especificas": 19,
+    "fecha_validacion_urls_especificas": "2026-08-16T07:08:00+02:00",
+    "segundo_pass_ejes": {
+      "fecha": "2026-08-17T03:55:00.106246+00:00",
+      "intervencion_id": "CAT-20260817-01-SOFIA-SEGUNDO-PASS",
+      "metodo": "regex_conteo_hits_paginas_intro_campo",
+      "min_hits_por_eje": 1,
+      "ejes_por_campo": {
+        "LENGUAJES": [
+          "INCLUSION",
+          "PENSAMIENTO_CRITICO",
+          "INTERCULTURALIDAD_CRITICA",
+          "IGUALDAD_GENERO",
+          "APROPIACION_CULTURAS_LECTURA",
+          "ARTES_EXPERIENCIAS_ESTETICAS"
+        ],
+        "SABERES_PENSAMIENTO_CIENTIFICO": [
+          "PENSAMIENTO_CRITICO",
+          "INTERCULTURALIDAD_CRITICA",
+          "VIDA_SALUDABLE"
+        ],
+        "ETICA_NATURALEZA_SOCIEDADES": [
+          "INCLUSION",
+          "PENSAMIENTO_CRITICO",
+          "INTERCULTURALIDAD_CRITICA",
+          "IGUALDAD_GENERO",
+          "VIDA_SALUDABLE"
+        ],
+        "LO_HUMANO_LO_COMUNITARIO": [
+          "INCLUSION",
+          "PENSAMIENTO_CRITICO",
+          "INTERCULTURALIDAD_CRITICA",
+          "IGUALDAD_GENERO",
+          "VIDA_SALUDABLE"
+        ]
+      },
+      "hits_por_eje_y_campo": {
+        "LENGUAJES": {
+          "INCLUSION": 5,
+          "PENSAMIENTO_CRITICO": 1,
+          "INTERCULTURALIDAD_CRITICA": 8,
+          "IGUALDAD_GENERO": 2,
+          "VIDA_SALUDABLE": 0,
+          "APROPIACION_CULTURAS_LECTURA": 10,
+          "ARTES_EXPERIENCIAS_ESTETICAS": 17
+        },
+        "SABERES_PENSAMIENTO_CIENTIFICO": {
+          "INCLUSION": 0,
+          "PENSAMIENTO_CRITICO": 1,
+          "INTERCULTURALIDAD_CRITICA": 14,
+          "IGUALDAD_GENERO": 0,
+          "VIDA_SALUDABLE": 4,
+          "APROPIACION_CULTURAS_LECTURA": 0,
+          "ARTES_EXPERIENCIAS_ESTETICAS": 0
+        },
+        "ETICA_NATURALEZA_SOCIEDADES": {
+          "INCLUSION": 2,
+          "PENSAMIENTO_CRITICO": 7,
+          "INTERCULTURALIDAD_CRITICA": 10,
+          "IGUALDAD_GENERO": 7,
+          "VIDA_SALUDABLE": 1,
+          "APROPIACION_CULTURAS_LECTURA": 0,
+          "ARTES_EXPERIENCIAS_ESTETICAS": 0
+        },
+        "LO_HUMANO_LO_COMUNITARIO": {
+          "INCLUSION": 4,
+          "PENSAMIENTO_CRITICO": 4,
+          "INTERCULTURALIDAD_CRITICA": 5,
+          "IGUALDAD_GENERO": 7,
+          "VIDA_SALUDABLE": 11,
+          "APROPIACION_CULTURAS_LECTURA": 0,
+          "ARTES_EXPERIENCIAS_ESTETICAS": 0
+        }
+      },
+      "total_pda_ejes_pairs": 114,
+      "pda_con_ejes": 24,
+      "pda_sin_ejes": 0,
+      "nota_hallazgo": "El PDF no contiene tabla per-PDA de ejes articuladores. Se asignan a cada PDA los ejes documentados como transversales a su Campo Formativo en las secciones 'Finalidades del Campo' + 'Especificidades del Campo formativo para la Fase 2' (páginas 17-19 LNG, 29-31 SPC, 43-45 ENS, 53-55 HUM). La per-PDA asignación en el Programa Analítico queda al colectivo docente (PDF p67-68)."
+    }
+  },
+  "catalogo_version": {
+    "codigo": "PLAN_2022_ED_2025_FASE_2",
+    "nombre": "Plan de Estudio 2022 — Fase 2 (Preescolar)",
+    "fecha_vigencia": "2025-08-01",
+    "fuente_dof": "Acuerdo 14/08/22 + Anexo 06/08/23",
+    "fuente_sha256": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+    "fecha_carga": "2026-08-16T04:34:22.255715+00:00",
+    "cargado_por": "SOFIA + IMPL-20260816-02",
+    "metadata": {
+      "metodo_extraccion": "nativo_pdfplumber_tablas",
+      "pdf_fuente": "/home/frank/repos/educacion/Educacion/fuentes/01_normativa_nem/programa_sintetico_fase2_v2024.pdf",
+      "pdf_naturaleza": "texto_nativo_indesign",
+      "intervencion_id": "IMPL-20260816-02"
+    }
+  },
+  "campos_formativos": [
+    {
+      "codigo": "LENGUAJES",
+      "nombre": "Lenguajes",
+      "orden": 1,
+      "descripcion": "El campo formativo Lenguajes tiene como propósito que las niñas y los niños se apropien de las prácticas sociales del lenguaje para participar en la vida social, expresar ideas, emociones y construir significados. Involucra la lengua oral, la lengua escrita, las lenguas indígenas, las artes y los lenguajes visuales, sonoros y corporales."
+    },
+    {
+      "codigo": "SABERES_PENSAMIENTO_CIENTIFICO",
+      "nombre": "Saberes y Pensamiento Científico",
+      "orden": 2,
+      "descripcion": "Promueve que las niñas y los niños construyan explicaciones del mundo natural y social mediante la observación, la experimentación y el razonamiento. Involucra matemáticas, ciencias naturales y experimentales, y pensamiento crítico."
+    },
+    {
+      "codigo": "ETICA_NATURALEZA_SOCIEDADES",
+      "nombre": "Ética, Naturaleza y Sociedades",
+      "orden": 3,
+      "descripcion": "Aborda la relación entre las personas, la naturaleza y la sociedad desde una perspectiva ética. Promueve la reflexión sobre el entorno, el cuidado del ambiente, la convivencia y la responsabilidad social."
+    },
+    {
+      "codigo": "LO_HUMANO_LO_COMUNITARIO",
+      "nombre": "De lo Humano y lo Comunitario",
+      "orden": 4,
+      "descripcion": "Reconoce la identidad personal y colectiva como construcción social, y promueve el bienestar integral, la salud, la convivencia, la educación emocional y la formación para la vida en comunidad."
+    }
+  ],
+  "ejes_articuladores": [
+    {
+      "codigo": "INCLUSION",
+      "nombre": "Inclusión",
+      "orden": 1,
+      "descripcion": "Parte del reconocimiento de que cada persona tiene capacidades, ritmos y estilos de aprendizaje distintos, y de que el sistema educativo debe generar las condiciones para que todos participen y aprendan."
+    },
+    {
+      "codigo": "PENSAMIENTO_CRITICO",
+      "nombre": "Pensamiento crítico",
+      "orden": 2,
+      "descripcion": "Implica el ejercicio de un análisis reflexivo y argumentado sobre los hechos, las ideas y los problemas, para tomar decisiones informadas y responsables."
+    },
+    {
+      "codigo": "INTERCULTURALIDAD_CRITICA",
+      "nombre": "Interculturalidad crítica",
+      "orden": 3,
+      "descripcion": "Reconoce la diversidad cultural del país y promueve el diálogo entre saberes, cosmovisiones y prácticas sociales para construir relaciones equitativas."
+    },
+    {
+      "codigo": "IGUALDAD_GENERO",
+      "nombre": "Igualdad de género",
+      "orden": 4,
+      "descripcion": "Promueve condiciones equitativas entre mujeres y hombres, e impulsa el reconocimiento de los derechos humanos y la no discriminación."
+    },
+    {
+      "codigo": "VIDA_SALUDABLE",
+      "nombre": "Vida saludable",
+      "orden": 5,
+      "descripcion": "Favorece el desarrollo integral mediante el cuidado del cuerpo, la alimentación, la actividad física y el bienestar emocional."
+    },
+    {
+      "codigo": "APROPIACION_CULTURAS_LECTURA",
+      "nombre": "Apropiación de las culturas a través de la lectura y la escritura",
+      "orden": 6,
+      "descripcion": "Reconoce la lectura y la escritura como prácticas sociales y culturales que permiten a las personas participar en la vida pública y en el ejercicio de la ciudadanía."
+    },
+    {
+      "codigo": "ARTES_EXPERIENCIAS_ESTETICAS",
+      "nombre": "Artes y experiencias estéticas",
+      "orden": 7,
+      "descripcion": "Promueve el acercamiento a las manifestaciones artísticas y la valoración de las experiencias estéticas como parte del desarrollo humano."
+    }
+  ],
+  "fases": [
+    {
+      "codigo": "FASE_1",
+      "numero": 1,
+      "nombre": "Inicial",
+      "rango_edad": "0-3 años"
+    },
+    {
+      "codigo": "FASE_2",
+      "numero": 2,
+      "nombre": "Preescolar",
+      "rango_edad": "3-6 años"
+    },
+    {
+      "codigo": "FASE_3",
+      "numero": 3,
+      "nombre": "Primaria (1°-3°)",
+      "rango_edad": "6-9 años"
+    },
+    {
+      "codigo": "FASE_4",
+      "numero": 4,
+      "nombre": "Primaria (4°-6°)",
+      "rango_edad": "9-12 años"
+    },
+    {
+      "codigo": "FASE_5",
+      "numero": 5,
+      "nombre": "Secundaria (1°-3°)",
+      "rango_edad": "12-15 años"
+    },
+    {
+      "codigo": "FASE_6",
+      "numero": 6,
+      "nombre": "Medio Superior",
+      "rango_edad": "15-18 años"
+    }
+  ],
+  "pdas": [
+    {
+      "codigo": "PDA-F2-LNG-001",
+      "texto": "Emplea palabras, gestos, señas, imágenes, sonidos o movimientos corporales que aprende en su comunidad, para expresar necesidades, ideas, emociones y gustos que reflejan su forma de interpretar y actuar en el mundo.",
+      "fuente_dof_pagina": 20,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": false,
+      "razon_revision": null,
+      "campos_asociados": [
+        "LENGUAJES"
+      ],
+      "ejes_asociados": [
+        "APROPIACION_CULTURAS_LECTURA",
+        "ARTES_EXPERIENCIAS_ESTETICAS",
+        "IGUALDAD_GENERO",
+        "INCLUSION",
+        "INTERCULTURALIDAD_CRITICA",
+        "PENSAMIENTO_CRITICO"
+      ],
+      "grado": "1°",
+      "contenido_codigo": "CONT-F2-LNG-001"
+    },
+    {
+      "codigo": "PDA-F2-LNG-002",
+      "texto": "Reconoce que cuando juega y socializa con sus pares, se expresan desde sus posibilidades, vivencias y cultura.",
+      "fuente_dof_pagina": 20,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": false,
+      "razon_revision": null,
+      "campos_asociados": [
+        "LENGUAJES"
+      ],
+      "ejes_asociados": [
+        "APROPIACION_CULTURAS_LECTURA",
+        "ARTES_EXPERIENCIAS_ESTETICAS",
+        "IGUALDAD_GENERO",
+        "INCLUSION",
+        "INTERCULTURALIDAD_CRITICA",
+        "PENSAMIENTO_CRITICO"
+      ],
+      "grado": "1°",
+      "contenido_codigo": "CONT-F2-LNG-001"
+    },
+    {
+      "codigo": "PDA-F2-LNG-003",
+      "texto": "Manifiesta oralmente y de manera clara necesidades, emociones, gustos, preferencias e ideas, que construye en la convivencia diaria, y se da a entender apoyándose de distintos lenguajes.",
+      "fuente_dof_pagina": 20,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": false,
+      "razon_revision": null,
+      "campos_asociados": [
+        "LENGUAJES"
+      ],
+      "ejes_asociados": [
+        "APROPIACION_CULTURAS_LECTURA",
+        "ARTES_EXPERIENCIAS_ESTETICAS",
+        "IGUALDAD_GENERO",
+        "INCLUSION",
+        "INTERCULTURALIDAD_CRITICA",
+        "PENSAMIENTO_CRITICO"
+      ],
+      "grado": "2°",
+      "contenido_codigo": "CONT-F2-LNG-001"
+    },
+    {
+      "codigo": "PDA-F2-LNG-004",
+      "texto": "Escucha con atención a sus pares y espera su turno para hablar.",
+      "fuente_dof_pagina": 20,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": false,
+      "razon_revision": null,
+      "campos_asociados": [
+        "LENGUAJES"
+      ],
+      "ejes_asociados": [
+        "APROPIACION_CULTURAS_LECTURA",
+        "ARTES_EXPERIENCIAS_ESTETICAS",
+        "IGUALDAD_GENERO",
+        "INCLUSION",
+        "INTERCULTURALIDAD_CRITICA",
+        "PENSAMIENTO_CRITICO"
+      ],
+      "grado": "2°",
+      "contenido_codigo": "CONT-F2-LNG-001"
+    },
+    {
+      "codigo": "PDA-F2-LNG-005",
+      "texto": "De manera oral, expresa ideas completas sobre necesidades, vivencias, emociones, gustos, preferencias y saberes a distintas personas, combinando los lenguajes.",
+      "fuente_dof_pagina": 20,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": false,
+      "razon_revision": null,
+      "campos_asociados": [
+        "LENGUAJES"
+      ],
+      "ejes_asociados": [
+        "APROPIACION_CULTURAS_LECTURA",
+        "ARTES_EXPERIENCIAS_ESTETICAS",
+        "IGUALDAD_GENERO",
+        "INCLUSION",
+        "INTERCULTURALIDAD_CRITICA",
+        "PENSAMIENTO_CRITICO"
+      ],
+      "grado": "3°",
+      "contenido_codigo": "CONT-F2-LNG-001"
+    },
+    {
+      "codigo": "PDA-F2-LNG-006",
+      "texto": "Comprende, al interactuar con las demás personas, que existen diversas formas de comunicarse.",
+      "fuente_dof_pagina": 20,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": false,
+      "razon_revision": null,
+      "campos_asociados": [
+        "LENGUAJES"
+      ],
+      "ejes_asociados": [
+        "APROPIACION_CULTURAS_LECTURA",
+        "ARTES_EXPERIENCIAS_ESTETICAS",
+        "IGUALDAD_GENERO",
+        "INCLUSION",
+        "INTERCULTURALIDAD_CRITICA",
+        "PENSAMIENTO_CRITICO"
+      ],
+      "grado": "3°",
+      "contenido_codigo": "CONT-F2-LNG-001"
+    },
+    {
+      "codigo": "PDA-F2-SPC-001",
+      "texto": "Usa sus sentidos para percibir en su entorno cercano, plantas que le llaman la atención y describe características tales como: olor, color, forma, textura o tamaño, si tienen hojas, flores o frutos.",
+      "fuente_dof_pagina": 32,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": false,
+      "razon_revision": null,
+      "campos_asociados": [
+        "SABERES_PENSAMIENTO_CIENTIFICO"
+      ],
+      "ejes_asociados": [
+        "INTERCULTURALIDAD_CRITICA",
+        "PENSAMIENTO_CRITICO",
+        "VIDA_SALUDABLE"
+      ],
+      "grado": "1°",
+      "contenido_codigo": "CONT-F2-SPC-001"
+    },
+    {
+      "codigo": "PDA-F2-SPC-002",
+      "texto": "Socializa lo que sabe sobre su entorno natural y hace nuevos descubrimientos con sus pares.",
+      "fuente_dof_pagina": 32,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": false,
+      "razon_revision": null,
+      "campos_asociados": [
+        "SABERES_PENSAMIENTO_CIENTIFICO"
+      ],
+      "ejes_asociados": [
+        "INTERCULTURALIDAD_CRITICA",
+        "PENSAMIENTO_CRITICO",
+        "VIDA_SALUDABLE"
+      ],
+      "grado": "1°",
+      "contenido_codigo": "CONT-F2-SPC-001"
+    },
+    {
+      "codigo": "PDA-F2-SPC-003",
+      "texto": "Observa y describe en su lengua materna, animales de su entorno: cómo son, cómo crecen, dónde viven, qué comen, los cuidados que necesitan y otros aspectos que le causan curiosidad.",
+      "fuente_dof_pagina": 32,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": false,
+      "razon_revision": null,
+      "campos_asociados": [
+        "SABERES_PENSAMIENTO_CIENTIFICO"
+      ],
+      "ejes_asociados": [
+        "INTERCULTURALIDAD_CRITICA",
+        "PENSAMIENTO_CRITICO",
+        "VIDA_SALUDABLE"
+      ],
+      "grado": "2°",
+      "contenido_codigo": "CONT-F2-SPC-001"
+    },
+    {
+      "codigo": "PDA-F2-SPC-004",
+      "texto": "Amplía su conocimiento acerca de las plantas: su proceso de crecimiento, lo que necesitan para vivir, los lugares donde crecen, entre otros.",
+      "fuente_dof_pagina": 32,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": false,
+      "razon_revision": null,
+      "campos_asociados": [
+        "SABERES_PENSAMIENTO_CIENTIFICO"
+      ],
+      "ejes_asociados": [
+        "INTERCULTURALIDAD_CRITICA",
+        "PENSAMIENTO_CRITICO",
+        "VIDA_SALUDABLE"
+      ],
+      "grado": "2°",
+      "contenido_codigo": "CONT-F2-SPC-001"
+    },
+    {
+      "codigo": "PDA-F2-SPC-005",
+      "texto": "Distingue algunas características del entorno natural: plantas, animales, cuerpos de agua, clima, entre otras.",
+      "fuente_dof_pagina": 32,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": false,
+      "razon_revision": null,
+      "campos_asociados": [
+        "SABERES_PENSAMIENTO_CIENTIFICO"
+      ],
+      "ejes_asociados": [
+        "INTERCULTURALIDAD_CRITICA",
+        "PENSAMIENTO_CRITICO",
+        "VIDA_SALUDABLE"
+      ],
+      "grado": "3°",
+      "contenido_codigo": "CONT-F2-SPC-001"
+    },
+    {
+      "codigo": "PDA-F2-SPC-006",
+      "texto": "Se apoya en recursos impresos y digitales como fotografías, imágenes o videos para profundizar en sus conocimientos acerca de la diversidad de la naturaleza en su comunidad y otras regiones.",
+      "fuente_dof_pagina": 32,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": false,
+      "razon_revision": null,
+      "campos_asociados": [
+        "SABERES_PENSAMIENTO_CIENTIFICO"
+      ],
+      "ejes_asociados": [
+        "INTERCULTURALIDAD_CRITICA",
+        "PENSAMIENTO_CRITICO",
+        "VIDA_SALUDABLE"
+      ],
+      "grado": "3°",
+      "contenido_codigo": "CONT-F2-SPC-001"
+    },
+    {
+      "codigo": "PDA-F2-ENS-001",
+      "texto": "Convive con su entorno natural, con plantas y animales; expresa lo que percibe y disfruta acerca de ellos.",
+      "fuente_dof_pagina": 46,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": false,
+      "razon_revision": null,
+      "campos_asociados": [
+        "ETICA_NATURALEZA_SOCIEDADES"
+      ],
+      "ejes_asociados": [
+        "IGUALDAD_GENERO",
+        "INCLUSION",
+        "INTERCULTURALIDAD_CRITICA",
+        "PENSAMIENTO_CRITICO",
+        "VIDA_SALUDABLE"
+      ],
+      "grado": "1°",
+      "contenido_codigo": "CONT-F2-ENS-001"
+    },
+    {
+      "codigo": "PDA-F2-ENS-002",
+      "texto": "Manifiesta actitudes de cuidado y empatía hacia los seres vivos y evita modificar sus condiciones naturales de vida al interactuar con ellos.",
+      "fuente_dof_pagina": 46,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": false,
+      "razon_revision": null,
+      "campos_asociados": [
+        "ETICA_NATURALEZA_SOCIEDADES"
+      ],
+      "ejes_asociados": [
+        "IGUALDAD_GENERO",
+        "INCLUSION",
+        "INTERCULTURALIDAD_CRITICA",
+        "PENSAMIENTO_CRITICO",
+        "VIDA_SALUDABLE"
+      ],
+      "grado": "1°",
+      "contenido_codigo": "CONT-F2-ENS-001"
+    },
+    {
+      "codigo": "PDA-F2-ENS-003",
+      "texto": "Se relaciona con la naturaleza y considera la importancia de sus elementos para la vida (aire, sol, agua y suelo).",
+      "fuente_dof_pagina": 46,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": false,
+      "razon_revision": null,
+      "campos_asociados": [
+        "ETICA_NATURALEZA_SOCIEDADES"
+      ],
+      "ejes_asociados": [
+        "IGUALDAD_GENERO",
+        "INCLUSION",
+        "INTERCULTURALIDAD_CRITICA",
+        "PENSAMIENTO_CRITICO",
+        "VIDA_SALUDABLE"
+      ],
+      "grado": "2°",
+      "contenido_codigo": "CONT-F2-ENS-001"
+    },
+    {
+      "codigo": "PDA-F2-ENS-004",
+      "texto": "Aprecia la diversidad de características de los seres vivos y no vivos que hay en la naturaleza y sugiere formas de cuidarlos y preservarlos.",
+      "fuente_dof_pagina": 46,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": false,
+      "razon_revision": null,
+      "campos_asociados": [
+        "ETICA_NATURALEZA_SOCIEDADES"
+      ],
+      "ejes_asociados": [
+        "IGUALDAD_GENERO",
+        "INCLUSION",
+        "INTERCULTURALIDAD_CRITICA",
+        "PENSAMIENTO_CRITICO",
+        "VIDA_SALUDABLE"
+      ],
+      "grado": "2°",
+      "contenido_codigo": "CONT-F2-ENS-001"
+    },
+    {
+      "codigo": "PDA-F2-ENS-005",
+      "texto": "Interactúa con respeto y empatía en la naturaleza, e identifica algunos elementos y cuidados que necesitan los seres vivos.",
+      "fuente_dof_pagina": 46,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": false,
+      "razon_revision": null,
+      "campos_asociados": [
+        "ETICA_NATURALEZA_SOCIEDADES"
+      ],
+      "ejes_asociados": [
+        "IGUALDAD_GENERO",
+        "INCLUSION",
+        "INTERCULTURALIDAD_CRITICA",
+        "PENSAMIENTO_CRITICO",
+        "VIDA_SALUDABLE"
+      ],
+      "grado": "3°",
+      "contenido_codigo": "CONT-F2-ENS-001"
+    },
+    {
+      "codigo": "PDA-F2-ENS-006",
+      "texto": "Manifiesta interés por cuidar a la naturaleza y encuentra formas creativas de resolver problemas socioambientales de su comunidad, como la contaminación, la deforestación, el cambio climático, el deshielo o la sobreexplotación de los recursos naturales.",
+      "fuente_dof_pagina": 46,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": false,
+      "razon_revision": null,
+      "campos_asociados": [
+        "ETICA_NATURALEZA_SOCIEDADES"
+      ],
+      "ejes_asociados": [
+        "IGUALDAD_GENERO",
+        "INCLUSION",
+        "INTERCULTURALIDAD_CRITICA",
+        "PENSAMIENTO_CRITICO",
+        "VIDA_SALUDABLE"
+      ],
+      "grado": "3°",
+      "contenido_codigo": "CONT-F2-ENS-001"
+    },
+    {
+      "codigo": "PDA-F2-HUM-001",
+      "texto": "Descubre gustos, preferencias, posibilidades motrices y afectivas, en juegos y actividades que contribuyan al conocimiento de sí, en un ambiente que considere la diversidad.",
+      "fuente_dof_pagina": 56,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": false,
+      "razon_revision": null,
+      "campos_asociados": [
+        "LO_HUMANO_LO_COMUNITARIO"
+      ],
+      "ejes_asociados": [
+        "IGUALDAD_GENERO",
+        "INCLUSION",
+        "INTERCULTURALIDAD_CRITICA",
+        "PENSAMIENTO_CRITICO",
+        "VIDA_SALUDABLE"
+      ],
+      "grado": "1°",
+      "contenido_codigo": "CONT-F2-HUM-001"
+    },
+    {
+      "codigo": "PDA-F2-HUM-002",
+      "texto": "Describe cómo es físicamente, identifica sus rasgos familiares y se acepta como es.",
+      "fuente_dof_pagina": 56,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": false,
+      "razon_revision": null,
+      "campos_asociados": [
+        "LO_HUMANO_LO_COMUNITARIO"
+      ],
+      "ejes_asociados": [
+        "IGUALDAD_GENERO",
+        "INCLUSION",
+        "INTERCULTURALIDAD_CRITICA",
+        "PENSAMIENTO_CRITICO",
+        "VIDA_SALUDABLE"
+      ],
+      "grado": "1°",
+      "contenido_codigo": "CONT-F2-HUM-001"
+    },
+    {
+      "codigo": "PDA-F2-HUM-003",
+      "texto": "Reconoce algunos rasgos de su identidad, dice cómo es físicamente, qué se le facilita, qué se le dificulta, qué le gusta, qué no le gusta, y los expresa en su lengua materna o con otros lenguajes.",
+      "fuente_dof_pagina": 56,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": false,
+      "razon_revision": null,
+      "campos_asociados": [
+        "LO_HUMANO_LO_COMUNITARIO"
+      ],
+      "ejes_asociados": [
+        "IGUALDAD_GENERO",
+        "INCLUSION",
+        "INTERCULTURALIDAD_CRITICA",
+        "PENSAMIENTO_CRITICO",
+        "VIDA_SALUDABLE"
+      ],
+      "grado": "2°",
+      "contenido_codigo": "CONT-F2-HUM-001"
+    },
+    {
+      "codigo": "PDA-F2-HUM-004",
+      "texto": "Distingue semejanzas y diferencias con las demás personas, a partir de distintos rasgos de identidad como su nombre, características físicas, formas de vestir, hablar, alimentarse, entre otros.",
+      "fuente_dof_pagina": 56,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": false,
+      "razon_revision": null,
+      "campos_asociados": [
+        "LO_HUMANO_LO_COMUNITARIO"
+      ],
+      "ejes_asociados": [
+        "IGUALDAD_GENERO",
+        "INCLUSION",
+        "INTERCULTURALIDAD_CRITICA",
+        "PENSAMIENTO_CRITICO",
+        "VIDA_SALUDABLE"
+      ],
+      "grado": "2°",
+      "contenido_codigo": "CONT-F2-HUM-001"
+    },
+    {
+      "codigo": "PDA-F2-HUM-005",
+      "texto": "Identifica que la lengua que habla, las costumbres familiares y el lugar donde vive contribuyen a la formación de su identidad y pertenencia a una comunidad en la que participa y colabora.",
+      "fuente_dof_pagina": 56,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": false,
+      "razon_revision": null,
+      "campos_asociados": [
+        "LO_HUMANO_LO_COMUNITARIO"
+      ],
+      "ejes_asociados": [
+        "IGUALDAD_GENERO",
+        "INCLUSION",
+        "INTERCULTURALIDAD_CRITICA",
+        "PENSAMIENTO_CRITICO",
+        "VIDA_SALUDABLE"
+      ],
+      "grado": "3°",
+      "contenido_codigo": "CONT-F2-HUM-001"
+    },
+    {
+      "codigo": "PDA-F2-HUM-006",
+      "texto": "Aprecia las características y cualidades propias, así como las de sus pares y de otras personas.",
+      "fuente_dof_pagina": 56,
+      "fuente_dof_sha": "f981c30ea9619f5841f4729a6f697951e035eff78c1e1042d02d0d5d663c8702",
+      "activo": true,
+      "requiere_revision_humana": false,
+      "razon_revision": null,
+      "campos_asociados": [
+        "LO_HUMANO_LO_COMUNITARIO"
+      ],
+      "ejes_asociados": [
+        "IGUALDAD_GENERO",
+        "INCLUSION",
+        "INTERCULTURALIDAD_CRITICA",
+        "PENSAMIENTO_CRITICO",
+        "VIDA_SALUDABLE"
+      ],
+      "grado": "3°",
+      "contenido_codigo": "CONT-F2-HUM-001"
+    }
+  ],
+  "contenidos": [
+    {
+      "codigo": "CONT-F2-LNG-001",
+      "texto": "Comunicación oral de necesidades, emociones, gustos, ideas y saberes, a través de los diversos lenguajes, desde una perspectiva comunitaria.",
+      "campo_codigo": "LENGUAJES",
+      "fase_codigo": "FASE_2",
+      "fuente_dof_pagina": 20,
+      "requiere_revision_humana": false,
+      "razon_revision": null
+    },
+    {
+      "codigo": "CONT-F2-SPC-001",
+      "texto": "Exploración de la diversidad natural que existe en la comunidad y en otros lugares.",
+      "campo_codigo": "SABERES_PENSAMIENTO_CIENTIFICO",
+      "fase_codigo": "FASE_2",
+      "fuente_dof_pagina": 32,
+      "requiere_revision_humana": false,
+      "razon_revision": null
+    },
+    {
+      "codigo": "CONT-F2-ENS-001",
+      "texto": "Interacción, cuidado, conservación y regeneración de la naturaleza, que favorece la construcción de una conciencia socioambiental.",
+      "campo_codigo": "ETICA_NATURALEZA_SOCIEDADES",
+      "fase_codigo": "FASE_2",
+      "fuente_dof_pagina": 46,
+      "requiere_revision_humana": false,
+      "razon_revision": null
+    },
+    {
+      "codigo": "CONT-F2-HUM-001",
+      "texto": "Construcción de la identidad personal a partir de su pertenencia a un territorio, su origen étnico, cultural y lingüístico, y la interacción con personas cercanas.",
+      "campo_codigo": "LO_HUMANO_LO_COMUNITARIO",
+      "fase_codigo": "FASE_2",
+      "fuente_dof_pagina": 56,
+      "requiere_revision_humana": false,
+      "razon_revision": null
+    }
+  ],
+  "pda_por_campo_fase": [
+    {
+      "pda_codigo": "PDA-F2-LNG-001",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "LENGUAJES"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-002",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "LENGUAJES"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-003",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "LENGUAJES"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-004",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "LENGUAJES"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-005",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "LENGUAJES"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-006",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "LENGUAJES"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-001",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "SABERES_PENSAMIENTO_CIENTIFICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-002",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "SABERES_PENSAMIENTO_CIENTIFICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-003",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "SABERES_PENSAMIENTO_CIENTIFICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-004",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "SABERES_PENSAMIENTO_CIENTIFICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-005",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "SABERES_PENSAMIENTO_CIENTIFICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-006",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "SABERES_PENSAMIENTO_CIENTIFICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-001",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "ETICA_NATURALEZA_SOCIEDADES"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-002",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "ETICA_NATURALEZA_SOCIEDADES"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-003",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "ETICA_NATURALEZA_SOCIEDADES"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-004",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "ETICA_NATURALEZA_SOCIEDADES"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-005",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "ETICA_NATURALEZA_SOCIEDADES"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-006",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "ETICA_NATURALEZA_SOCIEDADES"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-001",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "LO_HUMANO_LO_COMUNITARIO"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-002",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "LO_HUMANO_LO_COMUNITARIO"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-003",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "LO_HUMANO_LO_COMUNITARIO"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-004",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "LO_HUMANO_LO_COMUNITARIO"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-005",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "LO_HUMANO_LO_COMUNITARIO"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-006",
+      "fase_codigo": "FASE_2",
+      "campo_codigo": "LO_HUMANO_LO_COMUNITARIO"
+    }
+  ],
+  "pda_ejes": [
+    {
+      "pda_codigo": "PDA-F2-LNG-001",
+      "eje_codigo": "APROPIACION_CULTURAS_LECTURA"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-001",
+      "eje_codigo": "ARTES_EXPERIENCIAS_ESTETICAS"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-001",
+      "eje_codigo": "IGUALDAD_GENERO"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-001",
+      "eje_codigo": "INCLUSION"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-001",
+      "eje_codigo": "INTERCULTURALIDAD_CRITICA"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-001",
+      "eje_codigo": "PENSAMIENTO_CRITICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-002",
+      "eje_codigo": "APROPIACION_CULTURAS_LECTURA"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-002",
+      "eje_codigo": "ARTES_EXPERIENCIAS_ESTETICAS"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-002",
+      "eje_codigo": "IGUALDAD_GENERO"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-002",
+      "eje_codigo": "INCLUSION"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-002",
+      "eje_codigo": "INTERCULTURALIDAD_CRITICA"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-002",
+      "eje_codigo": "PENSAMIENTO_CRITICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-003",
+      "eje_codigo": "APROPIACION_CULTURAS_LECTURA"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-003",
+      "eje_codigo": "ARTES_EXPERIENCIAS_ESTETICAS"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-003",
+      "eje_codigo": "IGUALDAD_GENERO"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-003",
+      "eje_codigo": "INCLUSION"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-003",
+      "eje_codigo": "INTERCULTURALIDAD_CRITICA"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-003",
+      "eje_codigo": "PENSAMIENTO_CRITICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-004",
+      "eje_codigo": "APROPIACION_CULTURAS_LECTURA"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-004",
+      "eje_codigo": "ARTES_EXPERIENCIAS_ESTETICAS"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-004",
+      "eje_codigo": "IGUALDAD_GENERO"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-004",
+      "eje_codigo": "INCLUSION"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-004",
+      "eje_codigo": "INTERCULTURALIDAD_CRITICA"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-004",
+      "eje_codigo": "PENSAMIENTO_CRITICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-005",
+      "eje_codigo": "APROPIACION_CULTURAS_LECTURA"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-005",
+      "eje_codigo": "ARTES_EXPERIENCIAS_ESTETICAS"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-005",
+      "eje_codigo": "IGUALDAD_GENERO"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-005",
+      "eje_codigo": "INCLUSION"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-005",
+      "eje_codigo": "INTERCULTURALIDAD_CRITICA"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-005",
+      "eje_codigo": "PENSAMIENTO_CRITICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-006",
+      "eje_codigo": "APROPIACION_CULTURAS_LECTURA"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-006",
+      "eje_codigo": "ARTES_EXPERIENCIAS_ESTETICAS"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-006",
+      "eje_codigo": "IGUALDAD_GENERO"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-006",
+      "eje_codigo": "INCLUSION"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-006",
+      "eje_codigo": "INTERCULTURALIDAD_CRITICA"
+    },
+    {
+      "pda_codigo": "PDA-F2-LNG-006",
+      "eje_codigo": "PENSAMIENTO_CRITICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-001",
+      "eje_codigo": "INTERCULTURALIDAD_CRITICA"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-001",
+      "eje_codigo": "PENSAMIENTO_CRITICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-001",
+      "eje_codigo": "VIDA_SALUDABLE"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-002",
+      "eje_codigo": "INTERCULTURALIDAD_CRITICA"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-002",
+      "eje_codigo": "PENSAMIENTO_CRITICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-002",
+      "eje_codigo": "VIDA_SALUDABLE"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-003",
+      "eje_codigo": "INTERCULTURALIDAD_CRITICA"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-003",
+      "eje_codigo": "PENSAMIENTO_CRITICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-003",
+      "eje_codigo": "VIDA_SALUDABLE"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-004",
+      "eje_codigo": "INTERCULTURALIDAD_CRITICA"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-004",
+      "eje_codigo": "PENSAMIENTO_CRITICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-004",
+      "eje_codigo": "VIDA_SALUDABLE"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-005",
+      "eje_codigo": "INTERCULTURALIDAD_CRITICA"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-005",
+      "eje_codigo": "PENSAMIENTO_CRITICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-005",
+      "eje_codigo": "VIDA_SALUDABLE"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-006",
+      "eje_codigo": "INTERCULTURALIDAD_CRITICA"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-006",
+      "eje_codigo": "PENSAMIENTO_CRITICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-SPC-006",
+      "eje_codigo": "VIDA_SALUDABLE"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-001",
+      "eje_codigo": "IGUALDAD_GENERO"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-001",
+      "eje_codigo": "INCLUSION"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-001",
+      "eje_codigo": "INTERCULTURALIDAD_CRITICA"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-001",
+      "eje_codigo": "PENSAMIENTO_CRITICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-001",
+      "eje_codigo": "VIDA_SALUDABLE"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-002",
+      "eje_codigo": "IGUALDAD_GENERO"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-002",
+      "eje_codigo": "INCLUSION"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-002",
+      "eje_codigo": "INTERCULTURALIDAD_CRITICA"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-002",
+      "eje_codigo": "PENSAMIENTO_CRITICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-002",
+      "eje_codigo": "VIDA_SALUDABLE"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-003",
+      "eje_codigo": "IGUALDAD_GENERO"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-003",
+      "eje_codigo": "INCLUSION"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-003",
+      "eje_codigo": "INTERCULTURALIDAD_CRITICA"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-003",
+      "eje_codigo": "PENSAMIENTO_CRITICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-003",
+      "eje_codigo": "VIDA_SALUDABLE"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-004",
+      "eje_codigo": "IGUALDAD_GENERO"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-004",
+      "eje_codigo": "INCLUSION"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-004",
+      "eje_codigo": "INTERCULTURALIDAD_CRITICA"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-004",
+      "eje_codigo": "PENSAMIENTO_CRITICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-004",
+      "eje_codigo": "VIDA_SALUDABLE"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-005",
+      "eje_codigo": "IGUALDAD_GENERO"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-005",
+      "eje_codigo": "INCLUSION"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-005",
+      "eje_codigo": "INTERCULTURALIDAD_CRITICA"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-005",
+      "eje_codigo": "PENSAMIENTO_CRITICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-005",
+      "eje_codigo": "VIDA_SALUDABLE"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-006",
+      "eje_codigo": "IGUALDAD_GENERO"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-006",
+      "eje_codigo": "INCLUSION"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-006",
+      "eje_codigo": "INTERCULTURALIDAD_CRITICA"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-006",
+      "eje_codigo": "PENSAMIENTO_CRITICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-ENS-006",
+      "eje_codigo": "VIDA_SALUDABLE"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-001",
+      "eje_codigo": "IGUALDAD_GENERO"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-001",
+      "eje_codigo": "INCLUSION"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-001",
+      "eje_codigo": "INTERCULTURALIDAD_CRITICA"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-001",
+      "eje_codigo": "PENSAMIENTO_CRITICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-001",
+      "eje_codigo": "VIDA_SALUDABLE"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-002",
+      "eje_codigo": "IGUALDAD_GENERO"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-002",
+      "eje_codigo": "INCLUSION"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-002",
+      "eje_codigo": "INTERCULTURALIDAD_CRITICA"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-002",
+      "eje_codigo": "PENSAMIENTO_CRITICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-002",
+      "eje_codigo": "VIDA_SALUDABLE"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-003",
+      "eje_codigo": "IGUALDAD_GENERO"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-003",
+      "eje_codigo": "INCLUSION"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-003",
+      "eje_codigo": "INTERCULTURALIDAD_CRITICA"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-003",
+      "eje_codigo": "PENSAMIENTO_CRITICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-003",
+      "eje_codigo": "VIDA_SALUDABLE"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-004",
+      "eje_codigo": "IGUALDAD_GENERO"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-004",
+      "eje_codigo": "INCLUSION"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-004",
+      "eje_codigo": "INTERCULTURALIDAD_CRITICA"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-004",
+      "eje_codigo": "PENSAMIENTO_CRITICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-004",
+      "eje_codigo": "VIDA_SALUDABLE"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-005",
+      "eje_codigo": "IGUALDAD_GENERO"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-005",
+      "eje_codigo": "INCLUSION"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-005",
+      "eje_codigo": "INTERCULTURALIDAD_CRITICA"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-005",
+      "eje_codigo": "PENSAMIENTO_CRITICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-005",
+      "eje_codigo": "VIDA_SALUDABLE"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-006",
+      "eje_codigo": "IGUALDAD_GENERO"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-006",
+      "eje_codigo": "INCLUSION"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-006",
+      "eje_codigo": "INTERCULTURALIDAD_CRITICA"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-006",
+      "eje_codigo": "PENSAMIENTO_CRITICO"
+    },
+    {
+      "pda_codigo": "PDA-F2-HUM-006",
+      "eje_codigo": "VIDA_SALUDABLE"
+    }
+  ],
+  "referencias_conaliteg": [
+    {
+      "id": 1,
+      "grado": "1° preescolar",
+      "campo": "Lenguajes",
+      "titulo_libro": "Múltiples Lenguajes - 1° grado",
+      "url_publica": "https://libros.conaliteg.gob.mx/2024/K1MLL.htm",
+      "isbn": null,
+      "edicion": "2024-2025",
+      "fecha_acceso": "2026-08-16",
+      "notas": "validado_portal_oficial",
+      "no_verificada": false,
+      "requiere_revision_humana": false,
+      "tipo": "alumnos",
+      "formato": "PDF+HTML"
+    },
+    {
+      "id": 2,
+      "grado": "2° preescolar",
+      "campo": "Lenguajes",
+      "titulo_libro": "Múltiples Lenguajes - 2° grado",
+      "url_publica": "https://libros.conaliteg.gob.mx/2024/K2MLL.htm",
+      "isbn": null,
+      "edicion": "2024-2025",
+      "fecha_acceso": "2026-08-16",
+      "notas": "validado_portal_oficial",
+      "no_verificada": false,
+      "requiere_revision_humana": false,
+      "tipo": "alumnos",
+      "formato": "PDF+HTML"
+    },
+    {
+      "id": 3,
+      "grado": "3° preescolar",
+      "campo": "Lenguajes",
+      "titulo_libro": "Múltiples Lenguajes - 3° grado",
+      "url_publica": "https://libros.conaliteg.gob.mx/2024/K3MLL.htm",
+      "isbn": null,
+      "edicion": "2024-2025",
+      "fecha_acceso": "2026-08-16",
+      "notas": "validado_portal_oficial",
+      "no_verificada": false,
+      "requiere_revision_humana": false,
+      "tipo": "alumnos",
+      "formato": "PDF+HTML"
+    },
+    {
+      "id": 4,
+      "grado": "1° preescolar",
+      "campo": "Ética, Naturaleza y Sociedades",
+      "titulo_libro": "Láminas de diálogo con manifestaciones culturales y artísticas - 1° grado",
+      "url_publica": "https://libros.conaliteg.gob.mx/2024/K1LMC.htm",
+      "isbn": null,
+      "edicion": "2024-2025",
+      "fecha_acceso": "2026-08-16",
+      "notas": "validado_portal_oficial",
+      "no_verificada": false,
+      "requiere_revision_humana": false,
+      "tipo": "alumnos",
+      "formato": "PDF+HTML"
+    },
+    {
+      "id": 5,
+      "grado": "2° preescolar",
+      "campo": "Ética, Naturaleza y Sociedades",
+      "titulo_libro": "Láminas de diálogo con manifestaciones culturales y artísticas - 2° grado",
+      "url_publica": "https://libros.conaliteg.gob.mx/2024/K2LMC.htm",
+      "isbn": null,
+      "edicion": "2024-2025",
+      "fecha_acceso": "2026-08-16",
+      "notas": "validado_portal_oficial",
+      "no_verificada": false,
+      "requiere_revision_humana": false,
+      "tipo": "alumnos",
+      "formato": "PDF+HTML"
+    },
+    {
+      "id": 6,
+      "grado": "3° preescolar",
+      "campo": "Ética, Naturaleza y Sociedades",
+      "titulo_libro": "Láminas de diálogo con manifestaciones culturales y artísticas - 3° grado",
+      "url_publica": "https://libros.conaliteg.gob.mx/2024/K3LMC.htm",
+      "isbn": null,
+      "edicion": "2024-2025",
+      "fecha_acceso": "2026-08-16",
+      "notas": "validado_portal_oficial",
+      "no_verificada": false,
+      "requiere_revision_humana": false,
+      "tipo": "alumnos",
+      "formato": "PDF+HTML"
+    },
+    {
+      "id": 7,
+      "grado": "1° preescolar",
+      "campo": "Saberes y Pensamiento Científico",
+      "titulo_libro": "Jugar e imaginar con mi material manipulable - 1° grado",
+      "url_publica": "https://libros.conaliteg.gob.mx/2024/K1JMM.htm",
+      "isbn": null,
+      "edicion": "2024-2025",
+      "fecha_acceso": "2026-08-16",
+      "notas": "validado_portal_oficial",
+      "no_verificada": false,
+      "requiere_revision_humana": false,
+      "tipo": "alumnos",
+      "formato": "PDF+HTML"
+    },
+    {
+      "id": 8,
+      "grado": "2° preescolar",
+      "campo": "Saberes y Pensamiento Científico",
+      "titulo_libro": "Jugar e imaginar con mi material manipulable - 2° grado",
+      "url_publica": "https://libros.conaliteg.gob.mx/2024/K2JMM.htm",
+      "isbn": null,
+      "edicion": "2024-2025",
+      "fecha_acceso": "2026-08-16",
+      "notas": "validado_portal_oficial",
+      "no_verificada": false,
+      "requiere_revision_humana": false,
+      "tipo": "alumnos",
+      "formato": "PDF+HTML"
+    },
+    {
+      "id": 9,
+      "grado": "3° preescolar",
+      "campo": "Saberes y Pensamiento Científico",
+      "titulo_libro": "Jugar e imaginar con mi material manipulable - 3° grado",
+      "url_publica": "https://libros.conaliteg.gob.mx/2024/K3JMM.htm",
+      "isbn": null,
+      "edicion": "2024-2025",
+      "fecha_acceso": "2026-08-16",
+      "notas": "validado_portal_oficial",
+      "no_verificada": false,
+      "requiere_revision_humana": false,
+      "tipo": "alumnos",
+      "formato": "PDF+HTML"
+    },
+    {
+      "id": 10,
+      "grado": "1° preescolar",
+      "campo": "De lo Humano y lo Comunitario",
+      "titulo_libro": "Mi Álbum - 1° grado",
+      "url_publica": "https://libros.conaliteg.gob.mx/2024/K1MAA.htm",
+      "isbn": null,
+      "edicion": "2024-2025",
+      "fecha_acceso": "2026-08-16",
+      "notas": "validado_portal_oficial",
+      "no_verificada": false,
+      "requiere_revision_humana": false,
+      "tipo": "alumnos",
+      "formato": "PDF+HTML"
+    },
+    {
+      "id": 11,
+      "grado": "2° preescolar",
+      "campo": "De lo Humano y lo Comunitario",
+      "titulo_libro": "Mi Álbum - 2° grado",
+      "url_publica": "https://libros.conaliteg.gob.mx/2024/K2MAA.htm",
+      "isbn": null,
+      "edicion": "2024-2025",
+      "fecha_acceso": "2026-08-16",
+      "notas": "validado_portal_oficial",
+      "no_verificada": false,
+      "requiere_revision_humana": false,
+      "tipo": "alumnos",
+      "formato": "PDF+HTML"
+    },
+    {
+      "id": 12,
+      "grado": "3° preescolar",
+      "campo": "De lo Humano y lo Comunitario",
+      "titulo_libro": "Mi Álbum - 3° grado",
+      "url_publica": "https://libros.conaliteg.gob.mx/2024/K3MAA.htm",
+      "isbn": null,
+      "edicion": "2024-2025",
+      "fecha_acceso": "2026-08-16",
+      "notas": "validado_portal_oficial",
+      "no_verificada": false,
+      "requiere_revision_humana": false,
+      "tipo": "alumnos",
+      "formato": "PDF+HTML"
+    },
+    {
+      "id": 13,
+      "grado": "1° preescolar",
+      "campo": "Lenguajes",
+      "titulo_libro": "Explorar e imaginar con mi libro de Preescolar - 1° grado",
+      "url_publica": "https://libros.conaliteg.gob.mx/2024/K1ELI.htm",
+      "isbn": null,
+      "edicion": "2024-2025",
+      "fecha_acceso": "2026-08-16",
+      "notas": "validado_portal_oficial",
+      "no_verificada": false,
+      "requiere_revision_humana": false,
+      "tipo": "alumnos",
+      "formato": "PDF+HTML"
+    },
+    {
+      "id": 14,
+      "grado": "2° preescolar",
+      "campo": "Lenguajes",
+      "titulo_libro": "Explorar e imaginar con mi libro de Preescolar - 2° grado",
+      "url_publica": "https://libros.conaliteg.gob.mx/2024/K2ELI.htm",
+      "isbn": null,
+      "edicion": "2024-2025",
+      "fecha_acceso": "2026-08-16",
+      "notas": "validado_portal_oficial",
+      "no_verificada": false,
+      "requiere_revision_humana": false,
+      "tipo": "alumnos",
+      "formato": "PDF+HTML"
+    },
+    {
+      "id": 15,
+      "grado": "3° preescolar",
+      "campo": "Lenguajes",
+      "titulo_libro": "Explorar e imaginar con mi libro de Preescolar - 3° grado",
+      "url_publica": "https://libros.conaliteg.gob.mx/2024/K3ELI.htm",
+      "isbn": null,
+      "edicion": "2024-2025",
+      "fecha_acceso": "2026-08-16",
+      "notas": "validado_portal_oficial",
+      "no_verificada": false,
+      "requiere_revision_humana": false,
+      "tipo": "alumnos",
+      "formato": "PDF+HTML"
+    },
+    {
+      "id": 16,
+      "grado": "Fase 2 completa",
+      "campo": "Transversal",
+      "titulo_libro": "Crianza para la libertad. Libro para las familias. Fase 2",
+      "url_publica": "https://libros.conaliteg.gob.mx/2024/KCLF.htm",
+      "isbn": null,
+      "edicion": "2024-2025",
+      "fecha_acceso": "2026-08-16",
+      "notas": "validado_portal_oficial",
+      "no_verificada": false,
+      "requiere_revision_humana": false,
+      "tipo": "transversal",
+      "formato": "PDF+HTML"
+    },
+    {
+      "id": 17,
+      "grado": "Fase 2 completa",
+      "campo": "Transversal",
+      "titulo_libro": "Un libro sin recetas para la maestra y el maestro. Fase 2",
+      "url_publica": "https://libros.conaliteg.gob.mx/2024/KLRS.htm",
+      "isbn": null,
+      "edicion": "2024-2025",
+      "fecha_acceso": "2026-08-16",
+      "notas": "validado_portal_oficial",
+      "no_verificada": false,
+      "requiere_revision_humana": false,
+      "tipo": "transversal",
+      "formato": "PDF+HTML"
+    },
+    {
+      "id": 18,
+      "grado": "Fase 2 completa",
+      "campo": "Transversal",
+      "titulo_libro": "Modalidades de trabajo para la acción transformadora y el codiseño",
+      "url_publica": "https://libros.conaliteg.gob.mx/2024/KMTR.htm",
+      "isbn": null,
+      "edicion": "2024-2025",
+      "fecha_acceso": "2026-08-16",
+      "notas": "validado_portal_oficial",
+      "no_verificada": false,
+      "requiere_revision_humana": false,
+      "tipo": "transversal",
+      "formato": "PDF+HTML"
+    },
+    {
+      "id": 19,
+      "grado": "Fase 2 completa",
+      "campo": "Transversal",
+      "titulo_libro": "Posibilidades de trabajo para la acción transformadora y el codiseño. Ficheros. Fase 2",
+      "url_publica": "https://libros.conaliteg.gob.mx/2024/KPTR.htm",
+      "isbn": null,
+      "edicion": "2024-2025",
+      "fecha_acceso": "2026-08-16",
+      "notas": "validado_portal_oficial",
+      "no_verificada": false,
+      "requiere_revision_humana": false,
+      "tipo": "transversal",
+      "formato": "PDF+HTML"
+    }
+  ],
+  "auditoria_carga": [
+    {
+      "accion": "agregado",
+      "observacion": "PDA extraídos del PDF nativo v2024 (InDesign, 80 páginas). Total: 24 PDA, 4 contenidos, 69/80 páginas con texto nativo (86.2%).",
+      "autor": "SOFIA extractor_v2024"
+    },
+    {
+      "accion": "agregado",
+      "observacion": "Segundo pass: pobladas 114 asociaciones pda_ejes via heurística regex sobre páginas intro del PDF. PDA con ejes: 24/24.",
+      "autor": "SOFIA extractor_pda_ejes",
+      "metadata": {
+        "intervencion_id": "CAT-20260817-01-SOFIA-SEGUNDO-PASS",
+        "metodo": "regex_conteo_hits_paginas_intro_campo"
+      }
+    }
+  ]
+}
