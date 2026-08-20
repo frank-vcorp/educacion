@@ -1,15 +1,15 @@
 /**
  * Cliente de gestión de alumnos (CRUD).
- * SPEC-CORRECCIONES-2026-08-17 C-3.
+ * SPEC-CORRECCIONES-2026-08-17 C-3 + IMPL-20260820-03 (entrevista inicial).
  *
  * - Lista con búsqueda
  * - Botón "Agregar alumno" (modal)
- * - Cada fila: editar / eliminar (confirmación)
+ * - Cada fila: editar / eliminar (confirmación) / Entrevista inicial (modal)
  */
 'use client';
 
 import { useState, useTransition, useMemo } from 'react';
-import { Pencil, Trash2, UserPlus, Search, Loader2 } from 'lucide-react';
+import { Pencil, Trash2, UserPlus, Search, Loader2, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -21,6 +21,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { createAlumno, updateAlumno, deleteAlumno, bulkAddAlumnos } from '@/services/alumnos/alumno-actions';
+import { EntrevistaDialogContent } from './entrevista-dialog-content';
 
 interface Alumno {
   id: string;
@@ -28,14 +29,31 @@ interface Alumno {
   created_at?: string;
 }
 
-export function AlumnosManager({ initialAlumnos }: { initialAlumnos: Alumno[] }) {
+interface GrupoLite {
+  id: string;
+  grado: string;
+  grupo: string;
+  ciclo_escolar: string;
+}
+
+export function AlumnosManager({
+  initialAlumnos,
+  grupo,
+  avisoAceptado,
+}: {
+  initialAlumnos: Alumno[];
+  grupo: GrupoLite;
+  avisoAceptado: boolean;
+}) {
   const [alumnos, setAlumnos] = useState<Alumno[]>(initialAlumnos);
   const [search, setSearch] = useState('');
   const [addOpen, setAddOpen] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Alumno | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Alumno | null>(null);
+  const [entrevistaTarget, setEntrevistaTarget] = useState<Alumno | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [okMsg, setOkMsg] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return alumnos;
@@ -77,7 +95,7 @@ export function AlumnosManager({ initialAlumnos }: { initialAlumnos: Alumno[] })
       </div>
 
       <div className="rounded-lg border">
-        <div className="grid grid-cols-[1fr_auto] gap-2 border-b bg-muted/30 p-3 text-xs font-medium uppercase tracking-wide text-muted-foreground sm:grid-cols-[1fr_140px_auto]">
+        <div className="grid grid-cols-[1fr_auto] gap-2 border-b bg-muted/30 p-3 text-xs font-medium uppercase tracking-wide text-muted-foreground sm:grid-cols-[1fr_220px_auto]">
           <span>Nombre</span>
           <span className="hidden sm:block">Acciones</span>
           <span className="sr-only sm:hidden">Acción</span>
@@ -91,7 +109,7 @@ export function AlumnosManager({ initialAlumnos }: { initialAlumnos: Alumno[] })
             {filtered.map((a) => (
               <li
                 key={a.id}
-                className="grid grid-cols-[1fr_auto] items-center gap-2 border-b p-3 text-sm last:border-b-0 sm:grid-cols-[1fr_140px_auto]"
+                className="grid grid-cols-[1fr_auto] items-center gap-2 border-b p-3 text-sm last:border-b-0 sm:grid-cols-[1fr_220px_auto]"
               >
                 <span className="truncate font-medium">{a.nombre}</span>
                 <div className="col-span-2 flex justify-end gap-1 sm:col-span-1">
@@ -103,6 +121,16 @@ export function AlumnosManager({ initialAlumnos }: { initialAlumnos: Alumno[] })
                   >
                     <Pencil className="h-4 w-4" />
                     <span className="ml-1 hidden sm:inline">Editar</span>
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setEntrevistaTarget(a)}
+                    aria-label={`Entrevista inicial de ${a.nombre}`}
+                    data-testid={`entrevista-button-${a.id}`}
+                  >
+                    <ClipboardList className="h-4 w-4" />
+                    <span className="ml-1 hidden sm:inline">Entrevista</span>
                   </Button>
                   <Button
                     size="sm"
@@ -214,6 +242,43 @@ export function AlumnosManager({ initialAlumnos }: { initialAlumnos: Alumno[] })
         </DialogContent>
       </Dialog>
 
+      {/* Entrevista inicial */}
+      <Dialog
+        open={!!entrevistaTarget}
+        onOpenChange={(o) => !o && setEntrevistaTarget(null)}
+      >
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Entrevista inicial — {entrevistaTarget?.nombre}</DialogTitle>
+            <DialogDescription>
+              Cuestionario de 21 ítems. La captura permanece ligada a este alumno
+              y al ciclo escolar activo ({grupo.ciclo_escolar}). Sólo la docente
+              responsable puede consultar y editar.
+            </DialogDescription>
+          </DialogHeader>
+          {entrevistaTarget && (
+            <EntrevistaDialogContent
+              alumnoId={entrevistaTarget.id}
+              alumnoNombre={entrevistaTarget.nombre}
+              alumnoGrado={(entrevistaTarget as unknown as { grado?: string }).grado ?? ''}
+              grupoId={grupo.id}
+              grupoGrado={grupo.grado}
+              grupoNombre={grupo.grupo}
+              cicloEscolar={grupo.ciclo_escolar}
+              avisoAceptado={avisoAceptado}
+              onSaved={(msg) => {
+                setOkMsg(msg);
+                setError(null);
+              }}
+              onError={(msg) => {
+                setError(msg);
+                setOkMsg(null);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
       {error && (
         <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
           {error}
@@ -221,6 +286,19 @@ export function AlumnosManager({ initialAlumnos }: { initialAlumnos: Alumno[] })
             type="button"
             className="ml-2 text-xs underline"
             onClick={() => setError(null)}
+          >
+            Cerrar
+          </button>
+        </div>
+      )}
+
+      {okMsg && (
+        <div className="rounded-md border border-emerald-400/40 bg-emerald-50 p-3 text-sm text-emerald-900">
+          {okMsg}
+          <button
+            type="button"
+            className="ml-2 text-xs underline"
+            onClick={() => setOkMsg(null)}
           >
             Cerrar
           </button>

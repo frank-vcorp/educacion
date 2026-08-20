@@ -23,7 +23,7 @@ export default async function AlumnosPage() {
   const supabase = await createClient();
   const { data: grupos } = await supabase
     .from('grupo')
-    .select('id, grado, grupo, nivel')
+    .select('id, grado, grupo, nivel, ciclo_escolar')
     .eq('docente_id', session.docenteId)
     .eq('activo', true)
     .limit(1);
@@ -75,7 +75,16 @@ export default async function AlumnosPage() {
               ? `${alumnos.length} alumno(s) registrado(s)`
               : 'Aún no has agregado alumnos'}
           </div>
-          <AlumnosManager initialAlumnos={alumnos ?? []} />
+          <AlumnosManager
+            initialAlumnos={alumnos ?? []}
+            grupo={{
+              id: grupo.id,
+              grado: grupo.grado,
+              grupo: grupo.grupo,
+              ciclo_escolar: grupo.ciclo_escolar,
+            }}
+            avisoAceptado={session.hasAcceptedAviso}
+          />
         </CardContent>
       </Card>
     </div>

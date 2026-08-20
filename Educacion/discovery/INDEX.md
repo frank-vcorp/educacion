@@ -15,7 +15,8 @@
 ## Bloqueadores y preguntas
 
 - `FND-20260818-03` — la decisión DM-03 sobre `recurso_skill` sigue pendiente de Frank.
+- `FND-20260820-06` — entrevista inicial por alumno confirmada para MVP; falta cerrar el cuestionario, privacidad, retención y diseño funcional antes de implementación.
 
 ## Readiness para INTEGRA
 
-`conditionally_ready`: el baseline, las SPEC técnicas y las capacidades D-FIN-5/D-FIN-17/F1/F2/F3 son consistentes y están desplegadas. Permanece `recurso_skill` como decisión de alcance; la prueba autenticada con Tía Lola es el siguiente gate funcional.
+`conditionally_ready`: la entrevista inicial literal y sus decisiones de privacidad están confirmadas; INTEGRA puede actualizar el handoff técnico y activar implementación. Permanece `recurso_skill` como decisión de alcance y la entrevista familiar como flujo abierto.

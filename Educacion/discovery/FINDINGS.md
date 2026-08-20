@@ -43,3 +43,14 @@
 - **Impacto:** antes de IMPL-20260819-04 la capa IA no estaba disponible; el uso real requería además UI, RLS y configuración operativa.
 - **Resolución:** F1/F2/F3 implementadas en IMPL-20260819-04/05 y UI habilitada en IMPL-20260820-01. QA-20260819-05 y QA-20260820-01 emitieron `PASS_WITH_WARNINGS`; migraciones 0018–0021 aplicadas en Supabase y producción desplegada. La prueba autenticada completa con Tía Lola queda pendiente de ejecución humana.
 - **Artefactos afectados:** `SPEC_MVP_01_Modulo_Docente.md` §3.7, `specs/SPEC_TEC_03_API_Contract.md`, `specs/SPEC_TEC_07_Capa_IA.md`, `specs/SPEC_TEC_08_UI_IA_F1F2F3.md`.
+
+## FND-20260820-06 — Entrevista inicial individual requiere ampliación del perfil del alumno
+
+- **Estado:** confirmed
+- **Severidad:** P1
+- **Evidencia:** Tía Lola solicita registrar al inicio del ciclo una entrevista breve por cada niño y, potencialmente, otra con sus madres/padres. La plantilla compartida incluye nombre, edad, hermanos y nombres, convivencia en casa, nombres de padre/madre, mascota, preferencias de color/comida/frutas/juego/caricatura, emociones, observaciones, nombre del alumno, grado, grupo y fecha de aplicación.
+- **Impacto:** el perfil actual del alumno no cubre contexto familiar, intereses, emociones ni fecha/versionado de entrevista. Son datos de menores y de terceros; no deben agregarse como campos libres sin definir finalidad, consentimiento, visibilidad, retención y límites de uso.
+- **Decisión:** incorporar una sección separada `Entrevista inicial` dentro del perfil del alumno, ligada al grupo y ciclo escolar, con fecha de aplicación y estado; separar entrevista del niño y aportes de familia, mantenerla editable y evitar que sus datos se envíen a IA por defecto. Referencia: `DEC-20260820-01`.
+- **Alcance confirmado:** la entrevista del niño debe reproducir literalmente la plantilla visual enviada por Frank; no se permite alterar sus preguntas. La entrevista familiar queda fuera de este contrato hasta nuevo discovery.
+- **Privacidad resuelta:** aviso existente, solo docente, retención mientras exista el ciclo con archivo posterior y edición en sitio. Referencia: `DEC-20260820-02`.
+- **Artefactos afectados:** `E22_CIERRE_DISCOVERY.md`, `SPEC_MVP_01_Modulo_Docente.md`, perfil de alumno, aviso de privacidad y escenarios de onboarding/seguimiento.
