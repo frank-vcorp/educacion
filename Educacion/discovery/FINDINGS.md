@@ -37,8 +37,9 @@
 
 ## FND-20260819-05 — Capacidades IA F1/F2/F3 especificadas sin evidencia de implementación
 
-- **Estado:** confirmed
+- **Estado:** resolved
 - **Severidad:** P1
 - **Evidencia:** el baseline y `SPEC_TEC_03_API_Contract.md` describen F1 (variantes de bloque), F2 (ayuda de redacción) y F3 (pulido de PDF), pero el repositorio solo contiene el endpoint F-IA1 de recursos de aula. Ese endpoint usa coincidencia determinista de palabras clave y declara explícitamente que no llama a MiniMax. No existen rutas ni servicios para F1/F2/F3; `AI_API_KEY` permanece vacía en el ejemplo de configuración.
-- **Impacto:** Tía Lola puede planear sin IA, pero no debe esperar propuestas generativas contextualizadas, ayuda de redacción ni pulido con IA en el estado actual.
-- **Artefactos afectados:** `SPEC_MVP_01_Modulo_Docente.md` §3.7, `specs/SPEC_TEC_03_API_Contract.md`, `app/api/recursos-aula/ia-sugerir-uso/route.ts`, `services/recursos-aula/sugerir-uso.ts`.
+- **Impacto:** antes de IMPL-20260819-04 la capa IA no estaba disponible; el uso real requería además UI, RLS y configuración operativa.
+- **Resolución:** F1/F2/F3 implementadas en IMPL-20260819-04/05 y UI habilitada en IMPL-20260820-01. QA-20260819-05 y QA-20260820-01 emitieron `PASS_WITH_WARNINGS`; migraciones 0018–0021 aplicadas en Supabase y producción desplegada. La prueba autenticada completa con Tía Lola queda pendiente de ejecución humana.
+- **Artefactos afectados:** `SPEC_MVP_01_Modulo_Docente.md` §3.7, `specs/SPEC_TEC_03_API_Contract.md`, `specs/SPEC_TEC_07_Capa_IA.md`, `specs/SPEC_TEC_08_UI_IA_F1F2F3.md`.

@@ -15,8 +15,7 @@
 ## Bloqueadores y preguntas
 
 - `FND-20260818-03` — la decisión DM-03 sobre `recurso_skill` sigue pendiente de Frank.
-- `FND-20260819-05` — F1/F2/F3 están especificadas, pero no hay evidencia de implementación ni de configuración efectiva de MiniMax.
 
 ## Readiness para INTEGRA
 
-`conditionally_ready`: el baseline, las SPEC técnicas y las capacidades D-FIN-5/D-FIN-17 son consistentes y están completadas localmente. Permanece una decisión de alcance (`recurso_skill`) y los gates técnicos de promoción documentados en el ADR.
+`conditionally_ready`: el baseline, las SPEC técnicas y las capacidades D-FIN-5/D-FIN-17/F1/F2/F3 son consistentes y están desplegadas. Permanece `recurso_skill` como decisión de alcance; la prueba autenticada con Tía Lola es el siguiente gate funcional.
