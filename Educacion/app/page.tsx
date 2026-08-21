@@ -4,6 +4,7 @@
  * y app/(auth)/registro/page.tsx (SPEC_TEC_04 §3, §9.1).
  */
 import Link from 'next/link';
+import { Heart } from 'lucide-react';
 
 export default function HomePage() {
   return (
@@ -33,6 +34,9 @@ export default function HomePage() {
       <p className="mt-8 text-xs text-muted-foreground">
         MVP en construcción. Setup monorepo inicializado · Path A SQL aplicado.
       </p>
+      <footer className="mt-auto flex items-center gap-1 text-xs text-muted-foreground">
+        Hecho <Heart aria-hidden="true" className="h-3.5 w-3.5 fill-rose-500 text-rose-500" /> para las Maetas · por Ing. Frank Saavedra
+      </footer>
     </main>
   );
 }
