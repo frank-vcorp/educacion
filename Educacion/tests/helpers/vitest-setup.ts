@@ -3,12 +3,16 @@
  * SPEC_TEC_06 §3: unit + integration tests con cobertura.
  */
 import '@testing-library/jest-dom/vitest';
-import { afterEach, vi } from 'vitest';
+import { afterEach, beforeEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 
-// Cleanup automático después de cada test (RTL)
+// Cleanup automático después de cada test (RTL).
+// Limpiamos también `sessionStorage` para evitar contaminación entre tests
+// del IMPL-20260821-01 (la entrevista usa sessionStorage como borrador
+// temporal por alumnoId).
 afterEach(() => {
   cleanup();
+  if (typeof window !== 'undefined') window.sessionStorage.clear();
 });
 
 // Mock Next.js router

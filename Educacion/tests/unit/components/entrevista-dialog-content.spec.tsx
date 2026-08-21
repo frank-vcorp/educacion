@@ -282,3 +282,58 @@ describe('AlumnosManager — modal de entrevista y botones de alumnos', () => {
     });
   });
 });
+
+// =====================================================================
+// IMPL-20260821-01 — Modal con max-h + scroll interno + stepper.
+// =====================================================================
+
+describe('AlumnosManager — modal de entrevista con UX stepper (IMPL-20260821-01)', () => {
+  const MANAGER_PROPS = {
+    initialAlumnos: [
+      { id: 'alumno-1', nombre: 'Ana Torres' },
+    ],
+    grupo: { id: 'grupo-1', grado: '1°', grupo: 'A', ciclo_escolar: '2025-2026' },
+    avisoAceptado: true,
+  };
+
+  it('abre el modal con un cuerpo scrollable interno (data-testid entrevista-dialog-body)', async () => {
+    const user = userEvent.setup();
+    const getEntrevista = await importGetEntrevista();
+    getEntrevista.mockResolvedValue({ ok: true, data: null });
+
+    render(<AlumnosManager {...MANAGER_PROPS} />);
+    await user.click(screen.getByTestId('entrevista-button-alumno-1'));
+    await waitFor(() => {
+      expect(screen.getByTestId('entrevista-form')).toBeInTheDocument();
+    });
+    // El cuerpo scrollable interno del modal existe y es accesible.
+    const body = screen.getByTestId('entrevista-dialog-body');
+    expect(body).toBeInTheDocument();
+    expect(body).toHaveClass('overflow-y-auto');
+    // El DialogContent (padre `role="dialog"`) tiene max-h-[90dvh].
+    const dialog = body.closest('[role="dialog"]') as HTMLElement | null;
+    expect(dialog).not.toBeNull();
+    expect(dialog?.className ?? '').toMatch(/max-h-\[90dvh\]/);
+  });
+
+  it('el modal muestra el stepper 1/2/3 con Anterior/Siguiente y footer accesible', async () => {
+    const user = userEvent.setup();
+    const getEntrevista = await importGetEntrevista();
+    getEntrevista.mockResolvedValue({ ok: true, data: null });
+
+    render(<AlumnosManager {...MANAGER_PROPS} />);
+    await user.click(screen.getByTestId('entrevista-button-alumno-1'));
+    await waitFor(() => {
+      expect(screen.getByTestId('entrevista-form')).toBeInTheDocument();
+    });
+    // Stepper con sus 3 botones.
+    expect(screen.getByTestId('entrevista-stepper-step-1')).toBeInTheDocument();
+    expect(screen.getByTestId('entrevista-stepper-step-2')).toBeInTheDocument();
+    expect(screen.getByTestId('entrevista-stepper-step-3')).toBeInTheDocument();
+    // Navegación Anterior/Siguiente + acciones Archivar/Guardar en el footer.
+    expect(screen.getByTestId('entrevista-stepper-prev')).toBeInTheDocument();
+    expect(screen.getByTestId('entrevista-stepper-next')).toBeInTheDocument();
+    expect(screen.getByTestId('entrevista-archivar')).toBeInTheDocument();
+    expect(screen.getByTestId('entrevista-guardar')).toBeInTheDocument();
+  });
+});

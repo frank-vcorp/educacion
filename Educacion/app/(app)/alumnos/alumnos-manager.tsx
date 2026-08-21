@@ -247,8 +247,15 @@ export function AlumnosManager({
         open={!!entrevistaTarget}
         onOpenChange={(o) => !o && setEntrevistaTarget(null)}
       >
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
+        {/* IMPL-20260821-01: el modal de entrevista puede contener hasta
+            ~23+16+4=43 campos + uploads; limitamos la altura del DialogContent
+            al 90dvh del viewport y permitimos scroll vertical interno para
+            que el modal nunca exceda la pantalla en móvil (375×812). El
+            resto de modales (agregar/editar/eliminar) mantienen su altura
+            natural (auto). max-h-[90dvh] usa dvh con fallback a vh via CSS
+            (`@supports` implícito en navegadores modernos). */}
+        <DialogContent className="flex max-h-[90dvh] max-w-3xl flex-col overflow-hidden p-0">
+          <DialogHeader className="shrink-0 px-6 pt-6">
             <DialogTitle>Entrevista inicial — {entrevistaTarget?.nombre}</DialogTitle>
             <DialogDescription>
               Cuestionario literal del documento (3 bloques: 23 preguntas,
@@ -258,22 +265,27 @@ export function AlumnosManager({
               docente responsable puede consultar y editar.
             </DialogDescription>
           </DialogHeader>
-          {entrevistaTarget && (
-            <EntrevistaDialogContent
-              alumnoId={entrevistaTarget.id}
-              alumnoNombre={entrevistaTarget.nombre}
-              alumnoGrado={(entrevistaTarget as unknown as { grado?: string }).grado ?? ''}
-              avisoAceptado={avisoAceptado}
-              onSaved={(msg) => {
-                setOkMsg(msg);
-                setError(null);
-              }}
-              onError={(msg) => {
-                setError(msg);
-                setOkMsg(null);
-              }}
-            />
-          )}
+          <div
+            data-testid="entrevista-dialog-body"
+            className="min-h-0 flex-1 overflow-y-auto px-6 pb-2"
+          >
+            {entrevistaTarget && (
+              <EntrevistaDialogContent
+                alumnoId={entrevistaTarget.id}
+                alumnoNombre={entrevistaTarget.nombre}
+                alumnoGrado={(entrevistaTarget as unknown as { grado?: string }).grado ?? ''}
+                avisoAceptado={avisoAceptado}
+                onSaved={(msg) => {
+                  setOkMsg(msg);
+                  setError(null);
+                }}
+                onError={(msg) => {
+                  setError(msg);
+                  setOkMsg(null);
+                }}
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 

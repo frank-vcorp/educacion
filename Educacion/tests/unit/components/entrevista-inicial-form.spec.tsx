@@ -14,7 +14,7 @@
  *  - Si la docente NO aceptó el aviso, se muestra el gate y se bloquea el form.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EntrevistaInicialForm } from '@/components/alumnos/entrevista-inicial-form';
 import {
@@ -138,19 +138,28 @@ describe('EntrevistaInicialForm — AC-12..AC-27 (UI)', () => {
     ).toBeGreaterThanOrEqual(1);
   });
 
-  it('AC-UX: gate de aviso muestra banner cuando NO está aceptado', () => {
+  it('AC-UX: gate de aviso muestra banner cuando NO está aceptado', async () => {
+    const user = userEvent.setup();
     render(<EntrevistaInicialForm {...PROPS_BASE} avisoAceptado={false} />);
     expect(screen.getByTestId('entrevista-gate-aviso')).toBeInTheDocument();
-    // Los tres fieldsets deben estar deshabilitados.
+    // Bloque 1 visible por defecto: el fieldset debe estar deshabilitado.
     expect(
       screen.getByRole('group', { name: /bloque 1 — entrevista inicial/i }),
     ).toBeDisabled();
+
+    // Bloques 2 y 3 están ocultos (hidden) por el stepper; verificamos
+    // su estado navegando al paso correspondiente y comprobando el
+    // atributo `disabled` del fieldset (los `getByRole` excluyen
+    // elementos con `hidden`/`aria-hidden=true`, por eso usamos testid).
+    await user.click(screen.getByTestId('entrevista-stepper-step-2'));
     expect(
-      screen.getByRole('group', { name: /bloque 2 — ambiente familiar y escuela/i }),
-    ).toBeDisabled();
+      screen.getByTestId('entrevista-bloque-2'),
+    ).toHaveAttribute('disabled');
+
+    await user.click(screen.getByTestId('entrevista-stepper-step-3'));
     expect(
-      screen.getByRole('group', { name: /bloque 3 — directorio de emergencia/i }),
-    ).toBeDisabled();
+      screen.getByTestId('entrevista-bloque-3'),
+    ).toHaveAttribute('disabled');
   });
 
   it('AC-UX: editar respuesta del ítem 1 del bloque 1 actualiza el estado interno', async () => {
@@ -165,6 +174,8 @@ describe('EntrevistaInicialForm — AC-12..AC-27 (UI)', () => {
   it('AC-UX: editar respuesta de la celda 3 (bloque 2 pregunta) actualiza el estado interno', async () => {
     const user = userEvent.setup();
     render(<EntrevistaInicialForm {...PROPS_BASE} />);
+    // Navega al paso 2 (bloque 2) para que la celda sea visible/interactuable.
+    await user.click(screen.getByTestId('entrevista-stepper-step-2'));
     const celda3 = screen.getByTestId('entrevista-celda-3');
     const textarea = within(celda3).getByLabelText(/respuesta celda 3/i);
     await user.type(textarea, 'Me llamo Demo');
@@ -174,6 +185,8 @@ describe('EntrevistaInicialForm — AC-12..AC-27 (UI)', () => {
   it('AC-UX: editar nombre y teléfono del contacto 1 del directorio actualiza el estado interno', async () => {
     const user = userEvent.setup();
     render(<EntrevistaInicialForm {...PROPS_BASE} />);
+    // Navega al paso 3 (directorio) para que el contacto sea visible/interactuable.
+    await user.click(screen.getByTestId('entrevista-stepper-step-3'));
     const c1 = screen.getByTestId('directorio-contacto-1');
     const nombre = within(c1).getByLabelText(/^nombre/i) as HTMLInputElement;
     await user.type(nombre, 'Padre Demo');
@@ -188,6 +201,8 @@ describe('EntrevistaInicialForm — AC-12..AC-27 (UI)', () => {
     const user = userEvent.setup();
     const { archivarEntrevista } = await import('@/services/alumnos/entrevista-actions');
     render(<EntrevistaInicialForm {...PROPS_BASE} />);
+    // El botón Archivar vive en el footer (siempre visible), no requiere
+    // navegación de paso para localizarlo.
     const btn = screen.getByTestId('entrevista-archivar');
     await user.click(btn);
     expect(archivarEntrevista).toHaveBeenCalledWith('alumno-1');
@@ -198,12 +213,16 @@ describe('EntrevistaInicialForm — AC-12..AC-27 (UI)', () => {
     const { upsertEntrevista } = await import('@/services/alumnos/entrevista-actions');
     render(<EntrevistaInicialForm {...PROPS_BASE} />);
 
+    // Paso 1 — editar ítem 1.
     const item1 = screen.getByTestId('entrevista-item-1');
     await user.type(within(item1).getByLabelText(/respuesta 1/i), 'Demo');
 
+    // Paso 3 — editar contacto 1.
+    await user.click(screen.getByTestId('entrevista-stepper-step-3'));
     const c1 = screen.getByTestId('directorio-contacto-1');
     await user.type(within(c1).getByLabelText(/^nombre/i), 'Padre Demo');
 
+    // El botón Guardar vive en el footer (siempre visible).
     await user.click(screen.getByTestId('entrevista-guardar'));
 
     expect(upsertEntrevista).toHaveBeenCalledTimes(1);
@@ -223,3 +242,192 @@ describe('EntrevistaInicialForm — AC-12..AC-27 (UI)', () => {
 function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
+
+// =====================================================================
+// IMPL-20260821-01 — UX del modal: stepper 1/2/3, Anterior/Siguiente,
+// scroll al inicio, persistencia y footer accesible.
+// =====================================================================
+
+describe('EntrevistaInicialForm — IMPL-20260821-01 (stepper UX)', () => {
+  beforeEach(() => {
+    // sessionStorage limpio entre tests.
+    if (typeof window !== 'undefined') window.sessionStorage.clear();
+  });
+
+  it('arranca en el paso 1 con aria-current="step" sólo en el primer botón', () => {
+    render(<EntrevistaInicialForm {...PROPS_BASE} />);
+    const step1 = screen.getByTestId('entrevista-stepper-step-1');
+    const step2 = screen.getByTestId('entrevista-stepper-step-2');
+    const step3 = screen.getByTestId('entrevista-stepper-step-3');
+    expect(step1).toHaveAttribute('aria-current', 'step');
+    expect(step2).not.toHaveAttribute('aria-current');
+    expect(step3).not.toHaveAttribute('aria-current');
+    expect(step1).toHaveAttribute('data-active', 'true');
+    expect(step2).toHaveAttribute('data-active', 'false');
+  });
+
+  it('renderiza el nav del stepper con el aria-label correcto', () => {
+    render(<EntrevistaInicialForm {...PROPS_BASE} />);
+    expect(
+      screen.getByRole('navigation', { name: /pasos de la entrevista/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('Siguiente avanza al paso 2 y Anterior retrocede al paso 1', async () => {
+    const user = userEvent.setup();
+    render(<EntrevistaInicialForm {...PROPS_BASE} />);
+
+    await user.click(screen.getByTestId('entrevista-stepper-next'));
+    expect(screen.getByTestId('entrevista-stepper-step-2')).toHaveAttribute(
+      'aria-current',
+      'step',
+    );
+    expect(screen.getByTestId('entrevista-bloque-1')).toHaveAttribute('hidden');
+    expect(screen.getByTestId('entrevista-bloque-2')).not.toHaveAttribute('hidden');
+
+    await user.click(screen.getByTestId('entrevista-stepper-prev'));
+    expect(screen.getByTestId('entrevista-stepper-step-1')).toHaveAttribute(
+      'aria-current',
+      'step',
+    );
+    expect(screen.getByTestId('entrevista-bloque-1')).not.toHaveAttribute('hidden');
+    expect(screen.getByTestId('entrevista-bloque-2')).toHaveAttribute('hidden');
+  });
+
+  it('Anterior está deshabilitado en el paso 1 y Siguiente en el paso 3', async () => {
+    const user = userEvent.setup();
+    render(<EntrevistaInicialForm {...PROPS_BASE} />);
+    expect(screen.getByTestId('entrevista-stepper-prev')).toBeDisabled();
+    expect(screen.getByTestId('entrevista-stepper-next')).not.toBeDisabled();
+
+    await user.click(screen.getByTestId('entrevista-stepper-step-3'));
+    expect(screen.getByTestId('entrevista-stepper-next')).toBeDisabled();
+    expect(screen.getByTestId('entrevista-stepper-prev')).not.toBeDisabled();
+  });
+
+  it('click en un botón del stepper salta directo al paso y oculta los demás bloques', async () => {
+    const user = userEvent.setup();
+    render(<EntrevistaInicialForm {...PROPS_BASE} />);
+
+    await user.click(screen.getByTestId('entrevista-stepper-step-3'));
+    expect(screen.getByTestId('entrevista-bloque-1')).toHaveAttribute('hidden');
+    expect(screen.getByTestId('entrevista-bloque-2')).toHaveAttribute('hidden');
+    expect(screen.getByTestId('entrevista-bloque-3')).not.toHaveAttribute('hidden');
+    expect(screen.getByTestId('entrevista-stepper-step-3')).toHaveAttribute(
+      'aria-current',
+      'step',
+    );
+  });
+
+  it('el estado (respuestas) persiste entre pasos: editar en paso 1 sigue en paso 3', async () => {
+    const user = userEvent.setup();
+    render(<EntrevistaInicialForm {...PROPS_BASE} />);
+
+    const item1 = screen.getByTestId('entrevista-item-1');
+    await user.type(within(item1).getByLabelText(/respuesta 1/i), 'Demo');
+
+    // Navega a paso 2 y vuelve a paso 1.
+    await user.click(screen.getByTestId('entrevista-stepper-step-2'));
+    await user.click(screen.getByTestId('entrevista-stepper-step-1'));
+    const input1 = within(screen.getByTestId('entrevista-item-1')).getByLabelText(
+      /respuesta 1/i,
+    ) as HTMLInputElement;
+    expect(input1.value).toBe('Demo');
+  });
+
+  it('el footer accesible está siempre visible (sticky en el flujo del form)', () => {
+    render(<EntrevistaInicialForm {...PROPS_BASE} />);
+    const footer = screen.getByTestId('entrevista-footer');
+    expect(footer).toBeInTheDocument();
+    expect(footer).toHaveAttribute('role', 'group');
+    expect(footer).toHaveAttribute('aria-label', expect.stringMatching(/navegación/i));
+    // Guardar y Archivar son accesibles desde cualquier paso (viven en el footer).
+    expect(screen.getByTestId('entrevista-guardar')).toBeInTheDocument();
+    expect(screen.getByTestId('entrevista-archivar')).toBeInTheDocument();
+  });
+
+  it('persiste un borrador en sessionStorage por alumnoId y lo limpia tras guardar', async () => {
+    const user = userEvent.setup();
+    const { upsertEntrevista } = await import('@/services/alumnos/entrevista-actions');
+    render(<EntrevistaInicialForm {...PROPS_BASE} />);
+
+    // Captura algo en paso 1.
+    const item1 = screen.getByTestId('entrevista-item-1');
+    await user.type(within(item1).getByLabelText(/respuesta 1/i), 'Borrador');
+
+    // El sessionStorage guarda el borrador por alumno.
+    const raw = window.sessionStorage.getItem('entrevista:nino:v1:alumno-1');
+    expect(raw).not.toBeNull();
+    const parsed = JSON.parse(raw!) as {
+      respuestas: { entrevista_inicial: { items: Array<{ orden: number; respuesta: string }> } };
+    };
+    const item = parsed.respuestas.entrevista_inicial.items.find((it) => it.orden === 1);
+    expect(item?.respuesta).toBe('Borrador');
+
+    // Guarda: el sessionStorage se limpia.
+    await user.click(screen.getByTestId('entrevista-guardar'));
+    await waitFor(() => {
+      expect(window.sessionStorage.getItem('entrevista:nino:v1:alumno-1')).toBeNull();
+    });
+    expect(upsertEntrevista).toHaveBeenCalledTimes(1);
+  });
+
+  it('hidrata desde sessionStorage si NO hay `initial` (entrevista aún no persistida)', async () => {
+    // Sembramos un borrador antes de montar.
+    const draft = {
+      respuestas: {
+        entrevista_inicial: {
+          items: ENTREVISTA_BLOQUE1.map((q) => ({
+            orden: q.orden,
+            pregunta: q.pregunta,
+            respuesta: q.orden === 1 ? 'Pre-cargado' : '',
+          })),
+        },
+        ambiente_familiar_escuela: {
+          encabezado: {
+            lineaInstitucion: 'JARDIN DE NIÑOS “CELESTINO FREINET”',
+            titulo: 'ENTEVISTA AL ALUMNO',
+            fecha: '2026-08-21',
+            nombreAlumno: 'Alumno Demo',
+          },
+          celdas: [],
+        },
+      },
+      directorio: null,
+      fechaAplicacion: '2026-08-21',
+      estado: 'borrador',
+    };
+    window.sessionStorage.setItem(
+      'entrevista:nino:v1:alumno-1',
+      JSON.stringify(draft),
+    );
+
+    render(<EntrevistaInicialForm {...PROPS_BASE} />);
+    const item1 = screen.getByTestId('entrevista-item-1');
+    // La hidratación ocurre en useEffect tras el primer render.
+    await waitFor(() => {
+      const input1 = within(item1).getByLabelText(/respuesta 1/i) as HTMLInputElement;
+      expect(input1.value).toBe('Pre-cargado');
+    });
+  });
+
+  it('scroll al inicio: al cambiar de paso, hace scrollTop=0 en el contenedor', async () => {
+    const user = userEvent.setup();
+    // Mock del contenedor scrollable del modal.
+    const scrollable = document.createElement('div');
+    scrollable.setAttribute('data-testid', 'entrevista-dialog-body');
+    scrollable.scrollTop = 200;
+    document.body.appendChild(scrollable);
+
+    render(<EntrevistaInicialForm {...PROPS_BASE} />);
+
+    await user.click(screen.getByTestId('entrevista-stepper-next'));
+
+    // Tras el cambio de paso, el contenedor debe volver al tope.
+    await waitFor(() => {
+      expect(scrollable.scrollTop).toBe(0);
+    });
+
+    document.body.removeChild(scrollable);
+  });
+});
