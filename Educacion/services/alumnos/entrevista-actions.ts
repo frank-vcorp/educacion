@@ -31,12 +31,8 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import {
-  ENTREVISTA_ESTADOS,
-  type Directorio,
   type EntrevistaInicialV2,
   type EntrevistaResult,
-  type EstadoEntrevista,
-  type RespuestasV2,
   validateCuestionarioV2,
 } from '@/types/entrevista';
 
@@ -300,15 +296,3 @@ export async function archivarEntrevista(
   revalidatePath(`/alumnos/${alumno.id}`);
   return { ok: true, data: null };
 }
-
-// ============ Re-exports para tests/cliente (no son server actions) ============
-
-export const __test_only__ = {
-  ENTREVISTA_ESTADOS,
-  validateCuestionarioV2,
-  getGrupoActivo,
-  getAlumnoForDocente,
-  docenteAceptoAviso,
-};
-
-export type { Directorio, EntrevistaInicialV2, EstadoEntrevista, RespuestasV2 };

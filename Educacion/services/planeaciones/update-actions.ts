@@ -239,5 +239,9 @@ export async function updatePlaneacion(
 // `@/lib/ia/audit-post` (helper único reusable por los 3 routes IA y por
 // ambos server actions). `hashShort` vive en ese mismo helper; este archivo
 // ya no la importa ni la duplica.
-
-export const F3_CAMPOS_PULIBLES = F3_CAMPOS;
+//
+// NOTA: `F3_CAMPOS` permanece como constante interna (la usa
+// `updatePlaneacion` para filtrar campos). No se exporta: un módulo
+// `'use server'` sólo puede exportar funciones async (Next.js lanza
+// "A 'use server' file can only export async functions" en runtime si
+// se exporta un valor no-función).

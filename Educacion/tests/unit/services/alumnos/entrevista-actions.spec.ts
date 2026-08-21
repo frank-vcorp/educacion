@@ -566,6 +566,24 @@ describe('IMPL-20260820-08 — entrevista-actions (AC-12..AC-27)', () => {
     expect((mod as unknown as Record<string, unknown>).deleteEntrevistas).toBeUndefined();
   });
 
+  it('el módulo solo exporta funciones async (contrato "use server" de Next.js)', async () => {
+    // Next.js evalúa en runtime que todo export de un módulo 'use server' sea
+    // una función (ensureServerEntryExports); un export no-función (p.ej. un
+    // objeto helper) lanza "A 'use server' file can only export async
+    // functions" al invocar cualquier acción del módulo.
+    const mod = await import('@/services/alumnos/entrevista-actions');
+    const entries = Object.entries(mod as unknown as Record<string, unknown>);
+    expect(entries.length).toBeGreaterThan(0);
+    for (const [name, value] of entries) {
+      expect(typeof value, `export "${name}" debe ser función`).toBe('function');
+      expect(
+        (value as { constructor: { name: string } }).constructor.name,
+        `export "${name}" debe ser función async`,
+      ).toBe('AsyncFunction');
+    }
+    expect((mod as unknown as Record<string, unknown>).__test_only__).toBeUndefined();
+  });
+
   it('AC-25: getEntrevista devuelve la fila del ciclo activo (respuestas + directorio)', async () => {
     const { respuestas, directorio } = makeValidPayload();
     entrevistaStore.push({

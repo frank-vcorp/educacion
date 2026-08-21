@@ -13,6 +13,8 @@
  *  (d) si retorna OK, retorna `ok: true` sin `auditError`.
  *  (e) `updatePlaneacion` (P3 opcional de consistencia) sigue el mismo
  *      patrón fail-loud: error de auditoría → `ok: true` + `auditError`.
+ *  (f) el módulo solo exporta funciones async (contrato runtime
+ *      `'use server'` de Next.js — `ensureServerEntryExports`).
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
@@ -261,6 +263,28 @@ describe('services/planeaciones/update-actions (AC-30, P1-2)', () => {
       expect(p.cct).toBe(CCT);
       expect(p.method).toBe('PATCH');
       expect(p.endpoint).toBe('update_planeacion_post_ia_f3');
+    });
+  });
+
+  // ─── Contrato de exports `'use server'` ─────────────────────
+  describe('contrato de exports "use server"', () => {
+    it('el módulo solo exporta funciones async (contrato "use server" de Next.js)', async () => {
+      // Next.js evalúa en runtime que todo export de un módulo 'use server'
+      // sea una función (ensureServerEntryExports); un export no-función
+      // (p.ej. el array de campos F3) lanza "A 'use server' file can only
+      // export async functions" al invocar cualquier acción del módulo.
+      const mod = await import('@/services/planeaciones/update-actions');
+      const entries = Object.entries(mod as unknown as Record<string, unknown>);
+      expect(entries.length).toBeGreaterThan(0);
+      for (const [name, value] of entries) {
+        expect(typeof value, `export "${name}" debe ser función`).toBe('function');
+        expect(
+          (value as { constructor: { name: string } }).constructor.name,
+          `export "${name}" debe ser función async`,
+        ).toBe('AsyncFunction');
+      }
+      // El export muerto que causaba el defecto no debe existir.
+      expect((mod as unknown as Record<string, unknown>).F3_CAMPOS_PULIBLES).toBeUndefined();
     });
   });
 });
