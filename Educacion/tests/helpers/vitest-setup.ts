@@ -6,6 +6,18 @@ import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 
+// jsdom no implementa ResizeObserver (necesario para Radix Select/Tabs).
+// IMPL-20260821-05 — los form components usan @radix-ui (incluye
+// `useSize` que requiere ResizeObserver). Polyfill mínimo antes de los tests.
+if (typeof window !== 'undefined' && typeof (window as unknown as { ResizeObserver?: unknown }).ResizeObserver === 'undefined') {
+  (window as unknown as { ResizeObserver: typeof ResizeObserver }).ResizeObserver =
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    } as unknown as typeof ResizeObserver;
+}
+
 // Cleanup automático después de cada test (RTL).
 // Limpiamos también `sessionStorage` para evitar contaminación entre tests
 // del IMPL-20260821-01 (la entrevista usa sessionStorage como borrador

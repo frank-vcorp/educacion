@@ -54,11 +54,10 @@ Las preguntas A-D de privacidad, visibilidad, retención y edición de `DISCOVER
 
 ## OQ-20260820-07 — Contrato de privacidad de entrevista familiar
 
-- **Tipo:** blocking para diseñar o implementar captura de la entrevista familiar.
-- **Decisión parcial:** sí forma parte del mismo espacio funcional del perfil, en una sección separada de la entrevista del niño, y conserva las preguntas de `docx_extract/NUEVA ENTREVISTA.pdf`.
-- **Pregunta pendiente:** ¿qué aviso/consentimiento, visibilidad, retención y firma aplican a los datos familiares y legales?
+- **Tipo:** answered para implementar la captura autorizada; la retención detallada sigue siendo una mejora posterior.
+- **Decisión resultante:** sí forma parte del mismo espacio funcional del perfil, en una sección separada de la entrevista del niño, conserva las preguntas de `docx_extract/NUEVA ENTREVISTA.pdf` y puede ser capturada por maestras autorizadas.
 - **Responsable:** Frank.
-- **Estado:** open.
+- **Estado:** answered.
 - **Nota:** la fuente contiene teléfonos, situación legal, patria potestad, hábitos y expectativas familiares; no se enviará a IA.
 
 La pregunta sobre el cuestionario infantil queda resuelta por `DEC-20260820-05`: se usa el documento completo, incluidos duplicados, dibujos y directorio de emergencia.

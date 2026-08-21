@@ -71,7 +71,7 @@
 - **Evidencia:** Frank entregó `docx_extract/NUEVA ENTREVISTA.pdf`, titulado “Cuestionario a padres de familia”. Incluye datos del alumno, fecha de nacimiento, información de mamá/papá (nombre, teléfono, edad, estudios, ocupación y horario), situación legal y convivencia, patria potestad, hábitos familiares, tecnología, televisión, colaboración en casa, actividades extraescolares, límites, dificultades de aprendizaje, expectativas del ciclo, expectativas de la maestra y compromiso familiar, además de firmas.
 - **Impacto:** amplía el alcance de la entrevista infantil hacia datos personales de familiares y potencialmente datos sensibles del menor. No debe mezclarse con `entrevista_inicial_alumno` ni enviarse a IA sin contrato específico de finalidad, consentimiento, visibilidad, retención y control de acceso.
 - **Fuente:** `docx_extract/NUEVA ENTREVISTA.pdf` y texto parseado recibido el 2026-08-20.
-- **Resolución parcial:** Frank confirmó que debe vivir junto a la entrevista del niño dentro de `Perfil del alumno → Entrevistas`, como sección separada y asociada al mismo alumno/grupo/ciclo. La fuente se conserva literal. Su contrato de privacidad, permisos y retención sigue pendiente; no se implementa captura todavía.
+- **Resolución:** Frank confirmó autorización de maestras para anexarla al perfil del alumno dentro de `Perfil del alumno → Entrevistas`, como sección separada y asociada al mismo alumno/grupo/ciclo. La fuente se conserva literal y queda excluida de IA.
 
 ## FND-20260820-09 — La entrevista infantil implementada no contiene el documento completo
 
@@ -83,11 +83,11 @@
 
 ## FND-20260820-10 — Variables IA de producción están vacías
 
-- **Estado:** confirmed
+- **Estado:** superseded
 - **Severidad:** P1
 - **Evidencia:** la pantalla F0 responde `origen: FALLBACK_VACIO`. `vercel env ls production` muestra las variables `AI_PROVIDER`, `AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL` y `AI_TIMEOUT_MS`, pero `vercel env pull --environment production` devuelve valores vacíos (`""`) para ellas. El cliente IA está diseñado para degradar exactamente a `fallback_vacio` cuando falta API key, base URL o modelo.
 - **Impacto:** la integración F0 está desplegada, pero no puede llamar a MiniMax; la docente recibe campos vacíos y el aviso de fallback.
-- **Resolución pendiente:** Frank debe cargar valores no vacíos en el entorno Production de Vercel y redeployar. No se solicitan ni se registran secretos en chat.
+- **Resolución:** Frank confirma que MiniMax ya está respondiendo sugerencias en producción. La inspección automatizada de `vercel env pull` devuelve longitudes no utilizables para secretos protegidos, por lo que no se toma como evidencia de ausencia. La evidencia funcional de Frank supersede la inferencia operativa; queda pendiente capturar una evidencia Playwright autenticada.
 
 ## FND-20260820-11 — Exportaciones objeto en módulos `use server` provocaban 500
 
@@ -95,4 +95,11 @@
 - **Severidad:** P1
 - **Evidencia:** Vercel reportó `A "use server" file can only export async functions, found object` en `/alumnos`; el patrón existía en `entrevista-actions.ts` y `update-actions.ts`.
 - **Resolución:** FIX-20260820-01/02 eliminó exportaciones runtime no válidas, añadió regresiones y se desplegó commit `8cb1767`. Build, suite y reproducción runtime post-fix pasaron.
+
+## FND-20260820-12 — React 482 por componente async bajo árbol cliente
+
+- **Estado:** resolved
+- **Severidad:** P1
+- **Evidencia:** `EntrevistaDialogContent` era una función `async` renderizada desde `AlumnosManager` (`'use client'`); React 482 corresponde a un componente cliente async.
+- **Resolución:** FIX-20260820-03 convirtió el diálogo a componente cliente con estados loading/error/ready y carga válida mediante server action; guardián estático añadido. Commit `5dda75d` desplegado en producción; 278 pruebas y build correctos.
 - **Artefactos afectados:** `E22_CIERRE_DISCOVERY.md`, `SPEC_MVP_01_Modulo_Docente.md`, perfil de alumno, aviso de privacidad y escenarios de onboarding/seguimiento.

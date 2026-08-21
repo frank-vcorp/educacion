@@ -54,3 +54,12 @@ Las decisiones confirmadas vigentes se conservan con sus IDs originales en `../f
 - **Privacidad:** mantiene las decisiones `DEC-20260820-02`; director sin acceso y exclusión de IA. El directorio de emergencia se trata como bloque sensible dentro de la entrevista, no como dato curricular.
 - **Estado:** confirmed.
 - **Confirmación:** Frank, 2026-08-20.
+
+## DEC-20260821-01 — Entrevista familiar literal autorizada
+
+- **Decisión:** anexar al perfil del alumno la entrevista familiar usando exactamente las preguntas y campos del PDF `docx_extract/NUEVA ENTREVISTA.pdf`, sin resumir, deduplicar, reordenar ni sustituir contenido.
+- **Ubicación:** `Perfil del alumno → Entrevistas → Entrevista familiar`, junto a la entrevista del niño, pero como registro y sección separados.
+- **Captura:** las maestras autorizadas pueden capturarla para el alumno, grupo y ciclo escolar correspondientes.
+- **Regla IA:** ninguna respuesta, firma, teléfono, situación legal o dato familiar se envía a IA.
+- **Confirmación:** Frank, 2026-08-21.
+- **Estado:** confirmed.
