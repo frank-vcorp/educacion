@@ -10,3 +10,8 @@
 - La aceptación del aviso de privacidad existente es requisito antes de guardar la entrevista. Referencia: DEC-20260820-02.
 - Solo la docente responsable accede a la entrevista; dirección no la consulta. Referencia: DEC-20260820-02.
 - La entrevista permanece asociada al ciclo escolar, se archiva al finalizarlo y se corrige mediante edición en sitio. Referencia: DEC-20260820-02.
+- Toda propuesta IA del wizard debe considerar la modalidad activa y el contexto acumulado del borrador. Referencia: DEC-20260820-03.
+- La IA puede proponer problema estructurado, propósito y ajustes razonables, pero cada campo se llena solo después de aceptación explícita de la docente. Referencia: DEC-20260820-03.
+- Cambiar modalidad o problema invalida las propuestas dependientes para efectos de regeneración, sin borrar silenciosamente el contenido ya aceptado. Referencia: DEC-20260820-03.
+- Las entrevistas del niño y familiar se encuentran juntas en el perfil del alumno, pero permanecen separadas por sección, registro y permisos. Referencia: DEC-20260820-04.
+- La entrevista familiar no se envía a IA y no hereda automáticamente los permisos de la entrevista infantil. Referencia: DEC-20260820-04.

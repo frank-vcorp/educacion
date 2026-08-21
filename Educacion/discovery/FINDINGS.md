@@ -53,4 +53,31 @@
 - **Decisión:** incorporar una sección separada `Entrevista inicial` dentro del perfil del alumno, ligada al grupo y ciclo escolar, con fecha de aplicación y estado; separar entrevista del niño y aportes de familia, mantenerla editable y evitar que sus datos se envíen a IA por defecto. Referencia: `DEC-20260820-01`.
 - **Alcance confirmado:** la entrevista del niño debe reproducir literalmente la plantilla visual enviada por Frank; no se permite alterar sus preguntas. La entrevista familiar queda fuera de este contrato hasta nuevo discovery.
 - **Privacidad resuelta:** aviso existente, solo docente, retención mientras exista el ciclo con archivo posterior y edición en sitio. Referencia: `DEC-20260820-02`.
+
+## FND-20260820-07 — IA no está conectada al contexto inicial del wizard
+
+- **Estado:** resolved
+- **Severidad:** P1
+- **Evidencia:** la pantalla `Nueva planeación` muestra `ESTÁTICO · SIN IA`; `sugerencias-ia.tsx` usa `getSugerencias(nivel)` con textos hardcodeados y no llama a MiniMax. Las rutas F1/F2/F3 existentes están en la vista de una planeación ya creada y no están conectadas al paso inicial `Problema del contexto`.
+- **Necesidad confirmada por Frank:** la docente escribe el problema del contexto y la IA debe devolver propuestas mejor estructuradas para ese problema, además de una propuesta de propósito y ajustes razonables de inclusión.
+- **Impacto:** la integración actual no entrega el valor principal esperado en el momento más importante del flujo; la etiqueta estática comunica correctamente la implementación actual, pero no satisface la expectativa de IA contextual.
+- **Resolución funcional:** la IA deberá considerar modalidad y contexto acumulado del borrador; propondrá problema estructurado, propósito y ajustes razonables, que se aplicarán con aceptación explícita por campo. Referencia: `DEC-20260820-03`.
+- **Artefactos afectados:** wizard de planeación, F1/F2/F3, `SPEC_MVP_01_Modulo_Docente.md` §3.7, `SPEC_TEC_07_Capa_IA.md`, `SPEC_TEC_08_UI_IA_F1F2F3.md`.
+
+## FND-20260820-08 — Entrevista familiar recibida como fuente de producto
+
+- **Estado:** confirmed
+- **Severidad:** P1
+- **Evidencia:** Frank entregó `docx_extract/NUEVA ENTREVISTA.pdf`, titulado “Cuestionario a padres de familia”. Incluye datos del alumno, fecha de nacimiento, información de mamá/papá (nombre, teléfono, edad, estudios, ocupación y horario), situación legal y convivencia, patria potestad, hábitos familiares, tecnología, televisión, colaboración en casa, actividades extraescolares, límites, dificultades de aprendizaje, expectativas del ciclo, expectativas de la maestra y compromiso familiar, además de firmas.
+- **Impacto:** amplía el alcance de la entrevista infantil hacia datos personales de familiares y potencialmente datos sensibles del menor. No debe mezclarse con `entrevista_inicial_alumno` ni enviarse a IA sin contrato específico de finalidad, consentimiento, visibilidad, retención y control de acceso.
+- **Fuente:** `docx_extract/NUEVA ENTREVISTA.pdf` y texto parseado recibido el 2026-08-20.
+- **Resolución parcial:** Frank confirmó que debe vivir junto a la entrevista del niño dentro de `Perfil del alumno → Entrevistas`, como sección separada y asociada al mismo alumno/grupo/ciclo. La fuente se conserva literal. Su contrato de privacidad, permisos y retención sigue pendiente; no se implementa captura todavía.
+
+## FND-20260820-09 — La entrevista infantil implementada no contiene el documento completo
+
+- **Estado:** confirmed
+- **Severidad:** P1
+- **Evidencia:** la implementación actual usa la primera versión de 21 preguntas; Frank entregó `docx_extract/ENTREVISTA INICIAL.docx.pdf`, de tres páginas, que agrega preguntas, dibujos de ambiente familiar/escuela y un directorio de emergencia.
+- **Impacto:** la entrevista desplegada no representa el instrumento que Tía Lola usa realmente; faltan preguntas sobre cuentos, televisión/dispositivos, escuela, amigos, maestra, felicidad, dibujos y contactos de emergencia. También existen preguntas repetidas en el documento y deben conservarse.
+- **Resolución funcional:** `DEC-20260820-05` supersede el cuestionario anterior y exige actualizarlo literalmente. Requiere nueva SPEC/implementación y QA; la entrevista familiar permanece separada.
 - **Artefactos afectados:** `E22_CIERRE_DISCOVERY.md`, `SPEC_MVP_01_Modulo_Docente.md`, perfil de alumno, aviso de privacidad y escenarios de onboarding/seguimiento.

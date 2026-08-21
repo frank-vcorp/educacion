@@ -34,3 +34,31 @@
 - **Regla:** no inferir ni agregar preguntas familiares a partir de la plantilla infantil.
 
 Las preguntas A-D de privacidad, visibilidad, retención y edición de `DISCOVERY-GAP-20260820-ENTREVISTA-PRIVACIDAD` quedaron respondidas por `DEC-20260820-02`.
+
+## OQ-20260820-05 — Aplicación de propuestas IA en el problema del contexto
+
+- **Tipo:** answered; blocking resuelto para conectar IA al wizard.
+- **Pregunta:** cuando la docente escribe el problema del contexto, ¿la IA debe escribir directamente propósito y ajustes razonables, o debe mostrar propuestas y aplicarlas solo cuando la docente pulse “Usar esta propuesta”?
+- **Decisión resultante:** proponer y aplicar con un clic. La IA entrega problema mejor estructurado, propósito y ajustes; la docente acepta cada bloque antes de llenar el campo. Además, las propuestas consideran la modalidad y el contexto acumulado del borrador.
+- **Responsable:** Frank.
+- **Estado:** answered.
+- **Motivo:** la opción 2 contradice la regla vigente de no mutar la planeación sin aceptación explícita.
+
+## OQ-20260820-06 — Retención de borrador contextual
+
+- **Tipo:** non_blocking para el flujo principal; necesario para definir recuperación de borradores abandonados.
+- **Pregunta:** si la docente abandona la planeación antes de terminarla, ¿cuánto tiempo conservamos el contexto acumulado del borrador?
+- **Opciones:** conservar 7 días; conservar hasta que la docente lo elimine; descartar al salir sin guardar.
+- **Responsable:** Frank.
+- **Estado:** open.
+
+## OQ-20260820-07 — Contrato de privacidad de entrevista familiar
+
+- **Tipo:** blocking para diseñar o implementar captura de la entrevista familiar.
+- **Decisión parcial:** sí forma parte del mismo espacio funcional del perfil, en una sección separada de la entrevista del niño, y conserva las preguntas de `docx_extract/NUEVA ENTREVISTA.pdf`.
+- **Pregunta pendiente:** ¿qué aviso/consentimiento, visibilidad, retención y firma aplican a los datos familiares y legales?
+- **Responsable:** Frank.
+- **Estado:** open.
+- **Nota:** la fuente contiene teléfonos, situación legal, patria potestad, hábitos y expectativas familiares; no se enviará a IA.
+
+La pregunta sobre el cuestionario infantil queda resuelta por `DEC-20260820-05`: se usa el documento completo, incluidos duplicados, dibujos y directorio de emergencia.

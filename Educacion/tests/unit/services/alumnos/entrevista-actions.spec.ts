@@ -1,16 +1,17 @@
 /**
- * Unit: services/alumnos/entrevista-actions — SPEC_TEC_09 (SPEC-20260820-09).
+ * Unit: services/alumnos/entrevista-actions — SPEC_TEC_09 (SPEC-20260820-09) v2.1.
  *
- * Cubre AC-6, AC-7, AC-11 del handoff IMPL-20260820-03:
- *  - upsertEntrevista: gate aviso, ownership, upsert idempotente, validar 21 ítems.
+ * Cubre AC-12..AC-27 del handoff IMPL-20260820-08:
+ *  - Literalidad bloque 1 (23 preguntas) y bloque 2 (16 celdas: 14 preguntas + 2 dibujos).
+ *  - Literalidad directorio (4 contactos con etiquetas literales + duplicado).
+ *  - Sin inferir: no permitir alterar/reordenar/deduplicar/preguntas en dibujos.
+ *  - upsertEntrevista: gate aviso (A1), ownership, upsert idempotente, validar v2 + directorio.
  *  - archivarEntrevista: transición borrador|completa → archivada, idempotente.
- *  - validateCuestionarioLiteral: 21 ítems literales (orden + pregunta).
- *  - getEntrevista: ownership + ciclo activo.
- *  - No exponer deleteEntrevista (AC-11 retención C1+C2).
- *  - No-IA por construcción (AC-8): ningún archivo de la capa IA importa ni
+ *  - getEntrevista: ownership + ciclo activo (devuelve respuestas + directorio).
+ *  - No exponer deleteEntrevista (AC-27 retención C1+C2).
+ *  - No-IA por construcción (AC-21): ningún archivo de la capa IA importa ni
  *    referencia `entrevista_inicial_alumno`, `entrevista-actions` o el módulo
- *    `@/services/alumnos/entrevista-actions`. Verificado mediante scan real
- *    de archivos en IMPL-20260820-04 (P3-3 de QA-20260820-02).
+ *    `@/services/alumnos/entrevista-actions` ni `entrevista-evidencia`.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
@@ -21,9 +22,19 @@ import {
   getEntrevista,
 } from '@/services/alumnos/entrevista-actions';
 import {
-  ENTREVISTA_CUESTIONARIO,
-  buildRespuestasVacias,
-  validateCuestionarioLiteral,
+  ENTREVISTA_BLOQUE1,
+  ENTREVISTA_BLOQUE1_TOTAL,
+  ENTREVISTA_BLOQUE2_CELDAS,
+  ENTREVISTA_BLOQUE2_TOTAL,
+  ENTREVISTA_BLOQUE2_ENCABEZADO,
+  ENTREVISTA_BLOQUE2_PREGUNTAS,
+  ENTREVISTA_BLOQUE2_DIBUJOS,
+  DIRECTORIO_ENCABEZADO,
+  DIRECTORIO_ETIQUETAS,
+  DIRECTORIO_TOTAL,
+  buildRespuestasVaciasV2,
+  buildDirectorioVacio,
+  validateCuestionarioV2,
 } from '@/types/entrevista';
 
 // ============ Mocks ============
@@ -164,6 +175,17 @@ vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
 }));
 
+// ============ Helpers de payload válido ============
+
+function makeValidPayload() {
+  const respuestas = buildRespuestasVaciasV2({
+    nombreAlumno: 'Alumno Demo',
+    fechaAplicacion: '2026-08-20',
+  });
+  const directorio = buildDirectorioVacio({ nombreAlumno: 'Alumno Demo' });
+  return { respuestas, directorio };
+}
+
 // ============ Tests ============
 
 beforeEach(() => {
@@ -173,105 +195,334 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe('IMPL-20260820-03 — entrevista-actions (AC-6, AC-7, AC-11)', () => {
-  it('AC-7: validateCuestionarioLiteral acepta 21 ítems literales', () => {
-    const resp = buildRespuestasVacias({
-      nombreAlumno: 'Demo',
-      grado: '1°',
-      grupo: 'A',
-      fechaAplicacion: '2026-08-20',
+describe('IMPL-20260820-08 — entrevista-actions (AC-12..AC-27)', () => {
+  it('AC-12: bloque 1 tiene exactamente 23 ítems en orden 1..23', () => {
+    expect(ENTREVISTA_BLOQUE1).toHaveLength(ENTREVISTA_BLOQUE1_TOTAL);
+    expect(ENTREVISTA_BLOQUE1_TOTAL).toBe(23);
+    ENTREVISTA_BLOQUE1.forEach((q, i) => {
+      expect(q.orden).toBe(i + 1);
     });
-    const out = validateCuestionarioLiteral(resp);
+  });
+
+  it('AC-12: bloque 2 tiene exactamente 16 celdas (14 preguntas + 2 dibujos) en orden 1..16', () => {
+    expect(ENTREVISTA_BLOQUE2_CELDAS).toHaveLength(ENTREVISTA_BLOQUE2_TOTAL);
+    expect(ENTREVISTA_BLOQUE2_TOTAL).toBe(16);
+    expect(ENTREVISTA_BLOQUE2_PREGUNTAS).toBe(14);
+    expect(ENTREVISTA_BLOQUE2_DIBUJOS).toBe(2);
+    ENTREVISTA_BLOQUE2_CELDAS.forEach((c, i) => {
+      expect(c.orden).toBe(i + 1);
+    });
+  });
+
+  it('AC-12: directorio tiene exactamente 4 contactos', () => {
+    expect(DIRECTORIO_ETIQUETAS).toHaveLength(DIRECTORIO_TOTAL);
+    expect(DIRECTORIO_TOTAL).toBe(4);
+  });
+
+  it('AC-13: validateCuestionarioV2 acepta 23 ítems + 16 celdas + 4 contactos literales', () => {
+    const { respuestas, directorio } = makeValidPayload();
+    const out = validateCuestionarioV2({ respuestas, directorio });
     expect(out.ok).toBe(true);
-    expect(out.data?.items).toHaveLength(21);
-    expect(out.data?.items[0]?.pregunta).toBe('¿Cómo te llamas?');
-    expect(out.data?.items[6]?.pregunta).toBe('¿Cuál es tu color Favorito?');
-    expect(out.data?.items[11]?.pregunta).toBe('¿A que te gusta jugar? ¿Con quién?');
+    if (out.ok) {
+      expect(out.data.respuestas.entrevista_inicial.items).toHaveLength(23);
+      expect(out.data.respuestas.ambiente_familiar_escuela.celdas).toHaveLength(16);
+      expect(out.data.directorio.contactos).toHaveLength(4);
+    }
   });
 
-  it('AC-7: validateCuestionarioLiteral rechaza 20 ítems', () => {
-    const resp = buildRespuestasVacias();
-    const out = validateCuestionarioLiteral({ items: resp.items.slice(0, 20) });
-    expect(out.ok).toBe(false);
-    expect(out.error).toMatch(/21 ítems|exactamente/i);
-  });
-
-  it('AC-7: validateCuestionarioLiteral rechaza pregunta alterada', () => {
-    const resp = buildRespuestasVacias();
+  it('AC-13: validateCuestionarioV2 rechaza pregunta alterada en bloque 1', () => {
+    const { respuestas, directorio } = makeValidPayload();
     const alterado = {
-      items: resp.items.map((it) =>
-        it.orden === 7 ? { ...it, pregunta: '¿Cuál es tu color favorito?' } : it,
+      ...respuestas,
+      entrevista_inicial: {
+        items: respuestas.entrevista_inicial.items.map((it) =>
+          it.orden === 1 ? { ...it, pregunta: '¿Como te llamas?' } : it,
+        ),
+      },
+    };
+    const out = validateCuestionarioV2({ respuestas: alterado, directorio });
+    expect(out.ok).toBe(false);
+    if (!out.ok) expect(out.error).toMatch(/ítem 1/i);
+  });
+
+  it('AC-13: validateCuestionarioV2 rechaza instrucción alterada en celda de dibujo', () => {
+    const { respuestas, directorio } = makeValidPayload();
+    const alterado = {
+      ...respuestas,
+      ambiente_familiar_escuela: {
+        ...respuestas.ambiente_familiar_escuela,
+        celdas: respuestas.ambiente_familiar_escuela.celdas.map((c) =>
+          c.orden === 1 ? { ...c, instruccion: 'Haz un dibujo de ti mismo' } : c,
+        ),
+      },
+    };
+    const out = validateCuestionarioV2({ respuestas: alterado, directorio });
+    expect(out.ok).toBe(false);
+    if (!out.ok) expect(out.error).toMatch(/celda 1/i);
+  });
+
+  it('AC-18: validateCuestionarioV2 rechaza dibujo con tipo "pregunta"', () => {
+    const { respuestas, directorio } = makeValidPayload();
+    // Forzar la celda 1 a "pregunta" — debe rechazarse.
+    const alterado = {
+      ...respuestas,
+      ambiente_familiar_escuela: {
+        ...respuestas.ambiente_familiar_escuela,
+        celdas: respuestas.ambiente_familiar_escuela.celdas.map((c) => {
+          if (c.orden !== 1) return c;
+          return {
+            orden: 1,
+            columna: 'ambiente_familiar' as const,
+            tipo: 'pregunta' as const,
+            pregunta: 'Describe tu dibujo',
+          };
+        }),
+      },
+    };
+    const out = validateCuestionarioV2({ respuestas: alterado, directorio });
+    expect(out.ok).toBe(false);
+  });
+
+  it('AC-15: validateCuestionarioV2 rechaza etiqueta del directorio alterada', () => {
+    const { respuestas, directorio } = makeValidPayload();
+    const alterado = {
+      ...directorio,
+      contactos: directorio.contactos.map((c) =>
+        c.orden === 1 ? { ...c, etiqueta: 'Nombre del papá' } : c,
       ),
     };
-    const out = validateCuestionarioLiteral(alterado);
+    const out = validateCuestionarioV2({ respuestas, directorio: alterado });
     expect(out.ok).toBe(false);
-    expect(out.error).toMatch(/ítem 7/i);
+    if (!out.ok) expect(out.error).toMatch(/contacto 1/i);
   });
 
-  it('AC-6: upsertEntrevista sin aviso → error con mensaje del gate A1', async () => {
+  it('AC-12: validateCuestionarioV2 rechaza bloque 1 con 22 ó 24 ítems', () => {
+    const { respuestas, directorio } = makeValidPayload();
+    const corto = {
+      ...respuestas,
+      entrevista_inicial: { items: respuestas.entrevista_inicial.items.slice(0, 22) },
+    };
+    expect(validateCuestionarioV2({ respuestas: corto, directorio }).ok).toBe(false);
+    const largo = {
+      ...respuestas,
+      entrevista_inicial: {
+        items: [
+          ...respuestas.entrevista_inicial.items,
+          {
+            orden: 24,
+            pregunta: '¿otra?',
+            respuesta: '',
+          },
+        ],
+      },
+    };
+    expect(validateCuestionarioV2({ respuestas: largo, directorio }).ok).toBe(false);
+  });
+
+  it('AC-12: validateCuestionarioV2 rechaza bloque 2 con 15 ó 17 celdas', () => {
+    const { respuestas, directorio } = makeValidPayload();
+    const corto = {
+      ...respuestas,
+      ambiente_familiar_escuela: {
+        ...respuestas.ambiente_familiar_escuela,
+        celdas: respuestas.ambiente_familiar_escuela.celdas.slice(0, 15),
+      },
+    };
+    expect(validateCuestionarioV2({ respuestas: corto, directorio }).ok).toBe(false);
+    const extraCelda = {
+      orden: 17,
+      columna: 'ambiente_familiar' as const,
+      tipo: 'pregunta' as const,
+      pregunta: '¿otra?',
+    };
+    const largo = {
+      ...respuestas,
+      ambiente_familiar_escuela: {
+        ...respuestas.ambiente_familiar_escuela,
+        celdas: [...respuestas.ambiente_familiar_escuela.celdas, extraCelda],
+      },
+    };
+    expect(validateCuestionarioV2({ respuestas: largo, directorio }).ok).toBe(false);
+  });
+
+  it('AC-15: validateCuestionarioV2 rechaza directorio con 3 ó 5 contactos', () => {
+    const { respuestas, directorio } = makeValidPayload();
+    const corto = {
+      ...directorio,
+      contactos: directorio.contactos.slice(0, 3),
+    };
+    expect(validateCuestionarioV2({ respuestas, directorio: corto }).ok).toBe(false);
+    const extra = {
+      orden: 5,
+      etiqueta: 'otro',
+      nombre: '',
+      telefono: '',
+    };
+    const largo = {
+      ...directorio,
+      contactos: [...directorio.contactos, extra],
+    };
+    expect(validateCuestionarioV2({ respuestas, directorio: largo }).ok).toBe(false);
+  });
+
+  it('AC-16: el array literal conserva los duplicados (preguntas en bloque 1 y bloque 2)', () => {
+    // Duplicados §4.0: ¿Cómo te llamas?, ¿Cuántos años tienes?,
+    // ¿Qué te gusta hacer en la escuela?, ¿A qué te gusta jugar? (cap. distinta).
+    expect(ENTREVISTA_BLOQUE1.filter((q) => q.pregunta === '¿Cómo te llamas?')).toHaveLength(1);
+    const enBloque2ComoTeLlamas = ENTREVISTA_BLOQUE2_CELDAS.filter(
+      (c) => c.tipo === 'pregunta' && c.pregunta === '¿Cómo te llamas?',
+    );
+    expect(enBloque2ComoTeLlamas).toHaveLength(1); // bloque 2 fila 2 AF
+
+    expect(ENTREVISTA_BLOQUE1.filter((q) => q.pregunta === '¿Cuántos años tienes?')).toHaveLength(1);
+    const enBloque2Edad = ENTREVISTA_BLOQUE2_CELDAS.filter(
+      (c) => c.tipo === 'pregunta' && c.pregunta === '¿Cuántos años tienes?',
+    );
+    expect(enBloque2Edad).toHaveLength(1); // bloque 2 fila 5 AF
+
+    const enBloque1HacerEscuela = ENTREVISTA_BLOQUE1.filter(
+      (q) => q.pregunta === '¿Qué te gusta hacer en la escuela?',
+    );
+    expect(enBloque1HacerEscuela).toHaveLength(1);
+    const enBloque2HacerEscuela = ENTREVISTA_BLOQUE2_CELDAS.filter(
+      (c) => c.tipo === 'pregunta' && c.pregunta === '¿Qué te gusta hacer en la escuela?',
+    );
+    expect(enBloque2HacerEscuela).toHaveLength(1); // bloque 2 fila 3 ESC
+
+    // Bloque 1 usa minúscula «a», bloque 2 mayúscula «A» — se conserva la diferencia.
+    const b1Jugar = ENTREVISTA_BLOQUE1.find((q) => q.orden === 9);
+    expect(b1Jugar?.pregunta).toBe('¿a qué te gusta jugar?');
+    const b2Jugar = ENTREVISTA_BLOQUE2_CELDAS.find(
+      (c) => c.orden === 13,
+    );
+    if (b2Jugar?.tipo === 'pregunta') {
+      expect(b2Jugar.pregunta).toBe('¿A qué te gusta jugar?');
+    } else {
+      throw new Error('celda 13 debería ser pregunta');
+    }
+  });
+
+  it('AC-17: el array fuente conserva las peculiaridades literales (§4.0)', () => {
+    expect(ENTREVISTA_BLOQUE2_ENCABEZADO.lineaInstitucion).toBe(
+      'JARDIN DE NIÑOS “CELESTINO FREINET”',
+    ); // JARDIN sin tilde
+    expect(ENTREVISTA_BLOQUE2_ENCABEZADO.titulo).toBe('ENTEVISTA AL ALUMNO'); // falta R
+    expect(DIRECTORIO_ENCABEZADO.titulo).toBe('DIRECTORIO CELESTINO FREINET 24-25');
+    expect(DIRECTORIO_ENCABEZADO.subtitulo).toBe(
+      '2° “A” Educadora: María Dolores Marín Pastrana',
+    );
+    expect(DIRECTORIO_ENCABEZADO.encabezadoTelefonos).toBe(
+      'Números telefónicos en caso de emergencia',
+    );
+
+    // Bloque 1: peculiaridades §4.0
+    const ord6 = ENTREVISTA_BLOQUE1.find((q) => q.orden === 6);
+    expect(ord6?.pregunta).toBe('¿con quien vives en tu casa?');
+    const ord7 = ENTREVISTA_BLOQUE1.find((q) => q.orden === 7);
+    expect(ord7?.pregunta).toBe('¿tienes mascotas?');
+    const ord16 = ENTREVISTA_BLOQUE1.find((q) => q.orden === 16);
+    expect(ord16?.pregunta).toBe('¿tienes teléfono o Tablet?');
+    const ord18 = ENTREVISTA_BLOQUE1.find((q) => q.orden === 18);
+    expect(ord18?.pregunta).toBe('¿te gusta venir a la escuela?');
+
+    // Directorio: la etiqueta «Nombre de familiar y parentesco» aparece dos veces.
+    const dup = DIRECTORIO_ETIQUETAS.filter(
+      (e) => e.etiqueta === 'Nombre de familiar y parentesco',
+    );
+    expect(dup).toHaveLength(2);
+  });
+
+  it('AC-25: upsertEntrevista sin aviso → error con mensaje del gate A1', async () => {
     mockSupabase.from = vi.fn((table: string) => makeBuilder(table, { skipAviso: true }));
 
-    const resp = buildRespuestasVacias();
+    const { respuestas, directorio } = makeValidPayload();
     const res = await upsertEntrevista({
       alumnoId,
       fechaAplicacion: '2026-08-20',
       estado: 'borrador',
-      respuestas: resp,
+      respuestas,
+      directorio,
     });
     expect(res.ok).toBe(false);
     expect(res.error).toMatch(/aviso de privacidad/i);
   });
 
-  it('AC-6: upsertEntrevista con alumno ajeno → "Alumno no encontrado"', async () => {
+  it('AC-25: upsertEntrevista con alumno ajeno → "Alumno no encontrado"', async () => {
     mockSupabase.from = vi.fn((table: string) => makeBuilder(table, { skipAlumno: true }));
 
-    const resp = buildRespuestasVacias();
+    const { respuestas, directorio } = makeValidPayload();
     const res = await upsertEntrevista({
       alumnoId,
       fechaAplicacion: '2026-08-20',
       estado: 'borrador',
-      respuestas: resp,
+      respuestas,
+      directorio,
     });
     expect(res.ok).toBe(false);
     expect(res.error).toBe('Alumno no encontrado');
   });
 
-  it('AC-6: upsertEntrevista crea la fila y la segunda llamada actualiza la misma fila', async () => {
-    const resp = buildRespuestasVacias({
-      nombreAlumno: 'Demo',
-      grado: '1°',
-      grupo: 'A',
-      fechaAplicacion: '2026-08-20',
-    });
+  it('AC-25: upsertEntrevista crea la fila y la segunda llamada actualiza la misma fila', async () => {
+    const { respuestas, directorio } = makeValidPayload();
     const r1 = await upsertEntrevista({
       alumnoId,
       fechaAplicacion: '2026-08-20',
       estado: 'borrador',
-      respuestas: resp,
+      respuestas,
+      directorio,
     });
     expect(r1.ok).toBe(true);
     expect(entrevistaStore).toHaveLength(1);
+    expect(entrevistaStore[0]?.directorio).toBeDefined();
 
-    const updated = buildRespuestasVacias({
-      nombreAlumno: 'Demo',
-      grado: '1°',
-      grupo: 'A',
+    const updatedRespuestas = buildRespuestasVaciasV2({
+      nombreAlumno: 'Alumno Demo',
       fechaAplicacion: '2026-08-20',
     });
-    updated.items[0]!.respuesta = 'Me llamo Demo';
+    updatedRespuestas.entrevista_inicial.items[0]!.respuesta = 'Me llamo Demo';
+    const updatedDirectorio = buildDirectorioVacio({ nombreAlumno: 'Alumno Demo' });
+    updatedDirectorio.contactos[0]!.nombre = 'Padre Demo';
+    updatedDirectorio.contactos[0]!.telefono = '555-1234';
+
     const r2 = await upsertEntrevista({
       alumnoId,
       fechaAplicacion: '2026-08-21',
       estado: 'completa',
-      respuestas: updated,
+      respuestas: updatedRespuestas,
+      directorio: updatedDirectorio,
     });
     expect(r2.ok).toBe(true);
-    expect(entrevistaStore).toHaveLength(1); // misma fila
+    expect(entrevistaStore).toHaveLength(1); // misma fila (idempotente)
     expect(entrevistaStore[0]?.estado).toBe('completa');
-    expect((entrevistaStore[0]?.respuestas as { items: Array<{ orden: number; respuesta: string }> }).items[0]?.respuesta).toBe('Me llamo Demo');
+    const stored = entrevistaStore[0]?.respuestas as {
+      entrevista_inicial: { items: Array<{ orden: number; respuesta: string }> };
+    };
+    expect(stored.entrevista_inicial.items[0]?.respuesta).toBe('Me llamo Demo');
+    const storedDir = entrevistaStore[0]?.directorio as {
+      contactos: Array<{ orden: number; nombre: string; telefono: string }>;
+    };
+    expect(storedDir.contactos[0]?.nombre).toBe('Padre Demo');
+    expect(storedDir.contactos[0]?.telefono).toBe('555-1234');
   });
 
-  it('AC-11: archivarEntrevista transiciona completa → archivada', async () => {
+  it('AC-25: upsertEntrevista rechaza cuando el directorio no tiene 4 contactos', async () => {
+    const { respuestas, directorio } = makeValidPayload();
+    const directorioInvalido = {
+      ...directorio,
+      contactos: directorio.contactos.slice(0, 3),
+    };
+    const res = await upsertEntrevista({
+      alumnoId,
+      fechaAplicacion: '2026-08-20',
+      estado: 'borrador',
+      respuestas,
+      directorio: directorioInvalido,
+    });
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error).toMatch(/4 contactos|directorio/i);
+  });
+
+  it('AC-27: archivarEntrevista transiciona completa → archivada', async () => {
     entrevistaStore.push({
       id: 'e-1',
       alumno_id: alumnoId,
@@ -281,6 +532,7 @@ describe('IMPL-20260820-03 — entrevista-actions (AC-6, AC-7, AC-11)', () => {
       ciclo_escolar: ciclo,
       tipo_entrevista: 'nino',
       respuestas: {},
+      directorio: {},
       fecha_aplicacion: '2026-08-20',
       estado: 'completa',
     });
@@ -289,7 +541,7 @@ describe('IMPL-20260820-03 — entrevista-actions (AC-6, AC-7, AC-11)', () => {
     expect(entrevistaStore[0]?.estado).toBe('archivada');
   });
 
-  it('AC-11: archivarEntrevista idempotente (segunda vez no duplica ni error)', async () => {
+  it('AC-27: archivarEntrevista idempotente (segunda vez no duplica ni error)', async () => {
     entrevistaStore.push({
       id: 'e-1',
       alumno_id: alumnoId,
@@ -299,6 +551,7 @@ describe('IMPL-20260820-03 — entrevista-actions (AC-6, AC-7, AC-11)', () => {
       ciclo_escolar: ciclo,
       tipo_entrevista: 'nino',
       respuestas: {},
+      directorio: {},
       fecha_aplicacion: '2026-08-20',
       estado: 'archivada',
     });
@@ -307,13 +560,14 @@ describe('IMPL-20260820-03 — entrevista-actions (AC-6, AC-7, AC-11)', () => {
     expect(entrevistaStore).toHaveLength(1); // no duplica
   });
 
-  it('AC-11: el módulo NO expone deleteEntrevista', async () => {
+  it('AC-27: el módulo NO expone deleteEntrevista', async () => {
     const mod = await import('@/services/alumnos/entrevista-actions');
     expect((mod as unknown as Record<string, unknown>).deleteEntrevista).toBeUndefined();
     expect((mod as unknown as Record<string, unknown>).deleteEntrevistas).toBeUndefined();
   });
 
-  it('AC-6: getEntrevista devuelve la fila del ciclo activo', async () => {
+  it('AC-25: getEntrevista devuelve la fila del ciclo activo (respuestas + directorio)', async () => {
+    const { respuestas, directorio } = makeValidPayload();
     entrevistaStore.push({
       id: 'e-1',
       alumno_id: alumnoId,
@@ -322,7 +576,8 @@ describe('IMPL-20260820-03 — entrevista-actions (AC-6, AC-7, AC-11)', () => {
       cct,
       ciclo_escolar: ciclo,
       tipo_entrevista: 'nino',
-      respuestas: { items: [] },
+      respuestas,
+      directorio,
       fecha_aplicacion: '2026-08-20',
       estado: 'borrador',
       created_at: '2026-08-20T00:00:00Z',
@@ -331,27 +586,16 @@ describe('IMPL-20260820-03 — entrevista-actions (AC-6, AC-7, AC-11)', () => {
     const res = await getEntrevista(alumnoId);
     expect(res.ok).toBe(true);
     expect(res.data?.id).toBe('e-1');
-  });
-
-  it('AC-7: el cuestionario tiene exactamente 21 ítems y orden 1..21', () => {
-    expect(ENTREVISTA_CUESTIONARIO).toHaveLength(21);
-    ENTREVISTA_CUESTIONARIO.forEach((q, i) => {
-      expect(q.orden).toBe(i + 1);
-    });
+    expect(res.data?.respuestas.entrevista_inicial.items).toHaveLength(23);
+    expect(res.data?.directorio.contactos).toHaveLength(4);
   });
 });
 
-// ============ P3-3 (QA-20260820-02) — No-IA por construcción ============
+// ============ AC-21: No-IA por construcción — scan real de la capa IA ============
 // Verificación REAL (no declarativa): escanea cada archivo TS de la capa IA
 // (rutas API `/ia/*`, `services/ia/*`, `lib/ia/*`) y falla si alguno contiene
-// alguna referencia a la tabla o al módulo de entrevista.
-//
-// Cobertura verificada:
-//   app/api/planeaciones/[id]/ia/{help-redaccion,pulir-pdf,variantes-bloque}/route.ts
-//   app/api/recursos-aula/ia-sugerir-uso/route.ts
-//   services/ia/*.ts
-//   lib/ia/*.ts
-describe('P3-3 (IMPL-20260820-04) — AC-8 No-IA: scan real de la capa IA', () => {
+// alguna referencia a la tabla, al bucket o al módulo de entrevista.
+describe('AC-21 (IMPL-20260820-08) — No-IA extendido: scan real de la capa IA', () => {
   const REPO_ROOT = resolve(__dirname, '../../../../');
   // Rutas absolutas (relativas al repo) que la capa IA debe mantener limpias.
   const IA_BLACKLIST_DIRS = [
@@ -365,6 +609,7 @@ describe('P3-3 (IMPL-20260820-04) — AC-8 No-IA: scan real de la capa IA', () =
     { name: 'entrevista_inicial_alumno', rx: /\bentrevista_inicial_alumno\b/ },
     { name: 'entrevista-actions', rx: /@?\/services\/alumnos\/entrevista-actions\b/ },
     { name: 'types/entrevista', rx: /@?\/types\/entrevista\b/ },
+    { name: 'entrevista-evidencia', rx: /\bentrevista-evidencia\b/ },
   ];
 
   function walk(dir: string, acc: string[] = []): string[] {
@@ -391,7 +636,7 @@ describe('P3-3 (IMPL-20260820-04) — AC-8 No-IA: scan real de la capa IA', () =
     return acc;
   }
 
-  it('AC-8: existe al menos un archivo bajo cada directorio IA (sanity)', () => {
+  it('AC-21: existe al menos un archivo bajo cada directorio IA (sanity)', () => {
     for (const rel of IA_BLACKLIST_DIRS) {
       const abs = join(REPO_ROOT, rel);
       const files = walk(abs);
@@ -399,7 +644,7 @@ describe('P3-3 (IMPL-20260820-04) — AC-8 No-IA: scan real de la capa IA', () =
     }
   });
 
-  it('AC-8: ningún archivo de la capa IA referencia la tabla o el módulo de entrevista', () => {
+  it('AC-21: ningún archivo de la capa IA referencia la tabla, bucket o módulo de entrevista', () => {
     const offenders: Array<{ file: string; pattern: string; snippet: string }> = [];
     const seen = new Set<string>();
     for (const rel of IA_BLACKLIST_DIRS) {
@@ -426,7 +671,7 @@ describe('P3-3 (IMPL-20260820-04) — AC-8 No-IA: scan real de la capa IA', () =
         .map((o) => `  - ${o.file} :: ${o.pattern} :: ${o.snippet}`)
         .join('\n');
       throw new Error(
-        `AC-8 violated: la capa IA referencia la entrevista. Offenders:\n${msg}`,
+        `AC-21 violated: la capa IA referencia la entrevista. Offenders:\n${msg}`,
       );
     }
     expect(offenders).toEqual([]);

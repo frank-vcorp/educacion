@@ -16,7 +16,10 @@
 
 - `FND-20260818-03` — la decisión DM-03 sobre `recurso_skill` sigue pendiente de Frank.
 - `FND-20260820-06` — entrevista inicial por alumno confirmada para MVP; falta cerrar el cuestionario, privacidad, retención y diseño funcional antes de implementación.
+- `FND-20260820-07` — la IA aún no está conectada al problema del contexto del wizard; falta definir aplicación de propuestas.
+- `FND-20260820-08` — recibida entrevista familiar con datos de menor y familiares; falta confirmar incorporación y contrato de privacidad.
+- `FND-20260820-09` — la entrevista infantil desplegada usa una versión incompleta; debe actualizarse al PDF de tres páginas recibido.
 
 ## Readiness para INTEGRA
 
-`conditionally_ready`: la entrevista inicial literal y sus decisiones de privacidad están confirmadas; INTEGRA puede actualizar el handoff técnico y activar implementación. Permanece `recurso_skill` como decisión de alcance y la entrevista familiar como flujo abierto.
+`conditionally_ready`: la ubicación conjunta de entrevistas está confirmada, pero la entrevista infantil requiere actualización técnica al documento completo `DEC-20260820-05`. La integración IA del contexto está lista para SPEC. Permanecen `OQ-20260820-06`, `OQ-20260820-07` (privacidad familiar) y `recurso_skill` como asuntos abiertos.

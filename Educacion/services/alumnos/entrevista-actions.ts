@@ -1,24 +1,29 @@
 /**
- * Server actions para la entrevista inicial del niño.
- * SPEC_TEC_09 (SPEC-20260820-09) §6 + ADR-20260820-02.
+ * Server actions para la entrevista inicial del niño — v2 (SPEC_TEC_09 §6, ADR-20260820-05).
  *
- * - getEntrevista: lee la entrevista del ciclo activo del alumno.
- * - upsertEntrevista: inserta o actualiza la entrevista del alumno (gate aviso).
- * - archivarEntrevista: transiciona borrador|completa → archivada (C1+C2).
- *   (No se expone ninguna acción de borrado físico; la retención C1+C2
- *   es conservar + archivar, no borrar.)
+ * Acciones:
+ *   - getEntrevista: lee la entrevista (bloques 1+2 en `respuestas` y bloque 3 en `directorio`)
+ *                    del ciclo activo del alumno.
+ *   - upsertEntrevista: inserta/actualiza la entrevista del alumno (gate A1 + ownership +
+ *                       validación literal v2 + directorio).
+ *   - archivarEntrevista: transiciona borrador|completa → archivada (C1+C2).
  *
- * Contrato de RLS:
- *   - La docente propietaria opera la fila (policy `entrevista_docente_own`).
- *   - El director NO tiene acceso (decisión funcional B1, default-deny).
+ * No se expone ninguna acción de borrado físico; la retención C1+C2 es
+ * conservar + archivar, no borrar (D9-07).
  *
- * Decisiones funcionales (DISCOVERY-GAP-20260820-ENTREVISTA-PRIVACIDAD RESUELTO):
+ * Decisiones funcionales vigentes (DISCOVERY-GAP-20260820-ENTREVISTA-PRIVACIDAD RESUELTO):
  *   A1  Gate de captura = aviso existente (aceptacion_aviso_privacidad, D-FIN-15).
  *   B1  Director sin acceso (no se crea policy, default-deny permanente).
  *   C1  Conservar durante el ciclo + C2 archivar al finalizar (no borrar).
  *   D1  Edición in-place, sin versionado visible.
  *   D9-05 No-envío a IA: este archivo NO se importa desde app/api (subpaths ia),
- *         services/ia ni lib/ia (verificación estática AC-8 con grep).
+ *         services/ia ni lib/ia (verificación estática AC-21 con grep).
+ *
+ * Contrato de RLS:
+ *   - `entrevista_inicial_alumno`: policy `entrevista_docente_own` (0022, inmutable).
+ *   - `directorio` (columna añadida por 0023) comparte la misma policy docente.
+ *   - La tabla de entrevista familiar (SPEC_TEC_11, tabla distinta) NO se
+ *     referencia desde aquí (AC-19: directorio separado de la familiar).
  */
 'use server';
 
@@ -26,13 +31,13 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import {
-  ENTREVISTA_CUESTIONARIO,
   ENTREVISTA_ESTADOS,
-  type EstadoEntrevista,
-  type EntrevistaInicial,
+  type Directorio,
+  type EntrevistaInicialV2,
   type EntrevistaResult,
-  type Respuestas,
-  validateCuestionarioLiteral,
+  type EstadoEntrevista,
+  type RespuestasV2,
+  validateCuestionarioV2,
 } from '@/types/entrevista';
 
 // ============ Schemas de entrada ============
@@ -45,7 +50,8 @@ const UpsertSchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/u, 'fechaAplicacion debe ser YYYY-MM-DD'),
   estado: z.enum(['borrador', 'completa']),
-  respuestas: z.unknown(), // validado contra el cuestionario literal en §validate
+  respuestas: z.unknown(), // validado en validateCuestionarioV2 (§4B.1)
+  directorio: z.unknown(), // validado en validateCuestionarioV2 (§4B.2)
 });
 
 // ============ Helpers internos ============
@@ -115,13 +121,13 @@ async function docenteAceptoAviso(
 // ============ Server actions ============
 
 /**
- * Lee la entrevista del niño del alumno en el ciclo activo.
- * Devuelve `data: null` si no existe entrevista. Si el alumno no pertenece
- * al grupo activo de la docente devuelve error (RLS + filtro explícito).
+ * Lee la entrevista del niño del alumno en el ciclo activo (incluye `respuestas`
+ * v2 y `directorio`). Devuelve `data: null` si no existe entrevista. Si el alumno
+ * no pertenece al grupo activo de la docente devuelve error (RLS + filtro explícito).
  */
 export async function getEntrevista(
   alumnoId: string,
-): Promise<EntrevistaResult | { ok: true; data: EntrevistaInicial | null }> {
+): Promise<EntrevistaResult | { ok: true; data: EntrevistaInicialV2 | null }> {
   const idParse = AlumnoIdSchema.safeParse(alumnoId);
   if (!idParse.success) {
     return { ok: false, error: 'ID de alumno inválido' };
@@ -142,7 +148,7 @@ export async function getEntrevista(
   const { data, error } = await supabase
     .from('entrevista_inicial_alumno')
     .select(
-      'id, alumno_id, grupo_id, docente_id, cct, ciclo_escolar, tipo_entrevista, respuestas, fecha_aplicacion, estado, created_at, updated_at',
+      'id, alumno_id, grupo_id, docente_id, cct, ciclo_escolar, tipo_entrevista, respuestas, directorio, fecha_aplicacion, estado, created_at, updated_at',
     )
     .eq('alumno_id', idParse.data)
     .eq('ciclo_escolar', grupo.ciclo_escolar)
@@ -151,16 +157,17 @@ export async function getEntrevista(
 
   if (error) return { ok: false, error: error.message };
 
-  return { ok: true, data: (data ?? null) as EntrevistaInicial | null };
+  return { ok: true, data: (data ?? null) as EntrevistaInicialV2 | null };
 }
 
 /**
  * Crea o actualiza la entrevista del niño del alumno en el ciclo activo.
  * - Gate A1: requiere aviso aceptado.
  * - Ownership: el alumno debe pertenecer al grupo activo de la docente.
- * - Validación AC-7: el `respuestas` debe cumplir el cuestionario literal
- *   (21 ítems, orden 1..21, `pregunta` idéntica a §4).
- * - Hace upsert por la unique (alumno_id, ciclo_escolar, 'nino').
+ * - Validación literal v2: `respuestas` (23 ítems + 16 celdas) y `directorio`
+ *   (4 contactos) deben cumplir el contrato §4B; cada texto literal debe ser
+ *   idéntico al array fuente (AC-12..AC-17, AC-19, AC-20).
+ * - Upsert por la unique (alumno_id, ciclo_escolar, 'nino') (D9-03).
  */
 export async function upsertEntrevista(
   input: z.infer<typeof UpsertSchema>,
@@ -175,10 +182,13 @@ export async function upsertEntrevista(
     };
   }
 
-  // AC-7: validación del cuestionario literal (21 ítems, orden, pregunta).
-  const literal = validateCuestionarioLiteral(parsed.data.respuestas);
-  if (!literal.ok || !literal.data) {
-    return { ok: false, error: literal.error ?? 'Cuestionario inválido' };
+  // Validación literal v2 (respuestas + directorio).
+  const literal = validateCuestionarioV2({
+    respuestas: parsed.data.respuestas,
+    directorio: parsed.data.directorio,
+  });
+  if (!literal.ok) {
+    return { ok: false, error: literal.error };
   }
 
   const supabase = await createClient();
@@ -211,7 +221,8 @@ export async function upsertEntrevista(
     cct: grupo.cct,
     ciclo_escolar: grupo.ciclo_escolar,
     tipo_entrevista: 'nino' as const,
-    respuestas: literal.data,
+    respuestas: literal.data.respuestas,
+    directorio: literal.data.directorio,
     fecha_aplicacion: parsed.data.fechaAplicacion,
     estado: parsed.data.estado,
   };
@@ -234,7 +245,7 @@ export async function upsertEntrevista(
 /**
  * Archiva la entrevista del niño del alumno (D9-07, C1+C2).
  * Transiciona `borrador`/`completa` → `archivada`. Si ya está `archivada`
- * no duplica ni marca error (no error suave para no exponer estado al cliente).
+ * no duplica ni marca error.
  *
  * NO se expone ninguna acción de borrado físico (retención C1+C2: conservar
  * + archivar, no borrar).
@@ -293,12 +304,11 @@ export async function archivarEntrevista(
 // ============ Re-exports para tests/cliente (no son server actions) ============
 
 export const __test_only__ = {
-  ENTREVISTA_CUESTIONARIO,
   ENTREVISTA_ESTADOS,
-  validateCuestionarioLiteral,
+  validateCuestionarioV2,
   getGrupoActivo,
   getAlumnoForDocente,
   docenteAceptoAviso,
 };
 
-export type { EstadoEntrevista, Respuestas };
+export type { Directorio, EntrevistaInicialV2, EstadoEntrevista, RespuestasV2 };

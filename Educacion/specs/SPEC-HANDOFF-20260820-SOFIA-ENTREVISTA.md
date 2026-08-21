@@ -1,5 +1,7 @@
 # SPEC-HANDOFF — SOFIA: Entrevista inicial del niño (entidad + RLS + UI + no-IA) — READY_FOR_SOFIA
 
+> ⚠️ **SUPERSEDED (2026-08-20).** Este handoff corresponde a la entrevista v1 (21 ítems, DEC-20260820-01), que quedó **reemplazada** por `DEC-20260820-05` (documento completo de 3 páginas). No activar SOFIA con este contrato. Ver el handoff vigente: `specs/SPEC-HANDOFF-20260820-SOFIA-ENTREVISTA-COMPLETA.md` (IMPL-20260820-08) y la SPEC `SPEC_TEC_09_Entrevista_Inicial.md` v2.0 + `ADR-20260820-05.md`.
+
 - **Origen:** INTEGRA
 - **ID tarea:** IMPL-20260820-03
 - **Fecha:** 2026-08-20
