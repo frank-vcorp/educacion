@@ -80,4 +80,19 @@
 - **Evidencia:** la implementación actual usa la primera versión de 21 preguntas; Frank entregó `docx_extract/ENTREVISTA INICIAL.docx.pdf`, de tres páginas, que agrega preguntas, dibujos de ambiente familiar/escuela y un directorio de emergencia.
 - **Impacto:** la entrevista desplegada no representa el instrumento que Tía Lola usa realmente; faltan preguntas sobre cuentos, televisión/dispositivos, escuela, amigos, maestra, felicidad, dibujos y contactos de emergencia. También existen preguntas repetidas en el documento y deben conservarse.
 - **Resolución funcional:** `DEC-20260820-05` supersede el cuestionario anterior y exige actualizarlo literalmente. Requiere nueva SPEC/implementación y QA; la entrevista familiar permanece separada.
+
+## FND-20260820-10 — Variables IA de producción están vacías
+
+- **Estado:** confirmed
+- **Severidad:** P1
+- **Evidencia:** la pantalla F0 responde `origen: FALLBACK_VACIO`. `vercel env ls production` muestra las variables `AI_PROVIDER`, `AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL` y `AI_TIMEOUT_MS`, pero `vercel env pull --environment production` devuelve valores vacíos (`""`) para ellas. El cliente IA está diseñado para degradar exactamente a `fallback_vacio` cuando falta API key, base URL o modelo.
+- **Impacto:** la integración F0 está desplegada, pero no puede llamar a MiniMax; la docente recibe campos vacíos y el aviso de fallback.
+- **Resolución pendiente:** Frank debe cargar valores no vacíos en el entorno Production de Vercel y redeployar. No se solicitan ni se registran secretos en chat.
+
+## FND-20260820-11 — Exportaciones objeto en módulos `use server` provocaban 500
+
+- **Estado:** resolved
+- **Severidad:** P1
+- **Evidencia:** Vercel reportó `A "use server" file can only export async functions, found object` en `/alumnos`; el patrón existía en `entrevista-actions.ts` y `update-actions.ts`.
+- **Resolución:** FIX-20260820-01/02 eliminó exportaciones runtime no válidas, añadió regresiones y se desplegó commit `8cb1767`. Build, suite y reproducción runtime post-fix pasaron.
 - **Artefactos afectados:** `E22_CIERRE_DISCOVERY.md`, `SPEC_MVP_01_Modulo_Docente.md`, perfil de alumno, aviso de privacidad y escenarios de onboarding/seguimiento.

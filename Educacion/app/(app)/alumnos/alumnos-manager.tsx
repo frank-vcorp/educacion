@@ -251,9 +251,11 @@ export function AlumnosManager({
           <DialogHeader>
             <DialogTitle>Entrevista inicial — {entrevistaTarget?.nombre}</DialogTitle>
             <DialogDescription>
-              Cuestionario de 21 ítems. La captura permanece ligada a este alumno
-              y al ciclo escolar activo ({grupo.ciclo_escolar}). Sólo la docente
-              responsable puede consultar y editar.
+              Cuestionario literal del documento (3 bloques: 23 preguntas,
+              16 celdas ambiente familiar/escuela con 2 dibujos, directorio de
+              emergencia con 4 contactos). La captura permanece ligada a este
+              alumno y al ciclo escolar activo ({grupo.ciclo_escolar}). Sólo la
+              docente responsable puede consultar y editar.
             </DialogDescription>
           </DialogHeader>
           {entrevistaTarget && (
@@ -261,10 +263,6 @@ export function AlumnosManager({
               alumnoId={entrevistaTarget.id}
               alumnoNombre={entrevistaTarget.nombre}
               alumnoGrado={(entrevistaTarget as unknown as { grado?: string }).grado ?? ''}
-              grupoId={grupo.id}
-              grupoGrado={grupo.grado}
-              grupoNombre={grupo.grupo}
-              cicloEscolar={grupo.ciclo_escolar}
               avisoAceptado={avisoAceptado}
               onSaved={(msg) => {
                 setOkMsg(msg);

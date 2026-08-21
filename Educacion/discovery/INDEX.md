@@ -19,6 +19,8 @@
 - `FND-20260820-07` — la IA aún no está conectada al problema del contexto del wizard; falta definir aplicación de propuestas.
 - `FND-20260820-08` — recibida entrevista familiar con datos de menor y familiares; falta confirmar incorporación y contrato de privacidad.
 - `FND-20260820-09` — la entrevista infantil desplegada usa una versión incompleta; debe actualizarse al PDF de tres páginas recibido.
+- `FND-20260820-10` — F0 cae en fallback porque las variables IA de Production están vacías.
+- `FND-20260820-11` — 500 runtime de server actions corregido y desplegado en `8cb1767`.
 
 ## Readiness para INTEGRA
 

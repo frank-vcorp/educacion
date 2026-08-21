@@ -73,3 +73,59 @@ export function validarCampoPulidoF3(input: ValidarF3Input): EstructuraViolacion
   }
   return null;
 }
+
+/**
+ * F0 — respuesta del proveedor para el paso inicial del wizard.
+ * SPEC_TEC_10 §4.2 — IMPL-20260820-06.
+ *
+ * Tolerante: extrae el primer bloque JSON del texto (admite envoltura
+ * ```json ... ```), igual que el patrón de `pulir-pdf`.
+ * Devuelve `null` si el JSON es inválido o si `problema_estructurado`
+ * está vacío tras `trim()`. `proposito` y `ajustes_razonables` se
+ * normalizan a `''` si faltan o vienen vacíos.
+ */
+export interface F0Respuesta {
+  problema_estructurado: string;
+  proposito: string;
+  ajustes_razonables: string;
+}
+
+export function parseRespuestaF0(texto: string | undefined | null): F0Respuesta | null {
+  if (!texto || typeof texto !== 'string') return null;
+  let candidate = texto.trim();
+  if (candidate.length === 0) return null;
+
+  // Tolerar envoltura ```json ... ``` o primer {...} embebido en prosa.
+  const fence = candidate.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (fence && fence[1]) {
+    candidate = fence[1];
+  } else {
+    const firstBrace = candidate.match(/\{[\s\S]*\}/);
+    if (firstBrace) candidate = firstBrace[0];
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(candidate);
+  } catch {
+    return null;
+  }
+  if (!parsed || typeof parsed !== 'object') return null;
+  const obj = parsed as Record<string, unknown>;
+
+  const problemaRaw = obj.problema_estructurado;
+  if (typeof problemaRaw !== 'string') return null;
+  const problema = problemaRaw.trim();
+  if (problema.length === 0) return null;
+
+  const propositoRaw = obj.proposito;
+  const ajustesRaw = obj.ajustes_razonables;
+  const proposito = typeof propositoRaw === 'string' ? propositoRaw : '';
+  const ajustes = typeof ajustesRaw === 'string' ? ajustesRaw : '';
+
+  return {
+    problema_estructurado: problema,
+    proposito: proposito.trim(),
+    ajustes_razonables: ajustes.trim(),
+  };
+}

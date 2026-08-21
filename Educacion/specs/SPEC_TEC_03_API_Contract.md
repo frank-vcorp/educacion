@@ -220,8 +220,9 @@ Toda mutación `POST`/`PATCH` acepta header opcional `Idempotency-Key: <uuid>`. 
 | E28 | POST | `/api/v1/entregas/:entrega_id/marcar-recibida` | Director (JWT URL firmada) | Director marca recibida sin registro |
 | E29 | POST | `/api/v1/entregas/:entrega_id/comentario` | Director (JWT URL firmada) | Director deja comentario sin registro |
 | E30 | GET | `/api/planeaciones/:id/generar-pdf` | Docente (RLS) | Descargar PDF binario (D-FIN-5 "Descargable") |
+| E31 | POST | `/api/planeaciones/ia/contexto-problema` | Docente | F0: IA contextualizada por modalidad en el paso inicial del wizard (`ARCH-20260820-03` / `SPEC_TEC_10`) |
 
-**Total: 30 endpoints** (los 11 explícitamente pedidos por Frank + 19 necesarios para CRUD completo, catálogo M1 de bloques, features IA F1/F2/F3/F-IA1, aceptación aviso privacidad, acciones del director y descarga PDF binaria D-FIN-5).
+**Total: 31 endpoints** (los 11 explícitamente pedidos por Frank + 20 necesarios para CRUD completo, catálogo M1 de bloques, features IA F0/F1/F2/F3/F-IA1, aceptación aviso privacidad, acciones del director y descarga PDF binaria D-FIN-5).
 
 > **Nota sobre E30 (ruta sin `/api/v1/`):** el endpoint de descarga binaria vive en `/api/planeaciones/:id/generar-pdf` (sin prefijo `v1`) para coincidir con la ruta ya implementada (`app/api/planeaciones/[id]/generar-pdf/route.ts`) y referenciada por `entrega-actions.ts` (`doc_pdf_url`). No es un contrato REST JSON versionado, sino una **descarga binaria** (no envolvente `data/meta`). La ausencia del prefijo `v1` es una excepción documentada, no una omisión; el resto de endpoints JSON siguen DEC-03-04 (`/api/v1/`).
 
@@ -1047,6 +1048,34 @@ Esquemas compactos:
 
 **Trazabilidad:** FND-20260818-04; D-FIN-5; SPEC_TEC_06 T-E2E-05 (pasos 4-5 + aserción `pdf_sha256`), T-I-05 (celda "PDF hash" deja de ser diferida); addendum §1.
 
+### 6.31. POST /api/planeaciones/ia/contexto-problema — F0 (IA contextualizada por modalidad)
+
+> **Introducido por `ARCH-20260820-03` / `SPEC_TEC_10_IA_Contexto_Problema.md`.** Ruta **sin `[id]`**: la planeación aún no existe en el paso inicial del wizard. Auth por sesión; sin RLS check de recurso (no hay recurso).
+
+**Request body:**
+
+```json
+{
+  "modalidad": "rincones",
+  "problema_contexto": "a los niños les cuesta compartir los materiales",
+  "proposito": "que aprendan a turnarse",
+  "ajustes_razonables": "",
+  "nivel": "preescolar"
+}
+```
+
+- `modalidad` (enum 6, obligatorio), `problema_contexto` (string, min 1, max 1000, obligatorio), `proposito`/`ajustes_razonables` (string opcionales, max 1000), `nivel` (`preescolar|primaria|secundaria`, opcional).
+
+**Response 200:** `{ data: { problema_estructurado, proposito, ajustes_razonables, origen: 'ia' | 'fallback_vacio' } }`. Si `origen='fallback_vacio'` → los tres campos `''` (timeout, sin `AI_API_KEY`, red, o JSON inválido del proveedor).
+
+**P-PD9:** F0 **no muta** campos; devuelve propuestas que la docente aplica **campo por campo** con clic explícito en el wizard. La persistencia final la hace `POST /api/planeaciones` (E1, `createPlaneacion`). **Sin persistencia de drafts** (retención = OQ-20260820-06, open).
+
+**Trazabilidad (Decisión 9 ADR-02, SPEC_TEC_07 §6.1.1):** una fila `audit_log` POST por request con `cct = session.cct`, `endpoint = 'planeaciones_contexto_problema'`, `body_hash` del `user` message anonimizado. Persistencia real sujeta a política RLS INSERT (`0021`, ARCH-20260820-01).
+
+**Errores:** análogos a F1/F2/F3 (§8.2): `NEM_RATE_LIMIT_EXCEEDED` (429), `NEM_PLANEACIONES_VALIDATION_ERROR` (422), `NEM_IA_ANONYMIZER_BLOCKED` (500), `NEM_AUTH_UNAUTHORIZED` (401), `NEM_INTERNAL_ERROR` (500). **Sin** `NEM_IA_VARIANTE_VIOLA_ESTRUCTURA` (D10-07: campos libres sin estructura PDA).
+
+Detalle denso, prompt, casos borde y AC en `SPEC_TEC_10_IA_Contexto_Problema.md`.
+
 ---
 
 ## 7. RATE LIMITING
@@ -1057,7 +1086,7 @@ Esquemas compactos:
 |---|---|---|---|---|
 | CRUD estándar | `/planeaciones`, `/alumnos`, `/recursos-aula` | 60 req/min por docente | 10 | Uso normal sin abuso |
 | Catálogos (cacheados) | `/catalogo/*` | 120 req/min por docente | 20 | Alta frecuencia, respuestas cacheadas |
-| IA (F1, F2, F3, F-IA1) | `/ia/*` | 5 req/min por docente | 1 | SPEC §3.7.3: rate limit MiniMax |
+| IA (F0, F1, F2, F3, F-IA1) | `/ia/*` (incl. `/planeaciones/ia/contexto-problema`) | 5 req/min por docente | 1 | SPEC §3.7.3: rate limit MiniMax |
 | Entrega al director | `/planeaciones/:id/entregar-director` | 3 req/hora por planeación | 1 | Genera PDF + URL firmada (costoso) |
 | Acciones director (sin registro) | `/entregas/:entrega_id/marcar-recibida`, `/comentario` | 10 req/hora por entrega_id | 2 | Anti-abuso de URL pública |
 | Aceptación aviso | `/onboarding/aviso-privacidad/aceptar` | 1 req por docente (lifetime) | — | Una sola vez |

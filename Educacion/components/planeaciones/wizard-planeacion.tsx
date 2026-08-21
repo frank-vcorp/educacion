@@ -34,7 +34,7 @@ import {
 } from '@/components/ui/dialog';
 import type { CampoFormativo, EjeArticulador, PDA, Contenido } from '@/services/catalogo/catalogo';
 import { createPlaneacion } from '@/services/planeaciones/planeacion-actions';
-import { SugerenciasIA } from '@/app/(app)/planeaciones/nueva/_components/sugerencias-ia';
+import { IAContextoProblemaPanel } from '@/components/ia/ia-contexto-problema-panel';
 import {
   WizardModalidadSelector,
 } from '@/app/(app)/planeaciones/nueva/_components/wizard-modalidad-selector';
@@ -386,9 +386,15 @@ export function WizardPlaneacion({
             rows={3}
           />
           <div className="mt-3">
-            <SugerenciasIA
+            <IAContextoProblemaPanel
+              modalidad={form.modalidad}
+              problemaContexto={form.problemaContexto}
+              proposito={form.proposito}
+              ajustesRazonables={form.ajustesRazonables}
               nivel={nivel}
-              onSelect={(texto) => set('problemaContexto', texto)}
+              onApplyProblema={(t) => set('problemaContexto', t)}
+              onApplyProposito={(t) => set('proposito', t)}
+              onApplyAjustes={(t) => set('ajustesRazonables', t)}
             />
           </div>
         </div>
