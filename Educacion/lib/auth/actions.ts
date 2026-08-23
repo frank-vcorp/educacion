@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { z } from 'zod';
+import { resolveOrigin } from '@/lib/auth/origin';
 
 const EmailSchema = z.string().email('Correo institucional inválido');
 const PasswordSchema = z
@@ -36,11 +37,29 @@ export type AuthResult = {
   redirectTo?: string;
 };
 
-function getOrigin() {
+/**
+ * Resuelve el `origin` de forma production-safe (FIX-20260822-01).
+ *
+ * Wrapper interno que pasa el entorno actual al helper puro
+ * `resolveOrigin` (exportado en `@/lib/auth/origin`).
+ *
+ * Producción nunca debe usar `localhost` ni aceptar un host arbitrario
+ * del request (las cabeceras `host` / `x-forwarded-host` son controladas
+ * por el cliente y envenenarían el `emailRedirectTo`). Ver
+ * `lib/auth/origin.ts` para precedencia completa.
+ */
+function getOrigin(): string {
   const h = headers();
-  const host = h.get('host') ?? 'localhost:3000';
-  const proto = h.get('x-forwarded-proto') ?? 'http';
-  return `${proto}://${host}`;
+  return resolveOrigin({
+    siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
+    vercelProd: process.env.VERCEL_PROJECT_PRODUCTION_URL,
+    isProd:
+      process.env.VERCEL_ENV === 'production' ||
+      process.env.NODE_ENV === 'production',
+    forwardedHost: h.get('x-forwarded-host'),
+    forwardedProto: h.get('x-forwarded-proto'),
+    host: h.get('host'),
+  });
 }
 
 /**
