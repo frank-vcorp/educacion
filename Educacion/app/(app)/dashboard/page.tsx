@@ -3,6 +3,13 @@
  * SPEC_TEC_04 §3.
  *
  * SPEC-CORRECCIONES-2026-08-17 C-7: empty states mejorados.
+ *
+ * FIX-20260823-01 — una sesión válida sin fila `docente` (recién
+ * confirmó email, todavía no pasó por `saveCCT`) ya no se redirige a
+ * `/login`. Va a `/onboarding/cct`, evitando el bucle
+ * login↔dashboard que producía el middleware al combinar
+ * `isAuthRoute + user → /dashboard → redirect('/login')`. Sólo sin
+ * sesión (sin usuario) mantenemos el redirect a `/login`.
  */
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -20,7 +27,10 @@ export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
   const session = await getServerSession();
-  if (!session || !session.docenteId) redirect('/login');
+  if (!session) redirect('/login');
+  // FIX-20260823-01: sin docente pero con sesión → paso 2 del onboarding.
+  // No redirigir a /login (eso sería un loop con el middleware).
+  if (!session.docenteId) redirect('/onboarding/cct');
 
   const [{ items: planeaciones }, { items: recursos }, gruposRes] = await Promise.all([
     listPlaneaciones(session.docenteId),

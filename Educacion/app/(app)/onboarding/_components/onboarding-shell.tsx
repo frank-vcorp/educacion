@@ -1,6 +1,16 @@
 /**
  * Shell de onboarding con wizard 5 pasos.
  * SPEC_TEC_04 D-FIN-4.
+ *
+ * FIX-20260823-01 — un usuario autenticado pero sin fila `docente`
+ * (caso típico tras confirmar email antes de pasar por `saveCCT`)
+ * debe poder renderizar el paso 2 (CCT) sin ser expulsado a
+ * `/login`. Antes el shell redirigía a `/login` cuando no había
+ * docente, lo que combinando con el middleware (auth user + auth
+ * route → /dashboard → docenteId null → /login) producía un bucle
+ * login↔dashboard. Aquí sólo exigimos sesión y permitimos que
+ * `session.user.id` funcione como `docenteId` contextual hasta que
+ * `saveCCT` persista la fila.
  */
 import { redirect } from 'next/navigation';
 import { getServerSession } from '@/lib/auth/session';
@@ -21,11 +31,14 @@ export interface OnboardingContext {
 export async function OnboardingShell({ paso, children }: OnboardingShellProps) {
   const session = await getServerSession();
   if (!session) redirect('/login?redirect=/onboarding');
-  if (!session.docenteId) redirect('/login');
+  // FIX-20260823-01: ya no redirigimos a /login por docenteId ausente.
+  // El docente se crea/actualiza dentro del propio flujo (paso 2 →
+  // saveCCT). Sólo exigimos sesión; `docenteId` contextual se deriva
+  // de `session.user.id` mientras no exista fila en `docente`.
 
   // Paso 1: el usuario ya existe en auth.users (vino de registro). docente vacio.
-  // Paso 2: requiere docente con cct. Si no, redirige a paso 2.
-  // Paso 3: requiere docente. Si no, paso 2.
+  // Paso 2: picker CCT. No requiere fila docente previa.
+  // Paso 3: requiere cct guardado. Si no, paso 2.
   // Paso 4: requiere grupo. Si no, paso 3.
   // Paso 5: bienvenida. Requiere al menos un grupo.
 
@@ -44,7 +57,9 @@ export async function OnboardingShell({ paso, children }: OnboardingShellProps) 
     .order('created_at', { ascending: true });
   const grupo = grupos?.[0];
 
-  if (paso >= 2 && !docente?.cct) redirect('/onboarding/cct');
+  // FIX-20260823-01: paso 2 ES el picker CCT, no redirigir al mismo paso
+  // cuando aún no hay cct — eso causaba auto-redirect en bucle.
+  if (paso >= 3 && !docente?.cct) redirect('/onboarding/cct');
   if (paso > 3 && !grupo) redirect('/onboarding/grupo');
   if (paso >= 5 && !grupo) redirect('/onboarding/grupo');
 
