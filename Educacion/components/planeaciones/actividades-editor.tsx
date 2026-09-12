@@ -158,7 +158,7 @@ function ActividadPropiaCard() {
       ref={setNodeRef}
       data-testid="actividad-propia-card"
       className={`rounded-lg border-2 border-nem-verde/40 bg-nem-verde/10 p-2.5 shadow-sm ${
-        isDragging ? 'opacity-40' : ''
+        isDragging ? 'ring-2 ring-nem-verde/50' : ''
       }`}
       data-dnd-draggable
     >
@@ -205,7 +205,7 @@ function CatalogoCard({
       ref={setNodeRef}
       data-testid={`catalogo-item-${item.codigo}`}
       className={`rounded-md border bg-background p-2 text-sm shadow-sm ${
-        isDragging ? 'opacity-40' : ''
+        isDragging ? 'ring-2 ring-nem-verde/40' : ''
       }`}
       data-dnd-draggable
     >
@@ -269,7 +269,7 @@ function RecursoInventarioCard({
     <div
       ref={setNodeRef}
       data-testid={`recurso-item-${item.id}`}
-      className={`rounded-md border bg-background p-2 text-sm ${isDragging ? 'opacity-40' : ''}`}
+      className={`rounded-md border bg-background p-2 text-sm ${isDragging ? 'ring-2 ring-nem-verde/40' : ''}`}
       data-dnd-draggable
     >
       <div className="flex items-start gap-2">
@@ -826,6 +826,13 @@ export function ActividadesEditor({
     label: string;
   } | null>(null);
   const [pending, setPending] = useState(false);
+  const [sesionDestacadaId, setSesionDestacadaId] = useState<string | null>(null);
+  const destacarSesion = useCallback((sesionId: string) => {
+    setSesionDestacadaId(sesionId);
+    window.setTimeout(() => {
+      setSesionDestacadaId((prev) => (prev === sesionId ? null : prev));
+    }, 1800);
+  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -960,7 +967,36 @@ export function ActividadesEditor({
         return;
       }
       setErrorNuevo(null);
-      await refresh();
+      const cat = catalogoInicial.find((c) => c.codigo === codigo);
+      if (res.id && cat) {
+        const ahora = new Date().toISOString();
+        const ordenEnSesion = (bloquesPorSesion.get(sesionId)?.length ?? 0) + 1;
+        setBloques((prev) => [
+          ...prev,
+          {
+            id: res.id,
+            planeacion_id: planeacionId,
+            sesion_id: sesionId,
+            docente_id: docenteId,
+            cct,
+            tipo: cat.tipo,
+            nivel_flexibilidad: cat.nivel_flexibilidad,
+            contenido_textual: cat.contenido_textual ?? cat.nombre,
+            pda_ids: cat.pda_ids ?? [],
+            campos_formativos: cat.campos_formativos ?? [],
+            ejes_articuladores: cat.ejes_articuladores ?? [],
+            duracion_min: cat.duracion_min ?? null,
+            orden: ordenEnSesion,
+            origen: 'kit_template',
+            bloque_catalogo_id: cat.codigo,
+            recursos_requeridos: cat.recursos_requeridos ?? [],
+            created_at: ahora,
+            updated_at: ahora,
+          },
+        ]);
+        destacarSesion(sesionId);
+      }
+      void refresh();
     } finally {
       setPending(false);
     }
@@ -1438,6 +1474,7 @@ export function ActividadesEditor({
         bloquesPorSesion={bloquesPorSesion}
         recursosPorSesion={recursosPorSesion}
         sesionSeleccionada={sesionSeleccionada}
+        sesionDestacadaId={sesionDestacadaId}
         modalSesionId={modalSesionId}
         onAbrirDia={abrirDia}
         onAgregarDia={abrirDiaParaEscribir}
@@ -1628,9 +1665,9 @@ export function ActividadesEditor({
             />
           )}
 
-          <DragOverlay>
+          <DragOverlay dropAnimation={null}>
             {activeDrag ? (
-              <div className="rounded-md border bg-background px-3 py-2 text-sm shadow-lg">
+              <div className="rounded-md border border-nem-verde/40 bg-background px-3 py-2 text-sm shadow-lg ring-2 ring-nem-verde/30">
                 {activeDrag.label}
               </div>
             ) : null}

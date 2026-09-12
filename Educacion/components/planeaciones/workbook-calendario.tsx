@@ -43,6 +43,7 @@ function WorkbookDiaCelda({
   bloques,
   recursos,
   seleccionado,
+  destacado,
   interaccionDnD,
   onAbrir,
   onAgregar,
@@ -52,6 +53,7 @@ function WorkbookDiaCelda({
   bloques: Bloque[];
   recursos: SesionRecursoAsignado[];
   seleccionado: boolean;
+  destacado?: boolean;
   /** false cuando el modal de este día está abierto (evita ids DnD duplicados). */
   interaccionDnD: boolean;
   onAbrir: () => void;
@@ -73,9 +75,11 @@ function WorkbookDiaCelda({
       className={`flex min-h-[140px] flex-col rounded-lg border-2 border-dashed p-2 transition-colors ${
         isOver
           ? 'border-nem-verde bg-nem-verde/10'
-          : seleccionado
-            ? 'border-nem-verde/50 bg-nem-verde/5'
-            : 'border-muted-foreground/20 bg-background'
+          : destacado
+            ? 'border-nem-verde bg-nem-verde/15 ring-2 ring-nem-verde/40'
+            : seleccionado
+              ? 'border-nem-verde/50 bg-nem-verde/5'
+              : 'border-muted-foreground/20 bg-background'
       }`}
     >
       <button
@@ -152,6 +156,7 @@ export function WorkbookCalendario({
   bloquesPorSesion,
   recursosPorSesion,
   sesionSeleccionada,
+  sesionDestacadaId,
   modalSesionId,
   onAbrirDia,
   onAgregarDia,
@@ -162,6 +167,7 @@ export function WorkbookCalendario({
   bloquesPorSesion: Map<string, Bloque[]>;
   recursosPorSesion: Map<string, SesionRecursoAsignado[]>;
   sesionSeleccionada: string;
+  sesionDestacadaId?: string | null;
   modalSesionId: string | null;
   /** Ver / editar actividades del día. */
   onAbrirDia: (sesionId: string) => void;
@@ -207,6 +213,7 @@ export function WorkbookCalendario({
                   bloques={bloquesPorSesion.get(s.id) ?? []}
                   recursos={recursosPorSesion.get(s.id) ?? []}
                   seleccionado={sesionSeleccionada === s.id}
+                  destacado={sesionDestacadaId === s.id}
                   interaccionDnD={modalSesionId !== s.id}
                   onAbrir={() => onAbrirDia(s.id)}
                   onAgregar={() => onAgregarDia(s.id)}
