@@ -293,6 +293,10 @@ export function buildF1UserMessage(input: {
   contexto: ContextoPlaneacionF1;
   actividad: ContextoActividadF1;
   varianteTipo?: 'urbana' | 'rural';
+  /** Nueva solicitud: pide redacción distinta a adaptaciones previas. */
+  alternativaDistinta?: boolean;
+  /** Rompe cache determinístico en re-solicitudes. */
+  semilla?: string;
 }): string {
   const entorno =
     input.varianteTipo ??
@@ -353,7 +357,14 @@ export function buildF1UserMessage(input: {
       'Respeta el momento pedagógico y el nivel de flexibilidad indicados.',
       'Sustituye marcadores como [FIGURA], [MATERIAL] por ejemplos reales del contexto.',
       'El texto debe ser claramente distinto al original, no una copia con una frase extra.',
+      ...(input.alternativaDistinta
+        ? [
+            'IMPORTANTE: Propón una adaptación NUEVA y claramente distinta (materiales, dinámica, vocabulario u organización diferentes) manteniendo el mismo objetivo pedagógico.',
+            'No repitas redacciones anteriores ni te quedes cerca del texto original sin cambios sustanciales.',
+          ]
+        : []),
     ],
+    ...(input.semilla ? { semilla_solicitud: input.semilla } : {}),
   };
 
   return JSON.stringify(payload, null, 0);

@@ -192,10 +192,11 @@ export function IASugerenciaPanel(props: IASugerenciaPanelProps) {
 
       if (res.status === 429) {
         const ra = Number(res.headers.get('Retry-After') ?? '60');
+        const m = messageForError('NEM_RATE_LIMIT_EXCEEDED');
         setEstado({
           kind: 'error',
           code: 'NEM_RATE_LIMIT_EXCEEDED',
-          message: '',
+          message: m.message,
           retryAfterSec: ra,
         });
         return;
@@ -361,13 +362,15 @@ export function IASugerenciaPanel(props: IASugerenciaPanelProps) {
   }, []);
 
   const onPedirOtra = useCallback(() => {
-    setSugerenciaTexto('');
-    setF3Campos({});
     setErrorPatch(null);
     void fetchSugerencia({ forzarRefresh: props.feature === 'F1' });
   }, [fetchSugerencia, props.feature]);
 
   const isLoading = estado.kind === 'loading';
+  const muestraSugerencia =
+    estado.kind === 'success' ||
+    estado.kind === 'fallback_vacio' ||
+    estado.kind === 'loading';
   const label = props.label ?? defaultLabel(props.feature);
   const descripcion = defaultDescripcion(props.feature);
   const boton = defaultBoton(props.feature);
@@ -488,11 +491,16 @@ export function IASugerenciaPanel(props: IASugerenciaPanelProps) {
         </div>
       )}
 
-      {(estado.kind === 'success' || estado.kind === 'fallback_vacio') &&
-        props.feature !== 'F3' && (
+      {muestraSugerencia && props.feature !== 'F3' && (
           <div className="space-y-1">
             <Label htmlFor={`ia-text-${props.feature}-${props.bloqueId ?? 'planeacion'}`} className="text-xs">
               Texto propuesto (puedes editarlo)
+              {isLoading && (
+                <span className="ml-2 inline-flex items-center gap-1 font-normal text-muted-foreground">
+                  <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
+                  Generando…
+                </span>
+              )}
             </Label>
             <Textarea
               id={`ia-text-${props.feature}-${props.bloqueId ?? 'planeacion'}`}

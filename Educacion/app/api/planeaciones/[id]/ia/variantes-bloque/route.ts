@@ -248,177 +248,219 @@ export async function POST(request: Request, { params }: RouteParams) {
         ? contextoF1.entornoSugerido
         : 'rural';
 
-  const userMessage = buildF1UserMessage({
+  const baseMsgInput = {
     contenidoTextual: bloque.contenido_textual ?? '',
     contexto: contextoF1,
     actividad: contextoActividad,
     varianteTipo: variante_tipo,
-  });
+  };
 
-  // ── Cache F1 ──
-  const hash = requestHash([
+  const userMessageStable = buildF1UserMessage(baseMsgInput);
+
+  // ── Cache F1 (sólo solicitud inicial, no re-solicitudes) ──
+  const hashStable = requestHash([
     F1_PROMPT_VERSION,
     docenteId,
     bloque_id,
     variante_tipo,
-    userMessage,
+    userMessageStable,
   ]);
-  if (forzar_refresh) cacheInvalidate(hash);
+  if (forzar_refresh) {
+    cacheInvalidate(hashStable);
+  }
   const { sanitizeIaProse } = await import('@/services/ia/sanitize-prose');
 
-  const cached = cacheGet<string>(hash);
-  if (cached !== null) {
-    // P1-1: insert audit_log POST (cache-hit). `cct` real del bloque; body_hash
-    // derivado de ids no-PII (misma entrada que la cache key).
+  if (!forzar_refresh) {
+    const cached = cacheGet<string>(hashStable);
+    if (cached !== null) {
+      await auditPostIA(supabase, {
+        cct: bloque.cct,
+        docenteId,
+        endpoint: ENDPOINT,
+        method: 'POST',
+        bodyHashSource: hashStable,
+        responseStatus: 200,
+      });
+      return NextResponse.json(
+        {
+          data: {
+            variante_texto: sanitizeIaProse(cached),
+            variante_tipo,
+            bloque_id,
+            origen: 'cache',
+          },
+        },
+        { status: 200, headers: headersBase },
+      );
+    }
+  }
+
+  const maxAttempts = forzar_refresh ? 3 : 1;
+  let lastTrivial: ReturnType<typeof validarAdaptacionMinima> = null;
+  let lastViolacion: ReturnType<typeof validarEstructuraF1> = null;
+  let lastAnonText = '';
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const userMessage = forzar_refresh
+      ? buildF1UserMessage({
+          ...baseMsgInput,
+          alternativaDistinta: true,
+          semilla: `${Date.now()}-${attempt}-${Math.random().toString(36).slice(2, 8)}`,
+        })
+      : userMessageStable;
+
+    const anon = anonymizeRequest({ texto: userMessage, variante_tipo });
+    lastAnonText = anon.texto ?? userMessage;
+    const irredactableField = findIrredactableField({ texto: lastAnonText });
+    if (irredactableField) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 'NEM_IA_ANONYMIZER_BLOCKED',
+            message: `Anonymizer detectó PII no redactable en campo ${irredactableField}.`,
+          },
+        },
+        { status: 500, headers: headersBase },
+      );
+    }
+
+    const result = await iaChat(
+      [
+        { role: 'system', content: SYSTEM_PROMPT_F1 },
+        { role: 'user', content: lastAnonText },
+      ],
+      {
+        temperature: forzar_refresh ? 0.78 + attempt * 0.06 : 0.65,
+        maxTokens: 900,
+      },
+    );
+
+    if (result.origen === 'fallback_vacio') {
+      await auditPostIA(supabase, {
+        cct: bloque.cct,
+        docenteId,
+        endpoint: ENDPOINT,
+        method: 'POST',
+        bodyHashSource: lastAnonText,
+        responseStatus: 200,
+      });
+      return NextResponse.json(
+        {
+          data: {
+            variante_texto: '',
+            variante_tipo,
+            bloque_id,
+            origen: 'fallback_vacio',
+          },
+        },
+        { status: 200, headers: headersBase },
+      );
+    }
+
+    const textoAdaptado = sanitizeIaProse(result.text);
+
+    const violacion = validarEstructuraF1({
+      pdaOriginales: bloque.pda_ids ?? [],
+      varianteTexto: textoAdaptado,
+    });
+    if (violacion) {
+      lastViolacion = violacion;
+      if (forzar_refresh && attempt < maxAttempts - 1) continue;
+      await auditPostIA(supabase, {
+        cct: bloque.cct,
+        docenteId,
+        endpoint: ENDPOINT,
+        method: 'POST',
+        bodyHashSource: lastAnonText,
+        responseStatus: 422,
+      });
+      return NextResponse.json(
+        {
+          error: {
+            code: violacion.code,
+            message: violacion.message,
+            details: { pda_introducidos: violacion.pdaIntroducidos },
+          },
+        },
+        { status: 422, headers: headersBase },
+      );
+    }
+
+    const trivial = validarAdaptacionMinima(
+      bloque.contenido_textual ?? '',
+      textoAdaptado,
+    );
+    if (trivial) {
+      lastTrivial = trivial;
+      if (forzar_refresh && attempt < maxAttempts - 1) continue;
+      await auditPostIA(supabase, {
+        cct: bloque.cct,
+        docenteId,
+        endpoint: ENDPOINT,
+        method: 'POST',
+        bodyHashSource: lastAnonText,
+        responseStatus: 422,
+      });
+      return NextResponse.json(
+        {
+          error: {
+            code: trivial.code,
+            message: trivial.message,
+          },
+        },
+        { status: 422, headers: headersBase },
+      );
+    }
+
+    if (!forzar_refresh) {
+      cacheSet(hashStable, textoAdaptado);
+    }
+
     await auditPostIA(supabase, {
       cct: bloque.cct,
       docenteId,
       endpoint: ENDPOINT,
       method: 'POST',
-      bodyHashSource: hash,
+      bodyHashSource: lastAnonText,
       responseStatus: 200,
     });
+
     return NextResponse.json(
       {
         data: {
-          variante_texto: sanitizeIaProse(cached),
+          variante_texto: textoAdaptado,
           variante_tipo,
           bloque_id,
-          origen: 'cache',
+          origen: 'ia',
         },
       },
       { status: 200, headers: headersBase },
     );
   }
 
-  // ── Anonimización obligatoria antes de ir al proveedor ──
-  const anon = anonymizeRequest({ texto: userMessage, variante_tipo });
-  const irredactableField = findIrredactableField({ texto: anon.texto ?? userMessage });
-  if (irredactableField) {
+  const err = lastTrivial ?? lastViolacion;
+  if (err) {
     return NextResponse.json(
       {
         error: {
-          code: 'NEM_IA_ANONYMIZER_BLOCKED',
-          message: `Anonymizer detectó PII no redactable en campo ${irredactableField}.`,
-        },
-      },
-      { status: 500, headers: headersBase },
-    );
-  }
-
-  // ── Llamada al proveedor ──
-  const result = await iaChat(
-    [
-      { role: 'system', content: SYSTEM_PROMPT_F1 },
-      { role: 'user', content: anon.texto ?? userMessage },
-    ],
-    { temperature: 0.65, maxTokens: 900 },
-  );
-
-  if (result.origen === 'fallback_vacio') {
-    // P1-1: insert audit_log POST (fallback_vacio). El `body_hash` se computa
-    // sobre el user message anonimizado que el route habría enviado al
-    // proveedor (mismo `anon.texto` que se construyó en :184). En este
-    // route, `anon.texto` siempre es string (input no-vacío).
-    await auditPostIA(supabase, {
-      cct: bloque.cct,
-      docenteId,
-      endpoint: ENDPOINT,
-      method: 'POST',
-      bodyHashSource: anon.texto ?? '',
-      responseStatus: 200,
-    });
-    return NextResponse.json(
-      {
-        data: {
-          variante_texto: '',
-          variante_tipo,
-          bloque_id,
-          origen: 'fallback_vacio',
-        },
-      },
-      { status: 200, headers: headersBase },
-    );
-  }
-
-  const textoAdaptado = sanitizeIaProse(result.text);
-
-  // ── Validación post-IA P-PD8 ──
-  const violacion = validarEstructuraF1({
-    pdaOriginales: bloque.pda_ids ?? [],
-    varianteTexto: textoAdaptado,
-  });
-  if (violacion) {
-    // P1-1: insert audit_log POST con response_status=422 (evento de
-    // auditoría significativo: la IA propuso algo inválido). body_hash sobre
-    // el texto anonimizado que se envió al proveedor (anon.texto).
-    await auditPostIA(supabase, {
-      cct: bloque.cct,
-      docenteId,
-      endpoint: ENDPOINT,
-      method: 'POST',
-      bodyHashSource: anon.texto ?? '',
-      responseStatus: 422,
-    });
-    return NextResponse.json(
-      {
-        error: {
-          code: violacion.code,
-          message: violacion.message,
-          details: { pda_introducidos: violacion.pdaIntroducidos },
+          code: err.code,
+          message: err.message,
+          ...(lastViolacion
+            ? { details: { pda_introducidos: lastViolacion.pdaIntroducidos } }
+            : {}),
         },
       },
       { status: 422, headers: headersBase },
     );
   }
-
-  const trivial = validarAdaptacionMinima(
-    bloque.contenido_textual ?? '',
-    textoAdaptado,
-  );
-  if (trivial) {
-    await auditPostIA(supabase, {
-      cct: bloque.cct,
-      docenteId,
-      endpoint: ENDPOINT,
-      method: 'POST',
-      bodyHashSource: anon.texto ?? '',
-      responseStatus: 422,
-    });
-    return NextResponse.json(
-      {
-        error: {
-          code: trivial.code,
-          message: trivial.message,
-        },
-      },
-      { status: 422, headers: headersBase },
-    );
-  }
-
-  // ── Cache populate ──
-  cacheSet(hash, textoAdaptado);
-
-  // P1-1: insert audit_log POST (200 éxito). body_hash sobre el payload
-  // anonimizado (anon.texto) — nunca el prompt crudo ni texto con PII.
-  await auditPostIA(supabase, {
-    cct: bloque.cct,
-    docenteId,
-    endpoint: ENDPOINT,
-    method: 'POST',
-    bodyHashSource: anon.texto ?? '',
-    responseStatus: 200,
-  });
 
   return NextResponse.json(
     {
-      data: {
-        variante_texto: textoAdaptado,
-        variante_tipo,
-        bloque_id,
-        origen: 'ia',
+      error: {
+        code: 'NEM_INTERNAL_ERROR',
+        message: 'No se pudo generar una variante.',
       },
     },
-    { status: 200, headers: headersBase },
+    { status: 500, headers: headersBase },
   );
 }
