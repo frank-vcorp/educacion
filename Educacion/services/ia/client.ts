@@ -13,6 +13,7 @@
  *   `fetch` global (paralelo al patrón `PdfRenderer` en `lib/pdf/generate.ts`).
  */
 import type { IaChatMessage, IaChatOptions, IaChatResult } from './types';
+import { sanitizeIaProse } from './sanitize-prose';
 
 const DEFAULT_TIMEOUT_MS = 8000;
 
@@ -103,9 +104,10 @@ export async function iaChat(
     const json = (await res.json()) as {
       choices?: Array<{ message?: { content?: string } }>;
     };
-    const text = json.choices?.[0]?.message?.content ?? '';
+    const raw = json.choices?.[0]?.message?.content ?? '';
+    const text = sanitizeIaProse(typeof raw === 'string' ? raw : '');
     return {
-      text: typeof text === 'string' ? text : '',
+      text,
       origen: 'ia',
       latencyMs: Date.now() - start,
       provider: process.env.AI_PROVIDER,

@@ -144,6 +144,8 @@ export async function POST(request: Request, { params }: RouteParams) {
   // ── Cache F1 ──
   const hash = requestHash([docenteId, bloque_id, variante_tipo]);
   if (forzar_refresh) cacheInvalidate(hash);
+  const { sanitizeIaProse } = await import('@/services/ia/sanitize-prose');
+
   const cached = cacheGet<string>(hash);
   if (cached !== null) {
     // P1-1: insert audit_log POST (cache-hit). `cct` real del bloque; body_hash
@@ -159,7 +161,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     return NextResponse.json(
       {
         data: {
-          variante_texto: cached,
+          variante_texto: sanitizeIaProse(cached),
           variante_tipo,
           bloque_id,
           origen: 'cache',
@@ -256,7 +258,7 @@ export async function POST(request: Request, { params }: RouteParams) {
   }
 
   // ── Cache populate ──
-  cacheSet(hash, result.text);
+  cacheSet(hash, sanitizeIaProse(result.text));
 
   // P1-1: insert audit_log POST (200 éxito). body_hash sobre el payload
   // anonimizado (anon.texto) — nunca el prompt crudo ni texto con PII.
@@ -269,12 +271,10 @@ export async function POST(request: Request, { params }: RouteParams) {
     responseStatus: 200,
   });
 
-  const { sanitizeIaProse } = await import('@/services/ia/sanitize-prose');
-
   return NextResponse.json(
     {
       data: {
-        variante_texto: sanitizeIaProse(result.text),
+        variante_texto: result.text,
         variante_tipo,
         bloque_id,
         origen: 'ia',

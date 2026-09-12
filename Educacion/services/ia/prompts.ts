@@ -17,6 +17,7 @@ export const SYSTEM_PROMPT_F1 = [
   '- NO cambies los PDA, campos formativos, ejes articuladores ni la estructura pedagógica.',
   '- NO inventes PDA nuevos; mantén los que el docente ya declaró.',
   '- NO agregues explicaciones, encabezados, viñetas, ni comentes tu decisión.',
+  '- NO incluyas razonamiento interno, tags <thinking> ni texto en inglés.',
   '- Responde SOLO con el texto adaptado en prosa, en español mexicano neutro.',
   '- Longitud máxima: 500 caracteres.',
 ].join('\n');
@@ -29,6 +30,7 @@ export const SYSTEM_PROMPT_F2 = [
   '- NO cambies el contenido pedagógico, sólo el estilo y la extensión.',
   '- Mantén lenguaje NEM reconocible por supervisión.',
   '- NO agregues explicaciones, encabezados ni comentes tu decisión.',
+  '- NO incluyas razonamiento interno, tags <thinking> ni texto en inglés.',
   '- Responde SOLO con el texto resultante en prosa, en español mexicano neutro.',
   '- Longitud máxima: 1000 caracteres.',
 ].join('\n');
