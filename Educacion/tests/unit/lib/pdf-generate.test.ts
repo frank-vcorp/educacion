@@ -120,6 +120,30 @@ describe('lib/pdf/generate.ts — D-FIN-5 renderer', () => {
       // El footer incluye timestamp; extraemos sólo la parte estable:
       expect(a.split('Generado el')[0]).toBe(b.split('Generado el')[0]);
     });
+    it('documento corrido incluye calendario cuando hay sesiones', () => {
+      const html = buildPlaneacionHtml({
+        ...fakePlaneacion,
+        sesiones: [
+          {
+            numero: 1,
+            etiqueta: 'Lunes 10 feb',
+            bloques: [
+              {
+                contenido: 'Tintura con café',
+                momento: 'contacto',
+                observacion: 'Participación activa',
+              },
+            ],
+          },
+        ],
+        momento_labels: { contacto: 'Contacto con la realidad' },
+      });
+      expect(html).toContain('Calendario de actividades');
+      expect(html).toContain('Lunes 10 feb');
+      expect(html).toContain('Tintura con café');
+      expect(html).toContain('Contacto con la realidad');
+      expect(html).toContain('@page { size: 210mm auto');
+    });
   });
 
   describe('renderPdfFromHtml — con renderer inyectado', () => {
@@ -283,7 +307,8 @@ describe('lib/pdf/generate.ts — D-FIN-5 renderer', () => {
         async () => undefined;
       const closePage = async () => undefined;
       const pdf = async () => new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d]); // "%PDF-"
-      const page = { setContent, close: closePage, pdf };
+      const evaluate = async () => 800;
+      const page = { setContent, close: closePage, pdf, evaluate };
 
       const closeBrowser = vi.fn(async () => undefined);
       const browser = {
@@ -309,6 +334,7 @@ describe('lib/pdf/generate.ts — D-FIN-5 renderer', () => {
         setContent: async () => undefined,
         close: closePage,
         pdf: async () => new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d]),
+        evaluate: async () => 800,
       };
       const closeBrowser = vi.fn(async () => {
         throw new Error('browser already closed');
@@ -334,6 +360,7 @@ describe('lib/pdf/generate.ts — D-FIN-5 renderer', () => {
           throw new Error('page already closed');
         },
         pdf: async () => new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d]),
+        evaluate: async () => 800,
       };
       const closeBrowser = vi.fn(async () => undefined);
       const browser = {

@@ -66,6 +66,8 @@ export interface FormState {
   };
   periodoInicio: string;
   periodoFin: string;
+  /** Alcance temporal del workbook — disparador al crear la planeación. */
+  alcanceTemporal: 'semanal' | 'quincenal' | 'rango_fechas' | 'mensual';
 }
 
 export const INITIAL_FORM: FormState = {
@@ -94,6 +96,7 @@ export const INITIAL_FORM: FormState = {
   },
   periodoInicio: '',
   periodoFin: '',
+  alcanceTemporal: 'rango_fechas',
 };
 
 export const MODALIDADES_LABELS: Record<Modalidad, string> = {
@@ -213,6 +216,12 @@ export function limpiarDatosEspecificos(prev: FormState, nueva: Modalidad): Form
     reglasRincones: nueva === 'rincones' ? prev.reglasRincones : '',
     temaCentro: nueva === 'centros_interes' ? prev.temaCentro : '',
     preguntasDet: nueva === 'centros_interes' ? prev.preguntasDet : [],
+    alcanceTemporal:
+      nueva === 'unidad_didactica'
+        ? 'semanal'
+        : nueva === 'centros_interes' || nueva === 'proyecto_comunitario'
+          ? prev.alcanceTemporal
+          : 'rango_fechas',
     fases:
       nueva === 'abj'
         ? {
@@ -252,6 +261,7 @@ export function buildSteps(modalidad: Modalidad): string[] {
     case 'unidad_didactica':
       return [
         'Modalidad',
+        'Alcance del proyecto',
         'Contexto',
         'Banco de palabras',
         'Calendario semanal',
@@ -284,11 +294,13 @@ export function buildSteps(modalidad: Modalidad): string[] {
     case 'centros_interes':
       return [
         'Modalidad',
+        'Alcance del proyecto',
         'Contexto',
         'Tema del centro',
         'Preguntas detonadoras',
         'Campos',
         'PDA',
+        'Ejes',
         'Revisión',
       ];
     case 'taller_critico':
@@ -306,13 +318,12 @@ export function buildSteps(modalidad: Modalidad): string[] {
     default:
       return [
         'Modalidad',
-        'Problema',
+        'Alcance del proyecto',
+        'Contexto',
         'Campos',
         'PDA',
         'Ejes',
-        'Banco',
-        'Sesiones',
-        'Guardar',
+        'Revisión',
       ];
   }
 }

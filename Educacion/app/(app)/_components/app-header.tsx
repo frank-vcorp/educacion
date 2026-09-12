@@ -17,7 +17,7 @@ export function AppHeader({ user }: { user: User }) {
           <Link href="/dashboard" className="flex items-center gap-2">
             <span className="text-xl font-semibold text-nem-verde">NEM</span>
             <span className="hidden text-xs text-muted-foreground sm:inline">
-              Planeación didáctica
+              Preescolar
             </span>
           </Link>
           <NavMenu />

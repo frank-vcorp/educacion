@@ -14,6 +14,7 @@
  */
 import { redirect } from 'next/navigation';
 import { getServerSession } from '@/lib/auth/session';
+import { NIVEL_EDUCATIVO_MVP } from '@/lib/nivel-educativo/scope';
 import { createClient } from '@/lib/supabase/server';
 
 interface OnboardingShellProps {
@@ -66,7 +67,7 @@ export async function OnboardingShell({ paso, children }: OnboardingShellProps) 
   const ctx: OnboardingContext = {
     docenteId: session.user.id,
     cct: docente?.cct ?? '',
-    nivel: docente?.nivel ?? 'preescolar',
+    nivel: NIVEL_EDUCATIVO_MVP,
     grupoId: grupo?.id ?? null,
   };
 

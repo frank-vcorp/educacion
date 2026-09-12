@@ -209,6 +209,9 @@ export function etiquetaSesion(sesion: {
   numero: number;
   ajustes_sesion?: string | null;
 }): string {
-  if (sesion.ajustes_sesion?.trim()) return sesion.ajustes_sesion.trim();
-  return `Sesión ${sesion.numero}`;
+  const raw = sesion.ajustes_sesion?.trim();
+  if (!raw) return `Sesión ${sesion.numero}`;
+  const sep = raw.indexOf(' — ');
+  if (sep > 0) return raw.slice(sep + 3);
+  return raw;
 }

@@ -22,6 +22,9 @@
 - `FND-20260820-10` — configuración IA inicialmente parecía vacía; Frank confirma sugerencias MiniMax funcionando. Falta evidencia Playwright autenticada.
 - `FND-20260820-11` — 500 runtime de server actions corregido y desplegado en `8cb1767`.
 - `FND-20260820-12` — React 482 en `/alumnos` corregido y desplegado en `5dda75d`.
+- `FND-20260822-13` — alta real Playwright bloqueada por `email rate limit exceeded` de Supabase.
+- `FND-20260822-14` — enlace de confirmación aún usa Site URL localhost en Supabase; requiere corregir URL Configuration y reenviar correo.
+- `DEC-20260821-02` — guía contextual confirmada para las secciones de entrevistas.
 
 ## Readiness para INTEGRA
 

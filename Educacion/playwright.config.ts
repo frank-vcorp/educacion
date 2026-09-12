@@ -5,7 +5,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const PORT = process.env.PORT ?? '3000';
-const BASE_URL = `http://localhost:${PORT}`;
+const BASE_URL = process.env.E2E_BASE_URL ?? `http://localhost:${PORT}`;
+const USE_REMOTE = Boolean(process.env.E2E_BASE_URL);
 
 export default defineConfig({
   // IMPL-20260820-02 (QA-20260820-01 §D P3-B): los specs E2E viven en ./e2e/
@@ -35,10 +36,12 @@ export default defineConfig({
       testMatch: /mobile\.(spec|test)\.ts/,
     },
   ],
-  webServer: {
-    command: 'pnpm dev',
-    port: Number(PORT),
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  webServer: USE_REMOTE
+    ? undefined
+    : {
+        command: 'pnpm dev',
+        port: Number(PORT),
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000,
+      },
 });

@@ -28,6 +28,7 @@ import { SYSTEM_PROMPT_F0 } from '@/services/ia/prompts';
 import { checkRateLimit, rateLimitHeaders } from '@/services/ia/rate-limiter';
 import { parseRespuestaF0 } from '@/services/ia/validate';
 import { auditPostIA } from '@/lib/ia/audit-post';
+import { NIVEL_EDUCATIVO_MVP } from '@/lib/nivel-educativo/scope';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -40,8 +41,6 @@ const MODALIDADES = [
   'centros_interes',
   'taller_critico',
 ] as const;
-
-const NIVELES = ['preescolar', 'primaria', 'secundaria'] as const;
 
 const Body = z.object({
   modalidad: z.enum(MODALIDADES, {
@@ -61,7 +60,7 @@ const Body = z.object({
     .max(1000)
     .optional()
     .transform((s) => (typeof s === 'string' ? s.trim() : '')),
-  nivel: z.enum(NIVELES).optional(),
+  nivel: z.literal(NIVEL_EDUCATIVO_MVP).optional(),
 });
 
 const ENDPOINT = 'planeaciones_contexto_problema';
@@ -145,7 +144,7 @@ export async function POST(request: Request) {
   const extrasAnon = anon.extras ?? {};
   const userMsg = JSON.stringify({
     modalidad,
-    nivel: nivel ?? null,
+    nivel: nivel ?? NIVEL_EDUCATIVO_MVP,
     problema_contexto: extrasAnon.problema_contexto ?? '',
     proposito: extrasAnon.proposito ?? '',
     ajustes_razonables: extrasAnon.ajustes_razonables ?? '',

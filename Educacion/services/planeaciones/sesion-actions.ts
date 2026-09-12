@@ -2,8 +2,11 @@
 
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
-
-const DIAS_ORDEN = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'] as const;
+import {
+  generarSesionesWorkbook,
+  resolverWorkbookConfig,
+  type WorkbookMetadata,
+} from '@/lib/planeaciones/tipo-workbook';
 
 export interface Sesion {
   id: string;
@@ -12,24 +15,6 @@ export interface Sesion {
   fase_interna: string;
   ajustes_sesion: string | null;
   estado: string;
-}
-
-function faseParaNumero(numero: number): 'inicio' | 'desarrollo' | 'cierre' {
-  if (numero <= 1) return 'inicio';
-  if (numero >= 5) return 'cierre';
-  return 'desarrollo';
-}
-
-function tituloDia(key: string, titulo?: string): string {
-  const labels: Record<string, string> = {
-    lunes: 'Lunes',
-    martes: 'Martes',
-    miercoles: 'Miércoles',
-    jueves: 'Jueves',
-    viernes: 'Viernes',
-  };
-  const dia = labels[key] ?? key;
-  return titulo?.trim() ? `${dia}: ${titulo.trim()}` : dia;
 }
 
 export async function getSesiones(
@@ -50,8 +35,7 @@ export async function getSesiones(
 }
 
 /**
- * Garantiza al menos una sesión editable. Si la planeación es unidad didáctica
- * y el wizard guardó `sesiones_semana`, crea L–V; si no, una sesión única.
+ * Garantiza sesiones según contrato workbook (modalidad + alcance + fechas).
  */
 export async function ensureSesionesForPlaneacion(
   planeacionId: string,
@@ -66,7 +50,7 @@ export async function ensureSesionesForPlaneacion(
   const supabase = await createClient();
   const { data: planeacion, error: errPlane } = await supabase
     .from('planeacion')
-    .select('id, docente_id, cct, modalidad, metadata')
+    .select('id, docente_id, cct, modalidad, metadata, periodo_inicio, periodo_fin, periodo_tipo')
     .eq('id', planeacionId)
     .maybeSingle();
   if (errPlane) return { ok: false, data: null, error: errPlane.message };
@@ -75,53 +59,47 @@ export async function ensureSesionesForPlaneacion(
     return { ok: false, data: null, error: 'La planeación no pertenece al docente' };
   }
 
-  const modalidadData =
-    ((planeacion.metadata as { modalidad_data?: Record<string, unknown> } | null)
-      ?.modalidad_data ?? {}) as Record<string, unknown>;
-  const sesionesSemana = modalidadData.sesiones_semana;
-  const rows: Array<{
-    planeacion_id: string;
-    docente_id: string;
-    cct: string;
-    numero: number;
-    fase_interna: string;
-    ajustes_sesion: string | null;
-    estado: string;
-  }> = [];
+  const metadata = (planeacion.metadata ?? {}) as {
+    modalidad_data?: Record<string, unknown>;
+    workbook?: Partial<WorkbookMetadata>;
+  };
+  const modalidadData = metadata.modalidad_data ?? {};
+  const workbookMeta = metadata.workbook ?? null;
 
-  if (
-    planeacion.modalidad === 'unidad_didactica' &&
-    sesionesSemana &&
-    typeof sesionesSemana === 'object' &&
-    !Array.isArray(sesionesSemana)
-  ) {
-    DIAS_ORDEN.forEach((dia, idx) => {
-      const titulo =
-        typeof (sesionesSemana as Record<string, unknown>)[dia] === 'string'
-          ? ((sesionesSemana as Record<string, string>)[dia] ?? '')
-          : '';
-      rows.push({
+  const config = resolverWorkbookConfig({
+    modalidad: planeacion.modalidad,
+    workbookMetadata: workbookMeta,
+  });
+
+  const sesionesSemana =
+    modalidadData.sesiones_semana &&
+    typeof modalidadData.sesiones_semana === 'object' &&
+    !Array.isArray(modalidadData.sesiones_semana)
+      ? (modalidadData.sesiones_semana as Record<string, string>)
+      : undefined;
+
+  let rows = generarSesionesWorkbook({
+    config,
+    planeacionId,
+    docenteId,
+    cct: planeacion.cct,
+    periodoInicio: String(planeacion.periodo_inicio),
+    periodoFin: String(planeacion.periodo_fin),
+    sesionesSemanaWizard: sesionesSemana,
+  });
+
+  if (rows.length === 0) {
+    rows = [
+      {
         planeacion_id: planeacionId,
         docente_id: docenteId,
         cct: planeacion.cct,
-        numero: idx + 1,
-        fase_interna: faseParaNumero(idx + 1),
-        ajustes_sesion: tituloDia(dia, titulo),
+        numero: 1,
+        fase_interna: 'desarrollo',
+        ajustes_sesion: 'Actividades de la planeación',
         estado: 'pendiente',
-      });
-    });
-  }
-
-  if (rows.length === 0) {
-    rows.push({
-      planeacion_id: planeacionId,
-      docente_id: docenteId,
-      cct: planeacion.cct,
-      numero: 1,
-      fase_interna: 'desarrollo',
-      ajustes_sesion: 'Actividades de la planeación',
-      estado: 'pendiente',
-    });
+      },
+    ];
   }
 
   const { error: errInsert } = await supabase.from('sesion').insert(rows);

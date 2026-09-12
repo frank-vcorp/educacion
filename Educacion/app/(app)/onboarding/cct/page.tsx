@@ -10,10 +10,10 @@ export default function OnboardingPaso2() {
     <OnboardingShell paso={2}>
       {() => (
         <>
-          <h2 className="text-lg font-semibold">¿En qué escuela trabajas?</h2>
+          <h2 className="text-lg font-semibold">¿En qué jardín de niños trabajas?</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Escribe el nombre de la escuela (mínimo 3 letras). También puedes pegar la clave
-            CCT (10 caracteres) directamente.
+            Busca tu escuela de preescolar (mínimo 3 letras) o pega la clave CCT (10 caracteres).
+            Primaria y secundaria tendrán su propio sistema más adelante.
           </p>
           <CCTPicker />
         </>

@@ -14,10 +14,10 @@ import { createClient } from '@/lib/supabase/server';
 import { signUrlFirmada } from '@/lib/auth/url-firmada';
 import {
   buildPlaneacionHtml,
-  type PlaneacionPdfData,
   renderPdfFromHtml,
   PdfGenerationUnavailableError,
 } from '@/lib/pdf/generate';
+import { fetchPlaneacionPdfPayload } from '@/lib/pdf/planeacion-pdf-data';
 
 const EntregarSchema = z.object({
   planeacionId: z.string().uuid(),
@@ -55,17 +55,11 @@ export async function generarPdfParaEntrega(
   options: GenerarPdfParaEntregaOptions = {},
 ): Promise<{ pdf: Buffer; sha256: string; size: number }> {
   const supabase = await createClient();
-  const { data: planeacion } = await supabase
-    .from('planeacion')
-    .select(
-      'id, nombre, problema_contexto, campos_formativos, ejes_articuladores, pdas, periodo_inicio, periodo_fin, docente_id, cct, ajustes_razonables, updated_at',
-    )
-    .eq('id', data.planeacionId)
-    .maybeSingle();
-  if (!planeacion) {
+  const loaded = await fetchPlaneacionPdfPayload(supabase, data.planeacionId);
+  if (!loaded) {
     throw new Error('Planeación no encontrada para generar PDF');
   }
-  const html = buildPlaneacionHtml(planeacion as PlaneacionPdfData);
+  const html = buildPlaneacionHtml(loaded.data);
   return renderPdfFromHtml(html, { renderer: options.renderer });
 }
 

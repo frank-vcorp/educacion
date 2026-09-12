@@ -37,6 +37,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { SectionHelp } from '@/components/ui/section-help';
+import { GUIAS_INFANTIL } from '@/lib/entrevistas/guias';
 import {
   Select,
   SelectContent,
@@ -508,6 +510,12 @@ export function EntrevistaInicialForm({
         data-step="1"
       >
         <legend className="text-sm font-semibold">Bloque 1 — Entrevista inicial</legend>
+        <SectionHelp
+          helpId={GUIAS_INFANTIL[0].id}
+          ariaLabel={GUIAS_INFANTIL[0].ariaLabel}
+          breve={GUIAS_INFANTIL[0].breve}
+          detalle={GUIAS_INFANTIL[0].detalle}
+        />
         {ENTREVISTA_BLOQUE1.map((q) => {
           const item = respuestas.entrevista_inicial.items.find(
             (it) => it.orden === q.orden,
@@ -545,6 +553,12 @@ export function EntrevistaInicialForm({
         data-step="2"
       >
         <legend className="text-sm font-semibold">Bloque 2 — Ambiente familiar / escuela</legend>
+        <SectionHelp
+          helpId={GUIAS_INFANTIL[1].id}
+          ariaLabel={GUIAS_INFANTIL[1].ariaLabel}
+          breve={GUIAS_INFANTIL[1].breve}
+          detalle={GUIAS_INFANTIL[1].detalle}
+        />
         <div className="rounded-md border bg-muted/20 p-3 text-xs">
           <p className="font-medium">
             {ENTREVISTA_BLOQUE2_ENCABEZADO.lineaInstitucion}
@@ -603,6 +617,12 @@ export function EntrevistaInicialForm({
         data-step="3"
       >
         <legend className="text-sm font-semibold">Bloque 3 — Directorio de emergencia</legend>
+        <SectionHelp
+          helpId={GUIAS_INFANTIL[2].id}
+          ariaLabel={GUIAS_INFANTIL[2].ariaLabel}
+          breve={GUIAS_INFANTIL[2].breve}
+          detalle={GUIAS_INFANTIL[2].detalle}
+        />
         <div className="rounded-md border bg-muted/20 p-3 text-xs">
           <p className="font-medium">{directorio.titulo}</p>
           <p className="text-muted-foreground">{directorio.subtitulo}</p>

@@ -15,3 +15,5 @@
 - Cambiar modalidad o problema invalida las propuestas dependientes para efectos de regeneración, sin borrar silenciosamente el contenido ya aceptado. Referencia: DEC-20260820-03.
 - Las entrevistas del niño y familiar se encuentran juntas en el perfil del alumno, pero permanecen separadas por sección, registro y permisos. Referencia: DEC-20260820-04.
 - La entrevista familiar no se envía a IA y no hereda automáticamente los permisos de la entrevista infantil. Referencia: DEC-20260820-04.
+- La guía contextual orienta la captura, pero no altera las preguntas literales ni sus respuestas. Referencia: DEC-20260821-02.
+- La explicación de `Guardar` y `Archivar` debe distinguir continuidad de captura frente a cierre del ciclo. Referencia: DEC-20260821-02.

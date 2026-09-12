@@ -47,7 +47,20 @@ export class PdfGenerationUnavailableError extends Error {
   }
 }
 
-/** Datos mínimos de la planeación para alimentar la plantilla HTML. */
+export interface PlaneacionPdfBloque {
+  contenido: string;
+  momento?: string | null;
+  observacion?: string | null;
+  recursos?: string | null;
+}
+
+export interface PlaneacionPdfSesion {
+  numero: number;
+  etiqueta: string;
+  bloques: PlaneacionPdfBloque[];
+}
+
+/** Datos de la planeación para la plantilla HTML (documento corrido). */
 export interface PlaneacionPdfData {
   id: string;
   nombre: string;
@@ -59,6 +72,21 @@ export interface PlaneacionPdfData {
   pdas: string[] | null;
   ajustes_razonables: string | null;
   cct: string;
+  modalidad?: string;
+  proposito?: string | null;
+  producto_integrador?: string | null;
+  grupo_etiqueta?: string | null;
+  tema_centro?: string | null;
+  preguntas_det?: string[];
+  campos_nombres?: Record<string, string>;
+  pdas_texto?: Record<string, string>;
+  pda_campo_codigo?: Record<string, string>;
+  ejes_nombres?: Record<string, string>;
+  modalidad_label?: string;
+  momento_labels?: Record<string, string>;
+  rutinarias?: string[];
+  recurrentes?: string[];
+  sesiones?: PlaneacionPdfSesion[];
   /**
    * Timestamp ISO de la última edición de la planeación. Usado por
    * `buildPlaneacionHtml` para renderizar una fecha determinista en el
@@ -69,6 +97,9 @@ export interface PlaneacionPdfData {
    */
   updated_at?: string | null;
 }
+
+/** Ancho fijo del documento corrido (mm). */
+export const PDF_DOC_WIDTH_MM = 210;
 
 /**
  * Hash determinista (SHA-256) sobre bytes arbitrarios.
@@ -116,22 +147,104 @@ export function joinEscaped(values: string[] | null | undefined, sep = ', '): st
  * Esto garantiza que `buildPlaneacionHtml` es **función pura** respecto a su
  * input (mismo `PlaneacionPdfData` → mismo HTML).
  */
-export function buildPlaneacionHtml(planeacion: PlaneacionPdfData): string {
-  const campos = joinEscaped(planeacion.campos_formativos) || '—';
-  const ejes = joinEscaped(planeacion.ejes_articuladores) || '—';
-  const pdas = (planeacion.pdas ?? [])
-    .map((pda) => `    <li>${escapeHtml(pda)}</li>`)
-    .join('\n');
-  const ajustes = escapeHtml(planeacion.ajustes_razonables) || '—';
+function labelMomento(
+  key: string | null | undefined,
+  labels: Record<string, string> | undefined,
+): string {
+  if (!key) return '';
+  return labels?.[key] ?? key;
+}
 
-  // Footer determinista (FIX P2-1 causa a):
-  //  - Si `updated_at` está presente → "Generado el <fecha-formateada> · ..."
-  //  - Si `updated_at` es null/undefined → sólo "Plataforma NEM · CCT <cct>"
-  // NUNCA se usa `new Date()` aquí (rompería el invariante de estabilidad).
+function buildPdaTableRows(planeacion: PlaneacionPdfData): string {
+  const pdas = planeacion.pdas ?? [];
+  if (pdas.length === 0) {
+    return '<tr><td colspan="2">—</td></tr>';
+  }
+  return pdas
+    .map((codigo) => {
+      const texto = planeacion.pdas_texto?.[codigo] ?? codigo;
+      const campoCodigo = planeacion.pda_campo_codigo?.[codigo];
+      const campoNombre =
+        (campoCodigo && planeacion.campos_nombres?.[campoCodigo]) ||
+        '—';
+      return `<tr>
+        <td>${escapeHtml(campoNombre)}</td>
+        <td>${escapeHtml(texto)}</td>
+      </tr>`;
+    })
+    .join('\n');
+}
+
+function buildCalendarioHtml(planeacion: PlaneacionPdfData): string {
+  const sesiones = planeacion.sesiones ?? [];
+  if (sesiones.length === 0) return '';
+
+  const dias = sesiones
+    .map((s) => {
+      const bloquesHtml =
+        s.bloques.length === 0
+          ? '<p class="muted">Sin actividades registradas.</p>'
+          : s.bloques
+              .map((b) => {
+                const momento = labelMomento(b.momento, planeacion.momento_labels);
+                return `<article class="actividad">
+                  ${momento ? `<p class="act-momento"><strong>Momento:</strong> ${escapeHtml(momento)}</p>` : ''}
+                  <p class="act-texto">${escapeHtml(b.contenido)}</p>
+                  ${b.recursos ? `<p class="act-recursos"><strong>Recursos:</strong> ${escapeHtml(b.recursos)}</p>` : ''}
+                  ${b.observacion ? `<p class="act-obs"><strong>Observación:</strong> ${escapeHtml(b.observacion)}</p>` : ''}
+                </article>`;
+              })
+              .join('\n');
+
+      return `<section class="dia">
+        <h3>${escapeHtml(s.etiqueta)}</h3>
+        ${bloquesHtml}
+      </section>`;
+    })
+    .join('\n');
+
+  return `<section class="bloque-seccion">
+    <h2>Calendario de actividades</h2>
+    ${dias}
+  </section>`;
+}
+
+function buildRutinariasHtml(planeacion: PlaneacionPdfData): string {
+  const rut = planeacion.rutinarias ?? [];
+  const rec = planeacion.recurrentes ?? [];
+  if (rut.length === 0 && rec.length === 0) return '';
+
+  const rutList = rut.map((r) => `<li>${escapeHtml(r)}</li>`).join('');
+  const recList = rec.map((r) => `<li>${escapeHtml(r)}</li>`).join('');
+
+  return `<section class="bloque-seccion rutinarias">
+    <h2>Rutinarias y recurrentes</h2>
+    ${rut.length > 0 ? `<p class="subtitulo">Rutinarias</p><ul>${rutList}</ul>` : ''}
+    ${rec.length > 0 ? `<p class="subtitulo">Recurrentes</p><ul>${recList}</ul>` : ''}
+  </section>`;
+}
+
+/**
+ * Plantilla HTML: un solo documento corrido (como Word), sin secciones paginadas.
+ */
+export function buildPlaneacionHtml(planeacion: PlaneacionPdfData): string {
+  const ajustes = escapeHtml(planeacion.ajustes_razonables) || '—';
+  const ejes = (planeacion.ejes_articuladores ?? [])
+    .map((c) => escapeHtml(planeacion.ejes_nombres?.[c] ?? c))
+    .join(', ') || '—';
+
   const footerEtiquetaFecha = formatFechaEsMx(planeacion.updated_at);
   const footer = footerEtiquetaFecha
     ? `Generado el ${footerEtiquetaFecha} · Plataforma NEM · CCT ${escapeHtml(planeacion.cct)}`
     : `Plataforma NEM · CCT ${escapeHtml(planeacion.cct)}`;
+
+  const preguntas =
+    (planeacion.preguntas_det ?? []).length > 0
+      ? `<section class="bloque-seccion">
+          <h2>Preguntas detonadoras</h2>
+          <ul>${(planeacion.preguntas_det ?? []).map((p) => `<li>${escapeHtml(p)}</li>`).join('')}</ul>
+        </section>`
+      : '';
 
   return `<!doctype html>
 <html lang="es-MX">
@@ -139,38 +252,107 @@ export function buildPlaneacionHtml(planeacion: PlaneacionPdfData): string {
   <meta charset="utf-8" />
   <title>${escapeHtml(planeacion.nombre)} — Planeación NEM</title>
   <style>
-    @page { margin: 2cm; }
-    body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.4; color: #111; }
-    h1 { color: #2f6e3a; border-bottom: 2px solid #2f6e3a; padding-bottom: 4px; }
-    h2 { color: #444; margin-top: 24px; }
-    dl { display: grid; grid-template-columns: 160px 1fr; gap: 4px 12px; }
-    dt { font-weight: 600; color: #555; }
-    .footer { margin-top: 32px; font-size: 10pt; color: #888; border-top: 1px solid #ddd; padding-top: 8px; }
+    /* Documento corrido: una sola página de altura variable (sin saltos A4). */
+    @page { size: ${PDF_DOC_WIDTH_MM}mm auto; margin: 0; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; height: auto; }
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      font-size: 11pt;
+      line-height: 1.45;
+      color: #111;
+      width: ${PDF_DOC_WIDTH_MM}mm;
+      padding: 14mm 16mm 18mm;
+      background: #fff;
+    }
+    .doc { width: 100%; }
+    h1 {
+      color: #2f6e3a;
+      font-size: 16pt;
+      margin: 0 0 8px;
+      border-bottom: 2px solid #2f6e3a;
+      padding-bottom: 6px;
+    }
+    h2 {
+      color: #333;
+      font-size: 12pt;
+      margin: 20px 0 8px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 4px;
+    }
+    h3 {
+      color: #2f6e3a;
+      font-size: 11pt;
+      margin: 14px 0 6px;
+    }
+    .meta { font-size: 10pt; color: #555; margin-bottom: 12px; }
+    .meta p { margin: 2px 0; }
+    .bloque-seccion { margin-bottom: 8px; }
+    .subtitulo { font-weight: 600; font-size: 10pt; margin: 8px 0 4px; color: #444; }
+    table.pda { width: 100%; border-collapse: collapse; font-size: 10pt; margin-top: 6px; }
+    table.pda th, table.pda td { border: 1px solid #ccc; padding: 6px 8px; vertical-align: top; text-align: left; }
+    table.pda th { background: #f5f5f5; font-weight: 600; }
+    .dia { margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #ddd; }
+    .actividad { margin: 8px 0; padding: 8px; background: #fafafa; border-left: 3px solid #2f6e3a; }
+    .act-momento { font-size: 9.5pt; color: #444; margin: 0 0 4px; }
+    .act-texto { margin: 0; white-space: pre-wrap; }
+    .act-recursos, .act-obs { font-size: 9.5pt; color: #555; margin: 6px 0 0; }
+    .muted { color: #888; font-size: 10pt; font-style: italic; }
+    ul { margin: 4px 0 8px; padding-left: 20px; }
+    p { margin: 6px 0; }
+    .footer {
+      margin-top: 28px;
+      padding-top: 10px;
+      border-top: 1px solid #ddd;
+      font-size: 9pt;
+      color: #888;
+    }
   </style>
 </head>
 <body>
-  <h1>${escapeHtml(planeacion.nombre)}</h1>
-  <p><strong>Periodo:</strong> ${escapeHtml(planeacion.periodo_inicio)} → ${escapeHtml(planeacion.periodo_fin)}</p>
+  <div class="doc">
+    <header>
+      <p class="meta">Planeación preescolar · Fase 2 · NEM</p>
+      <h1>${escapeHtml(planeacion.nombre)}</h1>
+      <div class="meta">
+        <p><strong>CCT:</strong> ${escapeHtml(planeacion.cct)}${planeacion.grupo_etiqueta ? ` · <strong>Grupo:</strong> ${escapeHtml(planeacion.grupo_etiqueta)}` : ''}</p>
+        <p><strong>Periodo:</strong> ${escapeHtml(planeacion.periodo_inicio)} → ${escapeHtml(planeacion.periodo_fin)}</p>
+        ${planeacion.modalidad_label ? `<p><strong>Modalidad:</strong> ${escapeHtml(planeacion.modalidad_label)}</p>` : ''}
+      </div>
+    </header>
 
-  <h2>Problema del contexto</h2>
-  <p>${escapeHtml(planeacion.problema_contexto)}</p>
+    <section class="bloque-seccion">
+      <h2>Problemática</h2>
+      <p>${escapeHtml(planeacion.problema_contexto)}</p>
+    </section>
 
-  <h2>Campos formativos</h2>
-  <p>${campos}</p>
+    ${planeacion.proposito ? `<section class="bloque-seccion"><h2>Propósito</h2><p>${escapeHtml(planeacion.proposito)}</p></section>` : ''}
+    ${planeacion.tema_centro ? `<section class="bloque-seccion"><h2>Tema del centro</h2><p>${escapeHtml(planeacion.tema_centro)}</p></section>` : ''}
+    ${preguntas}
+    ${planeacion.producto_integrador ? `<section class="bloque-seccion"><h2>Producto integrador</h2><p>${escapeHtml(planeacion.producto_integrador)}</p></section>` : ''}
 
-  <h2>Ejes articuladores</h2>
-  <p>${ejes}</p>
+    <section class="bloque-seccion">
+      <h2>Campos formativos y PDA</h2>
+      <table class="pda">
+        <thead><tr><th>Campo formativo</th><th>PDA</th></tr></thead>
+        <tbody>${buildPdaTableRows(planeacion)}</tbody>
+      </table>
+    </section>
 
-  <h2>PDA trabajados</h2>
-  <ul>
-${pdas || '    <li>—</li>'}
-  </ul>
+    <section class="bloque-seccion">
+      <h2>Ejes articuladores</h2>
+      <p>${ejes}</p>
+    </section>
 
-  <h2>Ajustes razonables</h2>
-  <p>${ajustes}</p>
+    <section class="bloque-seccion">
+      <h2>Estrategias / ajustes razonables</h2>
+      <p>${ajustes}</p>
+    </section>
 
-  <div class="footer">
-    ${footer}
+    ${buildRutinariasHtml(planeacion)}
+    ${buildCalendarioHtml(planeacion)}
+
+    <div class="footer">${footer}</div>
   </div>
 </body>
 </html>`;
@@ -341,10 +523,17 @@ export function createPuppeteerRenderer(
       try {
         page = await browser.newPage();
         await page.setContent(html, { waitUntil: 'networkidle0', timeout: 30000 });
+        // Documento corrido: una sola página tan alta como el contenido (sin paginar A4).
+        const heightPx = await page.evaluate(() => {
+          const el = document.documentElement;
+          return Math.ceil(Math.max(el.scrollHeight, el.offsetHeight, el.clientHeight));
+        });
         const pdfUint8 = await page.pdf({
-          format: 'A4',
+          width: `${PDF_DOC_WIDTH_MM}mm`,
+          height: `${Math.max(heightPx, 200)}px`,
           printBackground: true,
-          margin: { top: '20mm', right: '15mm', bottom: '20mm', left: '15mm' },
+          margin: { top: 0, right: 0, bottom: 0, left: 0 },
+          pageRanges: '1',
         });
         const buf = Buffer.from(pdfUint8);
         return makePdfResult(buf);

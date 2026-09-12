@@ -430,4 +430,100 @@ describe('EntrevistaInicialForm — IMPL-20260821-01 (stepper UX)', () => {
 
     document.body.removeChild(scrollable);
   });
+
+  // ===========================================================================
+  // DEC-20260821-02 — Guía contextual visible bajo el título + tooltip accesible
+  // Sin alterar las preguntas literales ni el texto del PDF.
+  // ===========================================================================
+  describe('DEC-20260821-02 — guía contextual por bloque', () => {
+    it('existe un control "Ayuda" en cada uno de los 3 bloques', async () => {
+      const user = userEvent.setup();
+      render(<EntrevistaInicialForm {...PROPS_BASE} />);
+
+      // Bloque 1.
+      const bloque1 = screen.getByTestId('entrevista-bloque-1');
+      const ayuda1 = within(bloque1).getByTestId('section-help-infantil-bloque-1-button');
+      expect(ayuda1).toHaveAttribute('aria-expanded', 'false');
+      expect(ayuda1.getAttribute('aria-label') ?? '').toMatch(/ayuda del bloque 1/i);
+
+      // El breve está visible sin interacción.
+      expect(
+        within(bloque1).getByTestId('section-help-infantil-bloque-1-breve'),
+      ).toHaveTextContent(/23 preguntas literales del alumno/i);
+
+      // Ir al bloque 2 vía stepper.
+      await user.click(screen.getByTestId('entrevista-stepper-next'));
+      const bloque2 = screen.getByTestId('entrevista-bloque-2');
+      const ayuda2 = within(bloque2).getByTestId('section-help-infantil-bloque-2-button');
+      expect(ayuda2.getAttribute('aria-label') ?? '').toMatch(/ayuda del bloque 2/i);
+      expect(
+        within(bloque2).getByTestId('section-help-infantil-bloque-2-breve'),
+      ).toHaveTextContent(/16 celdas literales/i);
+
+      // Ir al bloque 3.
+      await user.click(screen.getByTestId('entrevista-stepper-next'));
+      const bloque3 = screen.getByTestId('entrevista-bloque-3');
+      const ayuda3 = within(bloque3).getByTestId('section-help-infantil-bloque-3-button');
+      expect(ayuda3.getAttribute('aria-label') ?? '').toMatch(/ayuda del bloque 3/i);
+      expect(
+        within(bloque3).getByTestId('section-help-infantil-bloque-3-breve'),
+      ).toHaveTextContent(/4 contactos de emergencia/i);
+    });
+
+    it('el tooltip abre con clic, muestra "qué se captura / para qué / quién / no-IA", y cierra con Escape', async () => {
+      const user = userEvent.setup();
+      render(<EntrevistaInicialForm {...PROPS_BASE} />);
+      const bloque1 = screen.getByTestId('entrevista-bloque-1');
+      const ayuda = within(bloque1).getByTestId('section-help-infantil-bloque-1-button');
+
+      // Estado cerrado: panel ausente.
+      expect(
+        within(bloque1).queryByTestId('section-help-infantil-bloque-1-panel'),
+      ).not.toBeInTheDocument();
+
+      await user.click(ayuda);
+      const panel = await within(bloque1).findByTestId(
+        'section-help-infantil-bloque-1-panel',
+      );
+      expect(panel).toHaveAttribute('role', 'tooltip');
+      // Cubre los puntos pedidos por DEC-20260821-02.
+      expect(panel.textContent).toMatch(/Qu\xe9 se captura/);
+      expect(panel.textContent).toMatch(/Para qu\xe9 sirve/);
+      expect(panel.textContent).toMatch(/Qui\xe9n responde/);
+      expect(panel.textContent).toMatch(/Guardar vs Archivar/);
+      expect(panel.textContent).toMatch(/No se env\xeda a ninguna IA/);
+
+      // Escape cierra y devuelve el foco.
+      await user.keyboard('{Escape}');
+      await waitFor(() =>
+        expect(
+          within(bloque1).queryByTestId('section-help-infantil-bloque-1-panel'),
+        ).not.toBeInTheDocument(),
+      );
+      expect(ayuda).toHaveFocus();
+    });
+
+    it('NO inserta texto de guía sobre cada pregunta: el texto de la pregunta literal sigue intacto', () => {
+      render(<EntrevistaInicialForm {...PROPS_BASE} />);
+      // Cada celda del bloque 1 sólo debe contener el Label con la pregunta
+      // literal y el input; el breve de la guía está en el fieldset, no en
+      // cada celda.
+      for (const q of ENTREVISTA_BLOQUE1.slice(0, 3)) {
+        const item = screen.getByTestId(`entrevista-item-${q.orden}`);
+        const breve = within(item).queryByTestId(/section-help-.*-breve/);
+        expect(breve).not.toBeInTheDocument();
+      }
+    });
+
+    it('NO altera el texto del PDF: el orden de las preguntas y los textos literales se preservan', () => {
+      render(<EntrevistaInicialForm {...PROPS_BASE} />);
+      // Las 23 preguntas literales siguen presentes en su orden.
+      const items = screen.getAllByTestId(/^entrevista-item-[0-9]+$/);
+      expect(items).toHaveLength(23);
+      for (const q of ENTREVISTA_BLOQUE1) {
+        const item = screen.getByTestId(`entrevista-item-${q.orden}`);
+        expect(within(item).getByText(new RegExp(escapeRegex(q.pregunta)))).toBeInTheDocument();
+      }
+    });
+  });
 });

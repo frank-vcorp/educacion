@@ -63,3 +63,12 @@ Las decisiones confirmadas vigentes se conservan con sus IDs originales en `../f
 - **Regla IA:** ninguna respuesta, firma, teléfono, situación legal o dato familiar se envía a IA.
 - **Confirmación:** Frank, 2026-08-21.
 - **Estado:** confirmed.
+
+## DEC-20260821-02 — Guía contextual dentro de entrevistas
+
+- **Decisión:** agregar guía contextual en cada sección de las entrevistas para que las maestras puedan completar el instrumento sin consultar un manual externo.
+- **Forma:** texto breve visible debajo del título y tooltip accesible mediante icono de información; en móvil debe abrirse mediante toque, no depender de hover.
+- **Contenido:** explicar qué se captura, para qué sirve, quién responde y cómo usar `Guardar` frente a `Archivar`.
+- **Regla de literalidad:** la guía no modifica, resume ni sustituye ninguna pregunta del PDF; las preguntas permanecen exactas.
+- **Estado:** confirmed.
+- **Confirmación:** Frank, 2026-08-21.

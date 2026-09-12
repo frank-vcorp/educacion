@@ -15,10 +15,10 @@ import { createClient } from '@/lib/supabase/server';
 import { getServerSession } from '@/lib/auth/session';
 import {
   buildPlaneacionHtml,
-  type PlaneacionPdfData,
   renderPdfFromHtml,
   PdfGenerationUnavailableError,
 } from '@/lib/pdf/generate';
+import { fetchPlaneacionPdfPayload } from '@/lib/pdf/planeacion-pdf-data';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -38,28 +38,21 @@ export async function GET(_req: Request, { params }: RouteParams) {
   }
 
   const supabase = await createClient();
-  const { data: planeacion } = await supabase
-    .from('planeacion')
-    .select(
-      'id, nombre, problema_contexto, campos_formativos, ejes_articuladores, pdas, periodo_inicio, periodo_fin, docente_id, cct, ajustes_razonables, updated_at',
-    )
-    .eq('id', params.id)
-    .maybeSingle();
-
-  if (!planeacion) {
+  const loaded = await fetchPlaneacionPdfPayload(supabase, params.id);
+  if (!loaded) {
     return NextResponse.json(
       { error: 'NEM_PLANEACIONES_NOT_FOUND' },
       { status: 404 },
     );
   }
-  if (planeacion.docente_id !== session.docenteId) {
+  if (loaded.docenteId !== session.docenteId) {
     return NextResponse.json(
       { error: 'NEM_AUTH_RLS_VIOLATION' },
       { status: 403 },
     );
   }
 
-  const html = buildPlaneacionHtml(planeacion as PlaneacionPdfData);
+  const html = buildPlaneacionHtml(loaded.data);
 
   try {
     const { pdf, sha256, size } = await renderPdfFromHtml(html);
@@ -69,7 +62,7 @@ export async function GET(_req: Request, { params }: RouteParams) {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="planeacion-${planeacion.id}.pdf"`,
+        'Content-Disposition': `attachment; filename="planeacion-${loaded.data.id}.pdf"`,
         'Content-Length': String(size),
         'X-Pdf-Sha256': sha256,
         // Sin caché porque el hash podría ser estable sólo si el input es idéntico;

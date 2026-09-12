@@ -101,6 +101,8 @@ export interface Bloque {
     clave_busqueda?: string;
     cantidad?: number;
   }>;
+  momento?: string | null;
+  observacion?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -122,7 +124,7 @@ export async function getBloques(
   const { data, error } = await supabase
     .from('bloque')
     .select(
-      'id, planeacion_id, sesion_id, docente_id, cct, tipo, nivel_flexibilidad, contenido_textual, pda_ids, campos_formativos, ejes_articuladores, duracion_min, orden, origen, bloque_catalogo_id, recursos_requeridos, created_at, updated_at',
+      'id, planeacion_id, sesion_id, docente_id, cct, tipo, nivel_flexibilidad, contenido_textual, pda_ids, campos_formativos, ejes_articuladores, duracion_min, orden, origen, bloque_catalogo_id, recursos_requeridos, momento, observacion, created_at, updated_at',
     )
     .eq('planeacion_id', planeacionId)
     .order('orden', { ascending: true });
@@ -505,6 +507,47 @@ export async function deleteBloque(
     .delete()
     .eq('id', parsed.data.bloqueId)
     .eq('docente_id', parsed.data.docenteId);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
+const PatchCamposSchema = z.object({
+  bloqueId: z.string().uuid(),
+  docenteId: z.string().uuid(),
+  momento: z.string().max(100).nullable().optional(),
+  observacion: z.string().max(2000).nullable().optional(),
+});
+
+/** Momento NEM y observación por actividad (workbook preescolar). */
+export async function patchBloqueCampos(
+  input: z.infer<typeof PatchCamposSchema>,
+): Promise<{ ok: boolean; error?: string }> {
+  const parsed = PatchCamposSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
+  }
+  const { bloqueId, docenteId, momento, observacion } = parsed.data;
+  if (momento === undefined && observacion === undefined) {
+    return { ok: false, error: 'Nada que actualizar' };
+  }
+
+  const supabase = await createClient();
+  const { data: bloque, error: errRead } = await supabase
+    .from('bloque')
+    .select('id, docente_id')
+    .eq('id', bloqueId)
+    .maybeSingle();
+  if (errRead) return { ok: false, error: errRead.message };
+  if (!bloque) return { ok: false, error: 'Bloque no encontrado' };
+  if (bloque.docente_id !== docenteId) {
+    return { ok: false, error: 'El bloque no pertenece al docente' };
+  }
+
+  const patch: Record<string, string | null> = {};
+  if (momento !== undefined) patch.momento = momento;
+  if (observacion !== undefined) patch.observacion = observacion;
+
+  const { error } = await supabase.from('bloque').update(patch).eq('id', bloqueId);
   if (error) return { ok: false, error: error.message };
   return { ok: true };
 }

@@ -42,6 +42,7 @@ import {
   reorderBloquesInSesion,
   moveBloqueToSesion,
   deleteBloque,
+  patchBloqueCampos,
   type Bloque,
 } from '@/services/planeaciones/bloque-actions';
 import { updateBloque } from '@/services/planeaciones/update-actions';
@@ -50,7 +51,9 @@ import {
   getMensajeSinActividades,
   getNotaDragDrop,
   getTituloSeccionActividades,
+  getSeccionesGuia,
   etiquetaSesion,
+  MODALIDADES_LABELS,
   type Modalidad,
 } from '@/lib/planeaciones/modalidad-ui';
 import {
@@ -67,7 +70,21 @@ import {
 } from '@/services/planeaciones/sesion-recurso-actions';
 import { matchRecursosInventario } from '@/lib/planeaciones/matching-recursos';
 import { CATEGORIAS_RECURSO } from '@/services/recursos-aula/sugerir-uso';
-
+import {
+  filtrarBloquesCatalogo,
+  etiquetaContextoInventario,
+  type PdaGradoMap,
+} from '@/lib/nivel-educativo/filtros-inventario';
+import {
+  usaWorkbookLayout,
+  type WorkbookContexto,
+} from '@/lib/planeaciones/workbook-layout';
+import { WorkbookHoja } from '@/components/planeaciones/workbook-hoja';
+import { RutinariasPanel } from '@/components/planeaciones/rutinarias-panel';
+import {
+  agruparFechasPorSemana,
+  fechaDesdeEtiquetaSesion,
+} from '@/lib/planeaciones/calendario-periodo';
 const TIPO_LABEL: Record<string, string> = {
   apertura: 'Inicio',
   desarrollo: 'Desarrollo',
@@ -92,11 +109,15 @@ export interface ActividadesEditorProps {
   cct: string;
   modalidad: Modalidad;
   camposFormativos: string[];
+  gradoPreescolar: string;
+  pdaGradoPorCodigo: PdaGradoMap;
   bloquesIniciales: Bloque[];
   sesionesIniciales: Sesion[];
   catalogoInicial: BloqueCatalogo[];
   recursosInventario: RecursoInventarioItem[];
   recursosAsignadosInicial: SesionRecursoAsignado[];
+  /** Datos para hoja central (centro de interés / proyecto). */
+  workbook?: WorkbookContexto | null;
 }
 
 function emojiCategoriaRecurso(codigo: string): string {
@@ -226,6 +247,8 @@ function ActividadSortable({
   docenteId,
   cct,
   inventario,
+  esWorkbook,
+  momentosOptions,
   onDelete,
   onRefresh,
   onUsarRecurso,
@@ -235,6 +258,8 @@ function ActividadSortable({
   docenteId: string;
   cct: string;
   inventario: RecursoInventarioItem[];
+  esWorkbook?: boolean;
+  momentosOptions?: Array<{ key: string; label: string }>;
   onDelete: () => void;
   onRefresh: () => void;
   onUsarRecurso: (recursoId: string) => Promise<void>;
@@ -339,6 +364,64 @@ function ActividadSortable({
         </div>
       ) : (
         <p className="whitespace-pre-wrap text-sm">{bloque.contenido_textual}</p>
+      )}
+
+      {esWorkbook && (momentosOptions?.length ?? 0) > 0 && (
+        <div className="mt-2 space-y-2 border-t pt-2">
+          <div>
+            <label
+              htmlFor={`momento-${bloque.id}`}
+              className="text-xs font-medium text-muted-foreground"
+            >
+              Momento
+            </label>
+            <select
+              id={`momento-${bloque.id}`}
+              className="mt-1 w-full rounded-md border bg-background px-2 py-1.5 text-xs"
+              value={bloque.momento ?? ''}
+              onChange={async (e) => {
+                const res = await patchBloqueCampos({
+                  bloqueId: bloque.id,
+                  docenteId,
+                  momento: e.target.value || null,
+                });
+                if (res.ok) onRefresh();
+              }}
+            >
+              <option value="">— Sin asignar —</option>
+              {momentosOptions!.map((m) => (
+                <option key={m.key} value={m.key}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label
+              htmlFor={`obs-${bloque.id}`}
+              className="text-xs font-medium text-muted-foreground"
+            >
+              Observación / evidencias
+            </label>
+            <Textarea
+              id={`obs-${bloque.id}`}
+              defaultValue={bloque.observacion ?? ''}
+              rows={2}
+              className="mt-1 text-xs"
+              placeholder="Qué observaste, evidencias, ajustes…"
+              onBlur={async (e) => {
+                const val = e.target.value.trim();
+                if (val === (bloque.observacion ?? '').trim()) return;
+                const res = await patchBloqueCampos({
+                  bloqueId: bloque.id,
+                  docenteId,
+                  observacion: val || null,
+                });
+                if (res.ok) onRefresh();
+              }}
+            />
+          </div>
+        </div>
       )}
 
       {sugeridos.length > 0 && (
@@ -461,6 +544,8 @@ function SesionDropArea({
   docenteId,
   cct,
   inventario,
+  esWorkbook,
+  momentosOptions,
   onRefresh,
   onAssignRecurso,
   onQuitarRecurso,
@@ -472,6 +557,8 @@ function SesionDropArea({
   docenteId: string;
   cct: string;
   inventario: RecursoInventarioItem[];
+  esWorkbook?: boolean;
+  momentosOptions?: Array<{ key: string; label: string }>;
   onRefresh: () => void;
   onAssignRecurso: (sesionId: string, recursoId: string) => Promise<void>;
   onQuitarRecurso: (sesionId: string, recursoId: string) => void;
@@ -506,6 +593,8 @@ function SesionDropArea({
               docenteId={docenteId}
               cct={cct}
               inventario={inventario}
+              esWorkbook={esWorkbook}
+              momentosOptions={momentosOptions}
               onDelete={() => onDelete(b.id)}
               onRefresh={onRefresh}
               onUsarRecurso={(recursoId) => onAssignRecurso(sesion.id, recursoId)}
@@ -523,12 +612,20 @@ export function ActividadesEditor({
   cct,
   modalidad,
   camposFormativos,
+  gradoPreescolar,
+  pdaGradoPorCodigo,
   bloquesIniciales,
   sesionesIniciales,
   catalogoInicial,
   recursosInventario,
   recursosAsignadosInicial,
+  workbook = null,
 }: ActividadesEditorProps) {
+  const esWorkbook = usaWorkbookLayout(modalidad) && workbook != null;
+  const momentosWorkbook = useMemo(
+    () => (esWorkbook ? getSeccionesGuia(modalidad) : []),
+    [esWorkbook, modalidad],
+  );
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [bloques, setBloques] = useState<Bloque[]>(bloquesIniciales);
@@ -550,24 +647,34 @@ export function ActividadesEditor({
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
   );
 
-  const catalogoFiltrado = useMemo(() => {
-    const q = busqueda.trim().toLowerCase();
-    return catalogoInicial.filter((b) => {
-      if (camposFormativos.length > 0) {
-        const matchCampo = b.campos_formativos.some((c) => camposFormativos.includes(c));
-        if (!matchCampo) return false;
-      }
-      if (b.modalidades_compatibles.length > 0 && !b.modalidades_compatibles.includes(modalidad)) {
-        return false;
-      }
-      if (!q) return true;
-      return (
-        b.nombre.toLowerCase().includes(q) ||
-        (b.descripcion ?? '').toLowerCase().includes(q) ||
-        b.codigo.toLowerCase().includes(q)
-      );
-    });
-  }, [catalogoInicial, camposFormativos, modalidad, busqueda]);
+  const catalogoFiltrado = useMemo(
+    () =>
+      filtrarBloquesCatalogo(catalogoInicial, {
+        modalidad,
+        camposFormativos,
+        gradoPreescolar,
+        pdaGradoPorCodigo,
+        busqueda,
+      }),
+    [
+      catalogoInicial,
+      camposFormativos,
+      modalidad,
+      gradoPreescolar,
+      pdaGradoPorCodigo,
+      busqueda,
+    ],
+  );
+
+  const etiquetaFiltro = useMemo(
+    () =>
+      etiquetaContextoInventario({
+        grado: gradoPreescolar,
+        modalidadLabel: MODALIDADES_LABELS[modalidad],
+        camposCount: camposFormativos.length,
+      }),
+    [gradoPreescolar, modalidad, camposFormativos.length],
+  );
 
   const bloquesPorSesion = useMemo(() => {
     const map = new Map<string, Bloque[]>();
@@ -776,6 +883,186 @@ export function ActividadesEditor({
 
   const titulo = getTituloSeccionActividades(modalidad);
 
+  const panelCatalogo = (
+    <>
+      <SectionHelp
+        helpId={GUIA_CATALOGO.id}
+        ariaLabel={GUIA_CATALOGO.ariaLabel}
+        breve={GUIA_CATALOGO.breve}
+        detalle={GUIA_CATALOGO.detalle}
+      />
+      <p
+        className="rounded-md border border-nem-verde/20 bg-nem-verde/5 px-2 py-1.5 text-[11px] text-muted-foreground"
+        data-testid="catalogo-filtro-contexto"
+      >
+        Mostrando para: <span className="font-medium text-foreground">{etiquetaFiltro}</span>
+      </p>
+      <div className="relative">
+        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          className="pl-8"
+          placeholder="Buscar actividad…"
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          data-testid="catalogo-busqueda"
+        />
+      </div>
+      <p className="text-[11px] text-muted-foreground">
+        {catalogoFiltrado.length} actividades · día:{' '}
+        {sesiones.find((s) => s.id === sesionSeleccionada)
+          ? etiquetaSesion(sesiones.find((s) => s.id === sesionSeleccionada)!)
+          : '—'}
+      </p>
+      <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
+        {catalogoFiltrado.map((item) => (
+          <CatalogoCard
+            key={item.codigo}
+            item={item}
+            disabled={pending || !sesionSeleccionada}
+            onAgregar={() => agregarDesdeCatalogo(item.codigo, sesionSeleccionada)}
+          />
+        ))}
+      </div>
+    </>
+  );
+
+  const panelInventario = (
+    <>
+      <SectionHelp
+        helpId={GUIA_RECURSOS.id}
+        ariaLabel={GUIA_RECURSOS.ariaLabel}
+        breve={GUIA_RECURSOS.breve}
+        detalle={GUIA_RECURSOS.detalle}
+      />
+      {recursosInventario.length === 0 ? (
+        <p className="text-xs text-muted-foreground">
+          Aún no tienes materiales registrados.{' '}
+          <Link href="/recursos-aula" className="text-nem-verde underline">
+            Agregar en Recursos del aula
+          </Link>
+        </p>
+      ) : (
+        <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
+          {recursosInventario.map((item) => (
+            <RecursoInventarioCard
+              key={item.id}
+              item={item}
+              disabled={pending || !sesionSeleccionada}
+              onAgregar={() => assignRecurso(sesionSeleccionada, item.id)}
+            />
+          ))}
+        </div>
+      )}
+    </>
+  );
+
+  const sesionesPorSemana = useMemo(() => {
+    if (!esWorkbook || sesiones.length <= 5) return null;
+    const fechas = sesiones
+      .map((s) => fechaDesdeEtiquetaSesion(s.ajustes_sesion))
+      .filter((f): f is string => f != null);
+    if (fechas.length === 0) return null;
+    const semanas = agruparFechasPorSemana(fechas);
+    return semanas.map((sem) => ({
+      ...sem,
+      sesiones: sesiones.filter((s) => {
+        const f = fechaDesdeEtiquetaSesion(s.ajustes_sesion);
+        return f != null && sem.fechasISO.includes(f);
+      }),
+    }));
+  }, [esWorkbook, sesiones]);
+
+  const renderSesionDrop = (s: Sesion) => (
+    <div key={s.id} onClick={() => setSesionSeleccionada(s.id)} role="presentation">
+      <SesionDropArea
+        sesion={s}
+        bloques={bloquesPorSesion.get(s.id) ?? []}
+        recursos={recursosPorSesion.get(s.id) ?? []}
+        planeacionId={planeacionId}
+        docenteId={docenteId}
+        cct={cct}
+        inventario={recursosInventario}
+        esWorkbook={esWorkbook}
+        momentosOptions={momentosWorkbook}
+        onRefresh={refresh}
+        onAssignRecurso={assignRecurso}
+        onQuitarRecurso={quitarRecurso}
+      />
+    </div>
+  );
+
+  const panelSesiones = (
+    <div className="space-y-4">
+      {sesiones.length > 1 && (
+        <div className="flex flex-wrap gap-2">
+          {sesiones.map((s) => (
+            <Button
+              key={s.id}
+              type="button"
+              size="sm"
+              variant={sesionSeleccionada === s.id ? 'default' : 'outline'}
+              onClick={() => setSesionSeleccionada(s.id)}
+            >
+              {etiquetaSesion(s)}
+            </Button>
+          ))}
+        </div>
+      )}
+
+      {bloques.length === 0 && (
+        <p
+          data-testid="bloque-editor-empty"
+          className="rounded-md border border-dashed bg-muted/30 px-3 py-2 text-sm text-muted-foreground"
+        >
+          {getMensajeSinActividades(modalidad)}
+        </p>
+      )}
+
+      {sesionesPorSemana
+        ? sesionesPorSemana.map((sem) => (
+            <div key={sem.clave} className="space-y-2">
+              <p className="text-xs font-medium text-nem-verde">{sem.etiqueta}</p>
+              {sem.sesiones.map(renderSesionDrop)}
+            </div>
+          ))
+        : sesiones.map(renderSesionDrop)}
+
+      <div className="space-y-2 border-t pt-3">
+        <label htmlFor="actividad-manual" className="text-xs font-medium">
+          Escribir actividad propia
+        </label>
+        <Textarea
+          id="actividad-manual"
+          data-testid="bloque-editor-nuevo"
+          value={nuevoTexto}
+          onChange={(e) => setNuevoTexto(e.target.value)}
+          placeholder="Ej. Tintura con café, picnic de amigos, entrevista a compañeros…"
+          rows={3}
+          disabled={adding}
+        />
+        {errorNuevo && (
+          <p role="alert" className="text-xs text-destructive">
+            {errorNuevo}
+          </p>
+        )}
+        <Button
+          type="button"
+          size="sm"
+          onClick={onCrearManual}
+          disabled={adding || !sesionSeleccionada}
+          data-testid="bloque-editor-crear"
+        >
+          {adding ? (
+            <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+          ) : (
+            <Plus className="mr-1 h-4 w-4" />
+          )}
+          Añadir actividad
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
     <Card data-testid="actividades-editor" className={pending ? 'opacity-90' : ''}>
       <CardHeader>
@@ -806,179 +1093,63 @@ export function ActividadesEditor({
           onDragStart={onDragStart}
           onDragEnd={onDragEnd}
         >
-          <div className="grid gap-4 lg:grid-cols-[minmax(240px,300px)_1fr]">
-            {/* Catálogo + inventario */}
+          <div
+            className={
+              esWorkbook
+                ? 'grid gap-4 xl:grid-cols-[minmax(220px,260px)_minmax(0,1fr)_minmax(220px,260px)]'
+                : 'grid gap-4 lg:grid-cols-[minmax(240px,300px)_1fr]'
+            }
+            data-testid={esWorkbook ? 'workbook-layout' : 'classic-layout'}
+          >
             <aside className="space-y-3 rounded-lg border bg-muted/20 p-3">
-              <div className="flex gap-1 rounded-md border bg-background p-0.5">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={panelIzquierdo === 'catalogo' ? 'default' : 'ghost'}
-                  className="h-8 flex-1 text-xs"
-                  onClick={() => setPanelIzquierdo('catalogo')}
-                >
-                  Catálogo NEM
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={panelIzquierdo === 'inventario' ? 'default' : 'ghost'}
-                  className="h-8 flex-1 text-xs"
-                  onClick={() => setPanelIzquierdo('inventario')}
-                >
-                  Mi aula
-                </Button>
-              </div>
-
-              {panelIzquierdo === 'catalogo' ? (
+              {esWorkbook ? (
                 <>
-                  <SectionHelp
-                    helpId={GUIA_CATALOGO.id}
-                    ariaLabel={GUIA_CATALOGO.ariaLabel}
-                    breve={GUIA_CATALOGO.breve}
-                    detalle={GUIA_CATALOGO.detalle}
-                  />
-                  <div className="relative">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      className="pl-8"
-                      placeholder="Buscar actividad…"
-                      value={busqueda}
-                      onChange={(e) => setBusqueda(e.target.value)}
-                      data-testid="catalogo-busqueda"
-                    />
-                  </div>
-                  <p className="text-[11px] text-muted-foreground">
-                    {catalogoFiltrado.length} actividades · día:{' '}
-                    {sesiones.find((s) => s.id === sesionSeleccionada)
-                      ? etiquetaSesion(sesiones.find((s) => s.id === sesionSeleccionada)!)
-                      : '—'}
-                  </p>
-                  <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
-                    {catalogoFiltrado.map((item) => (
-                      <CatalogoCard
-                        key={item.codigo}
-                        item={item}
-                        disabled={pending || !sesionSeleccionada}
-                        onAgregar={() => agregarDesdeCatalogo(item.codigo, sesionSeleccionada)}
-                      />
-                    ))}
-                  </div>
+                  <p className="text-xs font-medium">Catálogo NEM</p>
+                  {panelCatalogo}
                 </>
               ) : (
                 <>
-                  <SectionHelp
-                    helpId={GUIA_RECURSOS.id}
-                    ariaLabel={GUIA_RECURSOS.ariaLabel}
-                    breve={GUIA_RECURSOS.breve}
-                    detalle={GUIA_RECURSOS.detalle}
-                  />
-                  {recursosInventario.length === 0 ? (
-                    <p className="text-xs text-muted-foreground">
-                      Aún no tienes materiales registrados.{' '}
-                      <Link href="/recursos-aula" className="text-nem-verde underline">
-                        Agregar en Recursos del aula
-                      </Link>
-                    </p>
-                  ) : (
-                    <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
-                      {recursosInventario.map((item) => (
-                        <RecursoInventarioCard
-                          key={item.id}
-                          item={item}
-                          disabled={pending || !sesionSeleccionada}
-                          onAgregar={() => assignRecurso(sesionSeleccionada, item.id)}
-                        />
-                      ))}
-                    </div>
-                  )}
+                  <div className="flex gap-1 rounded-md border bg-background p-0.5">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={panelIzquierdo === 'catalogo' ? 'default' : 'ghost'}
+                      className="h-8 flex-1 text-xs"
+                      onClick={() => setPanelIzquierdo('catalogo')}
+                    >
+                      Catálogo NEM
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={panelIzquierdo === 'inventario' ? 'default' : 'ghost'}
+                      className="h-8 flex-1 text-xs"
+                      onClick={() => setPanelIzquierdo('inventario')}
+                    >
+                      Mi aula
+                    </Button>
+                  </div>
+                  {panelIzquierdo === 'catalogo' ? panelCatalogo : panelInventario}
                 </>
               )}
             </aside>
 
-            {/* Sesiones / días */}
-            <div className="space-y-4">
-              {sesiones.length > 1 && (
-                <div className="flex flex-wrap gap-2">
-                  {sesiones.map((s) => (
-                    <Button
-                      key={s.id}
-                      type="button"
-                      size="sm"
-                      variant={sesionSeleccionada === s.id ? 'default' : 'outline'}
-                      onClick={() => setSesionSeleccionada(s.id)}
-                    >
-                      {etiquetaSesion(s)}
-                    </Button>
-                  ))}
-                </div>
+            <div className="min-w-0 space-y-4">
+              {esWorkbook && workbook && (
+                <WorkbookHoja ctx={workbook} />
               )}
-
-              {bloques.length === 0 && (
-                <p
-                  data-testid="bloque-editor-empty"
-                  className="rounded-md border border-dashed bg-muted/30 px-3 py-2 text-sm text-muted-foreground"
-                >
-                  {getMensajeSinActividades(modalidad)}
-                </p>
-              )}
-
-              {sesiones.map((s) => (
-                <div
-                  key={s.id}
-                  onClick={() => setSesionSeleccionada(s.id)}
-                  role="presentation"
-                >
-                  <SesionDropArea
-                    sesion={s}
-                    bloques={bloquesPorSesion.get(s.id) ?? []}
-                    recursos={recursosPorSesion.get(s.id) ?? []}
-                    planeacionId={planeacionId}
-                    docenteId={docenteId}
-                    cct={cct}
-                    inventario={recursosInventario}
-                    onRefresh={refresh}
-                    onAssignRecurso={assignRecurso}
-                    onQuitarRecurso={quitarRecurso}
-                  />
-                </div>
-              ))}
-
-              <div className="space-y-2 border-t pt-3">
-                <label htmlFor="actividad-manual" className="text-xs font-medium">
-                  Escribir actividad propia
-                </label>
-                <Textarea
-                  id="actividad-manual"
-                  data-testid="bloque-editor-nuevo"
-                  value={nuevoTexto}
-                  onChange={(e) => setNuevoTexto(e.target.value)}
-                  placeholder="Ej. Tintura con café, picnic de amigos, entrevista a compañeros…"
-                  rows={3}
-                  disabled={adding}
-                />
-                {errorNuevo && (
-                  <p role="alert" className="text-xs text-destructive">
-                    {errorNuevo}
-                  </p>
-                )}
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={onCrearManual}
-                  disabled={adding || !sesionSeleccionada}
-                  data-testid="bloque-editor-crear"
-                >
-                  {adding ? (
-                    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Plus className="mr-1 h-4 w-4" />
-                  )}
-                  Añadir actividad
-                </Button>
-              </div>
+              {panelSesiones}
             </div>
+
+            {esWorkbook && (
+              <aside className="space-y-3 rounded-lg border bg-muted/20 p-3">
+                <p className="text-xs font-medium">Mi aula</p>
+                {panelInventario}
+              </aside>
+            )}
           </div>
+
+          {esWorkbook && <RutinariasPanel />}
 
           <DragOverlay>
             {activeDrag ? (

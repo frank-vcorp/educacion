@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/dialog';
 import { updateGrupo, deleteGrupo } from '@/lib/grupos/actions';
 
-const GRADOS = ['1°', '2°', '3°'] as const;
+import { GRADOS_PREESCOLAR } from '@/lib/nivel-educativo/scope';
 
 export function EditarGrupoForm({
   grupoId,
@@ -101,7 +101,7 @@ export function EditarGrupoForm({
                   required
                   disabled={isPending}
                 >
-                  {GRADOS.map((g) => (
+                  {GRADOS_PREESCOLAR.map((g) => (
                     <option key={g} value={g}>
                       {g}
                     </option>

@@ -31,7 +31,7 @@ export const GUIA_CATALOGO: GuiaPlaneacion = {
   ariaLabel: 'Ayuda: catálogo de actividades sugeridas',
   breve:
     'Son ideas listas del NEM. Mantén pulsado y arrastra hacia el día donde la harás.',
-  detalle: `Qué es: un banco de actividades sugeridas por campo formativo (Lenguajes, Saberes, etc.).
+  detalle: `Qué es: un banco de actividades sugeridas por campo formativo (Lenguajes, Saberes, etc.), filtradas por el grado de tu grupo (1°, 2° o 3°), la modalidad y los campos de tu planeación.
 
 Cómo usarlo:
 • Toca el ícono ⋮⋮ y arrastra hacia la zona punteada del día.

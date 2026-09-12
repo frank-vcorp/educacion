@@ -1,5 +1,5 @@
 /**
- * Form de edición de CCT (reutiliza CCTPicker del onboarding).
+ * Form de edición de CCT (solo jardines de niños / preescolar).
  * SPEC-CORRECCIONES-2026-08-17 C-1.
  */
 'use client';
@@ -10,6 +10,7 @@ import { Loader2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { updateDocenteCCT } from '@/lib/perfil/actions';
+import { mensajeCCTNoPreescolar, mensajeSoloPreescolar } from '@/lib/nivel-educativo/scope';
 
 interface CCTBasic {
   clave: string;
@@ -20,21 +21,27 @@ interface CCTBasic {
   entidad_nombre: string | null;
 }
 
-const NIVELES = [
-  { value: 'preescolar', label: 'Preescolar' },
-  { value: 'primaria', label: 'Primaria' },
-  { value: 'secundaria', label: 'Secundaria' },
-];
+function esCCTPreescolar(cct: CCTBasic): boolean {
+  return cct.nivel === 'preescolar';
+}
 
-export function EditarCCTForm({ cctInicial, nivelInicial }: { cctInicial: string; nivelInicial: string }) {
+export function EditarCCTForm({ cctInicial }: { cctInicial: string }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState(cctInicial);
   const [results, setResults] = useState<CCTBasic[]>([]);
   const [selected, setSelected] = useState<CCTBasic | null>(
-    cctInicial ? { clave: cctInicial, nombre: cctInicial, nivel: nivelInicial, turno: null, municipio_nombre: null, entidad_nombre: null } : null,
+    cctInicial
+      ? {
+          clave: cctInicial,
+          nombre: cctInicial,
+          nivel: 'preescolar',
+          turno: null,
+          municipio_nombre: null,
+          entidad_nombre: null,
+        }
+      : null,
   );
-  const [nivel, setNivel] = useState(nivelInicial || 'preescolar');
   const [isPending, startTransition] = useTransition();
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,18 +50,21 @@ export function EditarCCTForm({ cctInicial, nivelInicial }: { cctInicial: string
   async function handleSearch(value: string) {
     setQuery(value);
     setSuccess(false);
-    // Clave exacta 10 chars → lookup directo
+    setError(null);
     if (value.trim().length === 10 && /^[A-Z0-9]{10}$/i.test(value.trim())) {
       setSearching(true);
       const res = await fetch(`/api/cct/buscar?clave=${encodeURIComponent(value.trim())}`);
       const data = await res.json();
       setSearching(false);
       if (data.cct) {
+        if (!esCCTPreescolar(data.cct)) {
+          setSelected(null);
+          setError(mensajeCCTNoPreescolar(data.cct.nivel));
+          setResults([]);
+          return;
+        }
         setSelected(data.cct);
         setResults([]);
-        if (['preescolar', 'primaria', 'secundaria'].includes(data.cct.nivel)) {
-          setNivel(data.cct.nivel);
-        }
       } else {
         setSelected(null);
       }
@@ -68,16 +78,18 @@ export function EditarCCTForm({ cctInicial, nivelInicial }: { cctInicial: string
     const res = await fetch(`/api/cct/buscar?q=${encodeURIComponent(value.trim())}`);
     const data = await res.json();
     setSearching(false);
-    setResults(data.results ?? []);
+    setResults((data.results ?? []).filter(esCCTPreescolar));
   }
 
   function handleSelect(c: CCTBasic) {
+    if (!esCCTPreescolar(c)) {
+      setError(mensajeCCTNoPreescolar(c.nivel));
+      return;
+    }
     setSelected(c);
     setQuery(c.clave);
     setResults([]);
-    if (['preescolar', 'primaria', 'secundaria'].includes(c.nivel)) {
-      setNivel(c.nivel);
-    }
+    setError(null);
   }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -86,10 +98,14 @@ export function EditarCCTForm({ cctInicial, nivelInicial }: { cctInicial: string
       setError('Selecciona una escuela de la lista');
       return;
     }
+    if (!esCCTPreescolar(selected)) {
+      setError(mensajeCCTNoPreescolar(selected.nivel));
+      return;
+    }
     setError(null);
     setSuccess(false);
     startTransition(async () => {
-      const res = await updateDocenteCCT({ cct: selected.clave, nivel });
+      const res = await updateDocenteCCT({ cct: selected.clave });
       if (!res.ok) {
         setError(res.error ?? 'Error al guardar');
         return;
@@ -104,7 +120,7 @@ export function EditarCCTForm({ cctInicial, nivelInicial }: { cctInicial: string
     return (
       <div>
         <Button type="button" variant="outline" onClick={() => setOpen(true)}>
-          Editar CCT y nivel
+          Editar CCT
         </Button>
         {success && (
           <p className="mt-2 text-xs text-nem-verde">✓ CCT actualizado correctamente</p>
@@ -115,12 +131,14 @@ export function EditarCCTForm({ cctInicial, nivelInicial }: { cctInicial: string
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border bg-muted/30 p-4">
+      <p className="text-xs text-muted-foreground">{mensajeSoloPreescolar()}</p>
+
       <div className="relative">
         <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
         <Input
           value={query}
           onChange={(e) => handleSearch(e.target.value)}
-          placeholder="Buscar por nombre o clave CCT"
+          placeholder="Buscar jardín de niños por nombre o clave CCT"
           className="pl-9"
           autoComplete="off"
         />
@@ -153,29 +171,10 @@ export function EditarCCTForm({ cctInicial, nivelInicial }: { cctInicial: string
         <div className="rounded-md border border-nem-verde/30 bg-nem-verde/5 p-3">
           <p className="text-sm font-medium">{selected.nombre}</p>
           <p className="text-xs text-muted-foreground">
-            CCT: {selected.clave} · {selected.nivel}
+            CCT: {selected.clave} · Preescolar
           </p>
         </div>
       )}
-
-      <div>
-        <label htmlFor="nivel" className="text-sm font-medium">
-          Nivel educativo
-        </label>
-        <select
-          id="nivel"
-          value={nivel}
-          onChange={(e) => setNivel(e.target.value)}
-          className="mt-1 block w-full rounded-md border bg-background px-3 py-2 text-sm"
-          required
-        >
-          {NIVELES.map((n) => (
-            <option key={n.value} value={n.value}>
-              {n.label}
-            </option>
-          ))}
-        </select>
-      </div>
 
       {error && (
         <p className="text-sm text-destructive" role="alert">

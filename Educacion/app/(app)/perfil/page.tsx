@@ -43,7 +43,7 @@ export default async function PerfilPage() {
       <header className="mb-6">
         <h1 className="text-2xl font-semibold text-nem-verde">Mi perfil</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Datos de tu cuenta y escuela. Puedes editar el CCT y nivel en cualquier momento.
+          Datos de tu cuenta y jardín de niños. Puedes editar el CCT en cualquier momento.
         </p>
       </header>
 
@@ -75,7 +75,7 @@ export default async function PerfilPage() {
       <Card className="mt-4">
         <CardHeader>
           <CardTitle className="text-base">Escuela</CardTitle>
-          <CardDescription>Centro de Trabajo (CCT) y nivel educativo</CardDescription>
+          <CardDescription>Centro de Trabajo (CCT) — preescolar</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <Row
@@ -105,11 +105,8 @@ export default async function PerfilPage() {
             </>
           )}
           <div className="border-t pt-3">
-            <p className="mb-2 text-xs font-medium text-muted-foreground">Cambiar CCT o nivel</p>
-            <EditarCCTForm
-              cctInicial={docente?.cct ?? ''}
-              nivelInicial={nivel !== '—' ? nivel : 'preescolar'}
-            />
+            <p className="mb-2 text-xs font-medium text-muted-foreground">Cambiar CCT</p>
+            <EditarCCTForm cctInicial={docente?.cct ?? ''} />
           </div>
         </CardContent>
       </Card>

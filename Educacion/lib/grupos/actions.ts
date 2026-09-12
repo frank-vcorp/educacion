@@ -10,12 +10,11 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
-
-const Grados = ['1°', '2°', '3°'] as const;
+import { GRADOS_PREESCOLAR } from '@/lib/nivel-educativo/scope';
 
 const UpdateSchema = z.object({
   id: z.string().uuid(),
-  grado: z.enum(Grados),
+  grado: z.enum(GRADOS_PREESCOLAR),
   grupo: z.string().min(1, 'Grupo requerido').max(2),
   cicloEscolar: z.string().regex(/^\d{4}-\d{4}$/, 'Ciclo debe ser YYYY-YYYY'),
   totalAlumnos: z

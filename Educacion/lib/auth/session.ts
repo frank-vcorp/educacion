@@ -10,6 +10,8 @@ export interface SessionInfo {
   user: User;
   cct: string | null;
   docenteId: string | null;
+  /** Nivel del docente en BD; MVP solo admite preescolar. */
+  nivelDocente: string | null;
   hasAcceptedAviso: boolean;
   hasGrupoActivo: boolean;
 }
@@ -49,6 +51,7 @@ export async function getServerSession(): Promise<SessionInfo | null> {
     user,
     cct: docenteRes.data?.cct ?? null,
     docenteId: docenteRes.data?.id ?? null,
+    nivelDocente: docenteRes.data?.nivel ?? null,
     hasAcceptedAviso: !!avisoRes.data,
     hasGrupoActivo: (gruposRes.count ?? 0) > 0,
   };

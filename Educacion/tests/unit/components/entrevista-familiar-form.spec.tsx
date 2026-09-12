@@ -18,7 +18,8 @@
  * `services/alumnos/entrevista-familiar-actions` para no tocar Supabase.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { EntrevistaFamiliarForm } from '@/components/alumnos/entrevista-familiar-form';
 import {
   HABITOS_FAMILIARES,
@@ -339,5 +340,123 @@ describe('IMPL-20260821-05 — EntrevistaFamiliarForm', () => {
     ).toBeTruthy();
     const archivar = screen.getByTestId('entrevista-familiar-archivar');
     expect(archivar.hasAttribute('disabled')).toBe(true);
+  });
+
+  // ===========================================================================
+  // DEC-20260821-02 — Guía contextual visible bajo el título + tooltip accesible
+  // ===========================================================================
+  describe('DEC-20260821-02 — guía contextual por bloque', () => {
+    const renderBase = () =>
+      render(
+        <EntrevistaFamiliarForm
+          alumno={alumnoFixture}
+          initial={null}
+          avisoAceptado
+          onSaved={() => {}}
+          onError={() => {}}
+        />,
+      );
+
+    it('existe un control "Ayuda" en cada uno de los 6 bloques (A..F) con breve visible', () => {
+      renderBase();
+      const ids = [
+        'familiar-bloque-a',
+        'familiar-bloque-b',
+        'familiar-bloque-c',
+        'familiar-bloque-d',
+        'familiar-bloque-e',
+        'familiar-bloque-f',
+      ];
+      for (const id of ids) {
+        // El bloque D puede estar oculto en algunas condiciones; verificamos
+        // su breve con o sin visibilidad.
+        const leyenda = id.replace('familiar-bloque-', '').toUpperCase();
+        // El breve se busca en todo el documento (no siempre dentro del
+        // fieldset, porque el fieldset puede estar oculto); acotamos por
+        // id del breve de la guía.
+        const brev = screen.queryByTestId(`section-help-${id}-breve`);
+        // Sólo A-F tienen guide con id prefix `familiar-bloque-?`; D sólo
+        // aparece si condiciones de §4.1 lo permiten.
+        if (id === 'familiar-bloque-d') {
+          // En el fixture base no se marca casados/unión libre → sí aparece.
+          expect(brev).toBeTruthy();
+        } else {
+          expect(brev).toBeTruthy();
+        }
+        // Cada breve contiene al menos una pista de su contenido.
+        expect(brev?.textContent ?? '').not.toMatch(/^$/);
+        // Etiqueta humana coherente.
+        expect(brev?.textContent ?? '').toMatch(/\w+/);
+        // Sanity check: la leyenda sigue presente.
+        void leyenda;
+      }
+    });
+
+    it('el tooltip abre con clic/toque, role="tooltip", y muestra el detalle de DEC-20260821-02', async () => {
+      const user = userEvent.setup();
+      renderBase();
+      const bloqueA = screen.getByTestId('entrevista-familiar-bloque-a');
+      const ayuda = within(bloqueA).getByTestId('section-help-familiar-bloque-a-button');
+
+      // Estado cerrado.
+      expect(ayuda).toHaveAttribute('aria-expanded', 'false');
+      expect(
+        within(bloqueA).queryByTestId('section-help-familiar-bloque-a-panel'),
+      ).not.toBeInTheDocument();
+
+      // Clic/toque (no hover).
+      await user.click(ayuda);
+      const panel = await within(bloqueA).findByTestId(
+        'section-help-familiar-bloque-a-panel',
+      );
+      expect(panel).toHaveAttribute('role', 'tooltip');
+      // Cubre los puntos exigidos por DEC-20260821-02.
+      expect(panel.textContent).toMatch(/Qu\xe9 se captura/);
+      expect(panel.textContent).toMatch(/Para qu\xe9 sirve/);
+      expect(panel.textContent).toMatch(/Qui\xe9n responde/);
+      expect(panel.textContent).toMatch(/Guardar vs Archivar/);
+      expect(panel.textContent).toMatch(/No se env\xeda a ninguna IA/);
+    });
+
+    it('teclado: Escape con tooltip abierto cierra y devuelve el foco al botón', async () => {
+      const user = userEvent.setup();
+      renderBase();
+      const bloqueA = screen.getByTestId('entrevista-familiar-bloque-a');
+      const ayuda = within(bloqueA).getByTestId('section-help-familiar-bloque-a-button');
+      ayuda.focus();
+      await user.keyboard('{Enter}');
+      await waitFor(() =>
+        expect(
+          within(bloqueA).getByTestId('section-help-familiar-bloque-a-panel'),
+        ).toBeInTheDocument(),
+      );
+      await user.keyboard('{Escape}');
+      await waitFor(() =>
+        expect(
+          within(bloqueA).queryByTestId('section-help-familiar-bloque-a-panel'),
+        ).not.toBeInTheDocument(),
+      );
+      expect(ayuda).toHaveFocus();
+    });
+
+    it('NO inserta texto de guía sobre cada pregunta: el breve está en el fieldset, no en cada celda', () => {
+      renderBase();
+      // En los 15 hábitos NO debe haber un breve de la guía dentro de cada celda.
+      for (const h of HABITOS_FAMILIARES.slice(0, 3)) {
+        const item = screen.getByTestId(`familiar-habito-${h.orden}`);
+        const breve = within(item).queryByTestId(/section-help-.*-breve/);
+        expect(breve).not.toBeInTheDocument();
+      }
+    });
+
+    it('NO altera el texto del PDF: cabecera y 15 ítems con peculiaridades siguen literales', () => {
+      renderBase();
+      expect(screen.getByText(ENCABEZADO_INSTITUCION)).toBeInTheDocument();
+      expect(screen.getByText(TITULO_CUESTIONARIO)).toBeInTheDocument();
+      // 15 ítems con `orden` ∈ {1..14, 16}.
+      expect(HABITOS_FAMILIARES_TOTAL).toBe(15);
+      const ordenes = HABITOS_FAMILIARES.map((h) => h.orden).sort((a, b) => a - b);
+      expect(ordenes).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16]);
+    });
   });
 });

@@ -1,5 +1,7 @@
 'use client';
 
+import { NIVEL_EDUCATIVO_MVP } from '@/lib/nivel-educativo/scope';
+
 /**
  * IAContextoProblemaPanel — F0 — SPEC_TEC_10 §4.4 — IMPL-20260820-06.
  *
@@ -45,7 +47,7 @@ export interface IAContextoProblemaPanelProps {
   proposito: string;
   /** Borrador actual de ajustes razonables (puede ir vacío). */
   ajustesRazonables: string;
-  /** Nivel educativo del grupo (`preescolar` | `primaria` | `secundaria` | null). */
+  /** Grado preescolar del grupo (1°, 2°, 3°) — la app es solo preescolar. */
   nivel: string | null;
   onApplyProblema: (texto: string) => void;
   onApplyProposito: (texto: string) => void;
@@ -124,7 +126,7 @@ export function IAContextoProblemaPanel(props: IAContextoProblemaPanelProps) {
         problema_contexto: props.problemaContexto,
         proposito: props.proposito,
         ajustes_razonables: props.ajustesRazonables,
-        nivel: props.nivel,
+        nivel: NIVEL_EDUCATIVO_MVP,
       };
       const res = await fetch('/api/planeaciones/ia/contexto-problema', {
         method: 'POST',

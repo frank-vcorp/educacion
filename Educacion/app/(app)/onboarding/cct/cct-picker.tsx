@@ -1,11 +1,13 @@
 /**
  * Picker de CCT con autocomplete (usa server action para búsqueda).
+ * MVP: solo jardines de niños (preescolar).
  */
 'use client';
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { saveCCT } from '@/lib/onboarding/actions';
+import { mensajeCCTNoPreescolar, mensajeSoloPreescolar } from '@/lib/nivel-educativo/scope';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2, Search } from 'lucide-react';
@@ -19,31 +21,34 @@ interface CCTBasic {
   entidad_nombre: string | null;
 }
 
-const NIVELES = [
-  { value: 'preescolar', label: 'Preescolar' },
-  { value: 'primaria', label: 'Primaria' },
-  { value: 'secundaria', label: 'Secundaria' },
-];
+function esCCTPreescolar(cct: CCTBasic): boolean {
+  return cct.nivel === 'preescolar';
+}
 
 export function CCTPicker() {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<CCTBasic[]>([]);
   const [selected, setSelected] = useState<CCTBasic | null>(null);
-  const [nivel, setNivel] = useState('preescolar');
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [searching, setSearching] = useState(false);
 
   async function handleSearch(value: string) {
     setQuery(value);
-    // Si parece ser una clave CCT (10 chars alfanuméricos), aceptarla directamente
+    setError(null);
     if (value.trim().length === 10 && /^[A-Z0-9]{10}$/i.test(value.trim())) {
       setSearching(true);
       const res = await fetch(`/api/cct/buscar?clave=${encodeURIComponent(value.trim())}`);
       const data = await res.json();
       setSearching(false);
       if (data.cct) {
+        if (!esCCTPreescolar(data.cct)) {
+          setSelected(null);
+          setError(mensajeCCTNoPreescolar(data.cct.nivel));
+          setResults([]);
+          return;
+        }
         setSelected(data.cct);
         setResults([]);
       }
@@ -57,16 +62,18 @@ export function CCTPicker() {
     const res = await fetch(`/api/cct/buscar?q=${encodeURIComponent(value.trim())}`);
     const data = await res.json();
     setSearching(false);
-    setResults(data.results ?? []);
+    setResults((data.results ?? []).filter(esCCTPreescolar));
   }
 
   function handleSelect(cct: CCTBasic) {
+    if (!esCCTPreescolar(cct)) {
+      setError(mensajeCCTNoPreescolar(cct.nivel));
+      return;
+    }
     setSelected(cct);
     setQuery(cct.nombre);
     setResults([]);
-    if (cct.nivel === 'preescolar' || cct.nivel === 'primaria' || cct.nivel === 'secundaria') {
-      setNivel(cct.nivel);
-    }
+    setError(null);
   }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -75,10 +82,13 @@ export function CCTPicker() {
       setError('Selecciona una escuela de la lista');
       return;
     }
+    if (!esCCTPreescolar(selected)) {
+      setError(mensajeCCTNoPreescolar(selected.nivel));
+      return;
+    }
     setError(null);
     const formData = new FormData();
     formData.set('cct', selected.clave);
-    formData.set('nivel', nivel);
     startTransition(async () => {
       const result = await saveCCT(formData);
       if (!result.ok) {
@@ -91,12 +101,14 @@ export function CCTPicker() {
 
   return (
     <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+      <p className="text-sm text-muted-foreground">{mensajeSoloPreescolar()}</p>
+
       <div className="relative">
         <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
         <Input
           value={query}
           onChange={(e) => handleSearch(e.target.value)}
-          placeholder="Buscar por nombre o clave CCT"
+          placeholder="Buscar jardín de niños por nombre o clave CCT"
           className="pl-9"
           autoComplete="off"
         />
@@ -129,29 +141,10 @@ export function CCTPicker() {
         <div className="rounded-md border border-nem-verde/30 bg-nem-verde/5 p-3">
           <p className="text-sm font-medium">{selected.nombre}</p>
           <p className="text-xs text-muted-foreground">
-            CCT: {selected.clave} · {selected.nivel}
+            CCT: {selected.clave} · Preescolar
           </p>
         </div>
       )}
-
-      <div>
-        <label htmlFor="nivel" className="text-sm font-medium">
-          Nivel educativo
-        </label>
-        <select
-          id="nivel"
-          value={nivel}
-          onChange={(e) => setNivel(e.target.value)}
-          className="mt-1 block w-full rounded-md border bg-background px-3 py-2 text-sm"
-          required
-        >
-          {NIVELES.map((n) => (
-            <option key={n.value} value={n.value}>
-              {n.label}
-            </option>
-          ))}
-        </select>
-      </div>
 
       {error && (
         <p className="text-sm text-destructive" role="alert">

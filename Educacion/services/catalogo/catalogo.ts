@@ -3,6 +3,7 @@
  * SPEC_TEC_02 §5.1 + §7.3: tablas sin RLS, lectura para todos.
  */
 import { createClient } from '@/lib/supabase/server';
+import { NIVEL_EDUCATIVO_MVP } from '@/lib/nivel-educativo/scope';
 
 export interface CampoFormativo {
   codigo: string;
@@ -205,6 +206,7 @@ export async function buscarCCTs(query: string, limit = 10): Promise<CCTBasico[]
     .from('cct')
     .select('clave, nombre, nivel, turno, municipio_nombre, entidad_nombre')
     .ilike('nombre', `%${query.trim()}%`)
+    .eq('nivel', NIVEL_EDUCATIVO_MVP)
     .limit(limit);
   if (error) {
     console.error('buscarCCTs:', error.message);

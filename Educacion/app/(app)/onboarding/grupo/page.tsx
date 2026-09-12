@@ -10,9 +10,9 @@ export default function OnboardingPaso3() {
     <OnboardingShell paso={3}>
       {(ctx) => (
         <>
-          <h2 className="text-lg font-semibold">Tu primer grupo</h2>
+          <h2 className="text-lg font-semibold">Tu primer grupo de preescolar</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Puedes agregar hasta 3 grupos por ciclo escolar.
+            Indica el grado (1°, 2° o 3°) y la letra del grupo. Puedes agregar hasta 3 grupos por ciclo.
           </p>
           <GrupoForm cct={ctx.cct} nivel={ctx.nivel} />
         </>

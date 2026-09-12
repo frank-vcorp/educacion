@@ -10,12 +10,10 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
-
-const Niveles = ['preescolar', 'primaria', 'secundaria'] as const;
+import { nivelDocenteForzado, validarCCTPreescolar } from '@/lib/nivel-educativo/validar-cct';
 
 const UpdateCCTSchema = z.object({
   cct: z.string().min(5, 'CCT inválido').max(20, 'CCT inválido'),
-  nivel: z.enum(Niveles),
 });
 
 export type UpdateCCTResult = {
@@ -24,10 +22,9 @@ export type UpdateCCTResult = {
   field?: string;
 };
 
-export async function updateDocenteCCT(input: { cct: string; nivel: string }): Promise<UpdateCCTResult> {
+export async function updateDocenteCCT(input: { cct: string }): Promise<UpdateCCTResult> {
   const parsed = UpdateCCTSchema.safeParse({
     cct: input.cct.trim().toUpperCase(),
-    nivel: input.nivel,
   });
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
@@ -44,14 +41,15 @@ export async function updateDocenteCCT(input: { cct: string; nivel: string }): P
   // Verificar CCT existe
   const { data: cct } = await supabase
     .from('cct')
-    .select('clave')
+    .select('clave, nivel')
     .eq('clave', parsed.data.cct)
     .maybeSingle();
-  if (!cct) return { ok: false, error: 'CCT no encontrado en catálogo SEP', field: 'cct' };
+  const cctValido = validarCCTPreescolar(cct);
+  if (!cctValido.ok) return cctValido;
 
   const { error } = await supabase
     .from('docente')
-    .update({ cct: parsed.data.cct, nivel: parsed.data.nivel })
+    .update({ cct: parsed.data.cct, nivel: nivelDocenteForzado() })
     .eq('id', user.id);
   if (error) return { ok: false, error: error.message };
 

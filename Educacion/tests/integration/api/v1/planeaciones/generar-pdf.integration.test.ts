@@ -96,6 +96,27 @@ vi.mock('@/lib/auth/session', () => ({
   getServerSession: vi.fn(),
 }));
 
+vi.mock('@/lib/pdf/planeacion-pdf-data', () => ({
+  fetchPlaneacionPdfPayload: vi.fn(async (_supabase, id: string) => {
+    if (id !== PLANEACION_ID) return null;
+    return {
+      docenteId: DOCENTE_ID,
+      data: {
+        id: PLANEACION_ID,
+        nombre: planeacionRow.nombre,
+        periodo_inicio: planeacionRow.periodo_inicio,
+        periodo_fin: planeacionRow.periodo_fin,
+        problema_contexto: planeacionRow.problema_contexto,
+        campos_formativos: planeacionRow.campos_formativos,
+        ejes_articuladores: planeacionRow.ejes_articuladores,
+        pdas: planeacionRow.pdas,
+        ajustes_razonables: planeacionRow.ajustes_razonables,
+        cct: planeacionRow.cct,
+      },
+    };
+  }),
+}));
+
 // ─────────────── Imports (después de mocks) ───────────────
 
 import { GET } from '@/app/api/planeaciones/[id]/generar-pdf/route';

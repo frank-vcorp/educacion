@@ -6,21 +6,18 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { GRADOS_PREESCOLAR, NIVEL_EDUCATIVO_MVP } from '@/lib/nivel-educativo/scope';
+import { nivelDocenteForzado, validarCCTPreescolar } from '@/lib/nivel-educativo/validar-cct';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-const Niveles = ['preescolar', 'primaria', 'secundaria'] as const;
-const Grados = ['1°', '2°', '3°'] as const;
-
 const CCTSchema = z.object({
   cct: z.string().min(5, 'CCT inválido').max(20, 'CCT inválido'),
-  nivel: z.enum(Niveles),
 });
 
 const GrupoSchema = z.object({
   cct: z.string().min(5),
-  nivel: z.enum(Niveles),
-  grado: z.enum(Grados),
+  grado: z.enum(GRADOS_PREESCOLAR),
   grupo: z.string().min(1, 'Grupo requerido').max(2),
   cicloEscolar: z.string().regex(/^\d{4}-\d{4}$/, 'Ciclo debe ser YYYY-YYYY'),
   totalAlumnos: z
@@ -50,7 +47,6 @@ export type OnboardingResult = {
 export async function saveCCT(formData: FormData): Promise<OnboardingResult> {
   const raw = {
     cct: String(formData.get('cct') ?? '').trim().toUpperCase(),
-    nivel: String(formData.get('nivel') ?? ''),
   };
   const parsed = CCTSchema.safeParse(raw);
   if (!parsed.success) {
@@ -68,10 +64,11 @@ export async function saveCCT(formData: FormData): Promise<OnboardingResult> {
   // Verificar que el CCT existe
   const { data: cct } = await supabase
     .from('cct')
-    .select('clave')
+    .select('clave, nivel')
     .eq('clave', parsed.data.cct)
     .maybeSingle();
-  if (!cct) return { ok: false, error: 'CCT no encontrado en catálogo SEP', field: 'cct' };
+  const cctValido = validarCCTPreescolar(cct);
+  if (!cctValido.ok) return cctValido;
 
   // Upsert docente
   const { error } = await supabase
@@ -82,7 +79,7 @@ export async function saveCCT(formData: FormData): Promise<OnboardingResult> {
         nombre: (user.user_metadata?.nombre as string) ?? 'Docente',
         email: user.email!,
         cct: parsed.data.cct,
-        nivel: parsed.data.nivel,
+        nivel: nivelDocenteForzado(),
       },
       { onConflict: 'id' },
     );
@@ -97,7 +94,6 @@ export async function saveCCT(formData: FormData): Promise<OnboardingResult> {
 export async function createGrupo(formData: FormData): Promise<OnboardingResult> {
   const raw = {
     cct: String(formData.get('cct') ?? '').trim().toUpperCase(),
-    nivel: String(formData.get('nivel') ?? ''),
     grado: String(formData.get('grado') ?? ''),
     grupo: String(formData.get('grupo') ?? '').trim().toUpperCase(),
     cicloEscolar: String(formData.get('cicloEscolar') ?? ''),
@@ -134,7 +130,7 @@ export async function createGrupo(formData: FormData): Promise<OnboardingResult>
     .insert({
       docente_id: user.id,
       cct: parsed.data.cct,
-      nivel: parsed.data.nivel,
+      nivel: NIVEL_EDUCATIVO_MVP,
       grado: parsed.data.grado,
       grupo: parsed.data.grupo,
       ciclo_escolar: parsed.data.cicloEscolar,

@@ -9,7 +9,7 @@ import { createGrupo } from '@/lib/onboarding/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-const GRADOS = ['1°', '2°', '3°'] as const;
+import { GRADOS_PREESCOLAR, NIVEL_EDUCATIVO_MVP } from '@/lib/nivel-educativo/scope';
 
 function currentCicloEscolar(): string {
   const now = new Date();
@@ -19,7 +19,7 @@ function currentCicloEscolar(): string {
   return month >= 7 ? `${year}-${year + 1}` : `${year - 1}-${year}`;
 }
 
-export function GrupoForm({ cct, nivel }: { cct: string; nivel: string }) {
+export function GrupoForm({ cct }: { cct: string; nivel: string }) {
   const router = useRouter();
   const [grado, setGrado] = useState('1°');
   const [grupo, setGrupo] = useState('A');
@@ -33,7 +33,7 @@ export function GrupoForm({ cct, nivel }: { cct: string; nivel: string }) {
     setError(null);
     const formData = new FormData();
     formData.set('cct', cct);
-    formData.set('nivel', nivel);
+    formData.set('nivel', NIVEL_EDUCATIVO_MVP);
     formData.set('grado', grado);
     formData.set('grupo', grupo);
     formData.set('cicloEscolar', cicloEscolar);
@@ -52,12 +52,12 @@ export function GrupoForm({ cct, nivel }: { cct: string; nivel: string }) {
   return (
     <form onSubmit={handleSubmit} className="mt-6 space-y-4">
       <input type="hidden" name="cct" value={cct} />
-      <input type="hidden" name="nivel" value={nivel} />
+      <input type="hidden" name="nivel" value={NIVEL_EDUCATIVO_MVP} />
 
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="grado" className="text-sm font-medium">
-            Grado
+            Grado preescolar
           </label>
           <select
             id="grado"
@@ -66,7 +66,7 @@ export function GrupoForm({ cct, nivel }: { cct: string; nivel: string }) {
             className="mt-1 block w-full rounded-md border bg-background px-3 py-2 text-sm"
             required
           >
-            {GRADOS.map((g) => (
+            {GRADOS_PREESCOLAR.map((g) => (
               <option key={g} value={g}>
                 {g}
               </option>

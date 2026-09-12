@@ -34,6 +34,17 @@ vi.mock('@/services/alumnos/entrevista-actions', () => ({
   archivarEntrevista: vi.fn(async () => ({ ok: true, data: null })),
 }));
 
+// IMPL-20260821-05 — el contenedor "Entrevistas" ahora tiene 2 pestañas y
+// carga AMBAS entrevistas en paralelo (infantil + familiar) usando
+// `Promise.all`. Mock explícito de la action familiar para no tocar Supabase.
+// Devolvemos por defecto `{ ok: true, data: null }` para que el flujo
+// "ready sin entrevista" sea idéntico a la infantil.
+vi.mock('@/services/alumnos/entrevista-familiar-actions', () => ({
+  getEntrevistaFamiliar: vi.fn(async () => ({ ok: true, data: null })),
+  upsertEntrevistaFamiliar: vi.fn(async () => ({ ok: true, id: 'mock-ef' })),
+  archivarEntrevistaFamiliar: vi.fn(async () => ({ ok: true, data: null })),
+}));
+
 vi.mock('@/services/alumnos/alumno-actions', () => ({
   createAlumno: vi.fn(async () => ({ ok: true, id: 'new-alumno-id' })),
   updateAlumno: vi.fn(async () => ({ ok: true })),

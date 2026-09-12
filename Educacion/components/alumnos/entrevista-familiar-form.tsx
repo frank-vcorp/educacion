@@ -36,6 +36,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { SectionHelp } from '@/components/ui/section-help';
+import { GUIAS_FAMILIAR } from '@/lib/entrevistas/guias';
 import {
   Select,
   SelectContent,
@@ -410,6 +412,12 @@ export function EntrevistaFamiliarForm({
         data-testid="entrevista-familiar-bloque-a"
       >
         <legend className="text-sm font-semibold">Bloque A — Identificación</legend>
+        <SectionHelp
+          helpId={GUIAS_FAMILIAR[0].id}
+          ariaLabel={GUIAS_FAMILIAR[0].ariaLabel}
+          breve={GUIAS_FAMILIAR[0].breve}
+          detalle={GUIAS_FAMILIAR[0].detalle}
+        />
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="familiar-nombre-alumno">NOMBRE DEL ALUMNO:</Label>
@@ -448,6 +456,12 @@ export function EntrevistaFamiliarForm({
         data-testid="entrevista-familiar-bloque-b"
       >
         <legend className="text-sm font-semibold">Bloque B — Datos de mamá y papá</legend>
+        <SectionHelp
+          helpId={GUIAS_FAMILIAR[1].id}
+          ariaLabel={GUIAS_FAMILIAR[1].ariaLabel}
+          breve={GUIAS_FAMILIAR[1].breve}
+          detalle={GUIAS_FAMILIAR[1].detalle}
+        />
         <div className="overflow-x-auto">
           <table className="w-full table-fixed border-collapse text-sm">
             <thead>
@@ -529,6 +543,12 @@ export function EntrevistaFamiliarForm({
         <legend className="text-sm font-semibold">
           {SITUACION_LEGAL_ENCABEZADO}
         </legend>
+        <SectionHelp
+          helpId={GUIAS_FAMILIAR[2].id}
+          ariaLabel={GUIAS_FAMILIAR[2].ariaLabel}
+          breve={GUIAS_FAMILIAR[2].breve}
+          detalle={GUIAS_FAMILIAR[2].detalle}
+        />
         <div className="grid gap-3 sm:grid-cols-2">
           <CheckboxLine
             id="familiar-casados"
@@ -609,6 +629,12 @@ export function EntrevistaFamiliarForm({
           <legend className="text-sm font-semibold">
             {PADRES_SEPARADOS_ENCABEZADO}
           </legend>
+          <SectionHelp
+            helpId={GUIAS_FAMILIAR[3].id}
+            ariaLabel={GUIAS_FAMILIAR[3].ariaLabel}
+            breve={GUIAS_FAMILIAR[3].breve}
+            detalle={GUIAS_FAMILIAR[3].detalle}
+          />
           <div className="space-y-1.5">
             <Label htmlFor="familiar-patria-potestad">
               1.- {PADRES_SEPARADOS_PREGUNTA_PATRIA}
@@ -676,6 +702,12 @@ export function EntrevistaFamiliarForm({
         data-testid="entrevista-familiar-bloque-e"
       >
         <legend className="text-sm font-semibold">HABITOS FAMILIARES</legend>
+        <SectionHelp
+          helpId={GUIAS_FAMILIAR[4].id}
+          ariaLabel={GUIAS_FAMILIAR[4].ariaLabel}
+          breve={GUIAS_FAMILIAR[4].breve}
+          detalle={GUIAS_FAMILIAR[4].detalle}
+        />
         <ol className="space-y-3" role="list">
           {HABITOS_FAMILIARES.map((h, idx) => {
             const item = respuestas.habitosFamiliares.items[idx];
@@ -709,6 +741,12 @@ export function EntrevistaFamiliarForm({
         data-testid="entrevista-familiar-bloque-f"
       >
         <legend className="text-sm font-semibold">Cierre y firmas</legend>
+        <SectionHelp
+          helpId={GUIAS_FAMILIAR[5].id}
+          ariaLabel={GUIAS_FAMILIAR[5].ariaLabel}
+          breve={GUIAS_FAMILIAR[5].breve}
+          detalle={GUIAS_FAMILIAR[5].detalle}
+        />
         <p
           className="rounded-md border bg-muted/20 p-3 text-sm uppercase"
           data-testid="familiar-cierre-gracias"

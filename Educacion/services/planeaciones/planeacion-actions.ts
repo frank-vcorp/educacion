@@ -29,6 +29,13 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
+import {
+  generarSesionesWorkbook,
+  resolverWorkbookConfig,
+  validarFechasContraAlcance,
+  type AlcanceTemporal,
+  type WorkbookMetadata,
+} from '@/lib/planeaciones/tipo-workbook';
 
 const MODALIDADES = [
   'proyecto_comunitario',
@@ -48,9 +55,17 @@ const MODALIDADES = [
  */
 const ModalidadDataSchema = z.record(z.unknown());
 
+const WorkbookMetadataSchema = z.object({
+  plantilla: z.string(),
+  alcance_temporal: z.string(),
+  periodo_tipo: z.enum(['rango_fechas', 'mensual', 'trimestral', 'semestral']),
+  estrategia_sesiones: z.enum(['semana_lv', 'dias_habiles_rango', 'calendario_wizard']),
+});
+
 const MetadataSchema = z
   .object({
     modalidad_data: ModalidadDataSchema.default({}),
+    workbook: WorkbookMetadataSchema.optional(),
   })
   .default({ modalidad_data: {} });
 
@@ -72,6 +87,9 @@ const BaseSchema = z.object({
   metadata: MetadataSchema.optional(),
   periodoInicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   periodoFin: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  periodoTipo: z
+    .enum(['rango_fechas', 'mensual', 'trimestral', 'semestral'])
+    .default('rango_fechas'),
 });
 
 type MetadataPorModalidad = {
@@ -225,8 +243,21 @@ export async function createPlaneacion(input: CreatePlaneacionInput): Promise<Cr
     return { ok: false, error: errModalidad };
   }
 
+  const workbookMeta = data.metadata?.workbook;
+  if (workbookMeta?.alcance_temporal) {
+    const errFechas = validarFechasContraAlcance(
+      workbookMeta.alcance_temporal as AlcanceTemporal,
+      data.periodoInicio,
+      data.periodoFin,
+    );
+    if (errFechas) {
+      return { ok: false, error: errFechas };
+    }
+  }
+
   const metadataToPersist = {
     modalidad_data: data.metadata?.modalidad_data ?? {},
+    ...(data.metadata?.workbook ? { workbook: data.metadata.workbook } : {}),
   };
 
   const supabase = await createClient();
@@ -248,6 +279,7 @@ export async function createPlaneacion(input: CreatePlaneacionInput): Promise<Cr
       ajustes_razonables: data.ajustesRazonables,
       banco_palabras: data.bancoPalabras,
       metadata: metadataToPersist,
+      periodo_tipo: data.periodoTipo,
       periodo_inicio: data.periodoInicio,
       periodo_fin: data.periodoFin,
       estado: 'borrador',
@@ -257,6 +289,30 @@ export async function createPlaneacion(input: CreatePlaneacionInput): Promise<Cr
 
   if (error || !row) {
     return { ok: false, error: error?.message ?? 'No se pudo crear la planeación' };
+  }
+
+  if (workbookMeta) {
+    const modalidadData = (data.metadata?.modalidad_data ?? {}) as MetadataPorModalidad;
+    const config = resolverWorkbookConfig({
+      modalidad: data.modalidad,
+      workbookMetadata: workbookMeta as WorkbookMetadata,
+    });
+    const sesionesRows = generarSesionesWorkbook({
+      config,
+      planeacionId: row.id,
+      docenteId: data.docenteId,
+      cct: data.cct,
+      periodoInicio: data.periodoInicio,
+      periodoFin: data.periodoFin,
+      sesionesSemanaWizard: modalidadData.sesiones_semana,
+    });
+    if (sesionesRows.length > 0) {
+      const { error: errSesiones } = await supabase.from('sesion').insert(sesionesRows);
+      if (errSesiones) {
+        await supabase.from('planeacion').delete().eq('id', row.id);
+        return { ok: false, error: errSesiones.message };
+      }
+    }
   }
 
   revalidatePath('/dashboard');

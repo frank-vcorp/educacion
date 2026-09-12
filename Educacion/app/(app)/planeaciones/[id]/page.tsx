@@ -26,9 +26,21 @@ import { getPlaneacion } from '@/services/planeaciones/planeacion-actions';
 import { getBloques } from '@/services/planeaciones/bloque-actions';
 import { ensureSesionesForPlaneacion } from '@/services/planeaciones/sesion-actions';
 import { getRecursosPorPlaneacion } from '@/services/planeaciones/sesion-recurso-actions';
-import { getBloquesCatalogo } from '@/services/catalogo/catalogo';
+import {
+  getBloquesCatalogo,
+  getPDAs,
+  getCamposFormativos,
+  getContenidos,
+  getEjesArticuladores,
+} from '@/services/catalogo/catalogo';
+import { buildPdaGradoMap } from '@/lib/nivel-educativo/filtros-inventario';
+import { GRADOS_PREESCOLAR } from '@/lib/nivel-educativo/scope';
+import { usaWorkbookLayout, type WorkbookContexto } from '@/lib/planeaciones/workbook-layout';
+import { diasHabilesEnRango } from '@/lib/planeaciones/calendario-periodo';
+import { resolverWorkbookConfig } from '@/lib/planeaciones/tipo-workbook';
 import { listRecursos } from '@/services/recursos-aula/recurso-actions';
 import { getServerSession } from '@/lib/auth/session';
+import { createClient } from '@/lib/supabase/server';
 import { DuplicarPlaneacionDialog } from '@/components/planeaciones/duplicar-planeacion-dialog';
 import { ActividadesEditor } from '@/components/planeaciones/actividades-editor';
 import { ModalidadEstructuraCard } from '@/components/planeaciones/modalidad-estructura-card';
@@ -76,6 +88,23 @@ export default async function PlaneacionDetallePage({
     : { ok: false as const, data: null, error: 'not-owner' };
   const sesionesIniciales = sesionesRes.ok && sesionesRes.data ? sesionesRes.data : [];
   const catalogoInicial = isOwner ? await getBloquesCatalogo() : [];
+  const pdasCatalogo = isOwner ? await getPDAs() : [];
+  const pdaGradoPorCodigo = buildPdaGradoMap(pdasCatalogo);
+
+  let gradoPreescolar = GRADOS_PREESCOLAR[0];
+  let etiquetaGrupo: string | null = null;
+  if (p.grupo_id && isOwner) {
+    const supabase = await createClient();
+    const { data: grupoPlaneacion } = await supabase
+      .from('grupo')
+      .select('grado, grupo')
+      .eq('id', p.grupo_id)
+      .maybeSingle();
+    if (grupoPlaneacion?.grado) gradoPreescolar = grupoPlaneacion.grado as typeof gradoPreescolar;
+    if (grupoPlaneacion) {
+      etiquetaGrupo = `${grupoPlaneacion.grado} ${grupoPlaneacion.grupo}`.trim();
+    }
+  }
   const recursosRes = isOwner
     ? await listRecursos(session.docenteId!)
     : { ok: false as const, items: [] };
@@ -98,9 +127,62 @@ export default async function PlaneacionDetallePage({
     ((p.metadata as { modalidad_data?: Record<string, unknown> } | null)?.modalidad_data ??
       {}) as Record<string, unknown>;
   const esNueva = searchParams?.nueva === '1';
+  const esWorkbook = usaWorkbookLayout(modalidad);
+
+  let workbook: WorkbookContexto | null = null;
+  if (isOwner && esWorkbook) {
+    const [camposCatalogo, ejesCatalogo, todosPdas, contenidos] = await Promise.all([
+      getCamposFormativos(),
+      getEjesArticuladores(),
+      getPDAs(),
+      getContenidos(),
+    ]);
+    const pdaCampoCodigo: Record<string, string> = {};
+    for (const pd of todosPdas) {
+      if (!pd.contenido_codigo) continue;
+      const cont = contenidos.find((c) => c.codigo === pd.contenido_codigo);
+      if (cont?.campo_codigo) pdaCampoCodigo[pd.codigo] = cont.campo_codigo;
+    }
+    const codigosCampos = (p.campos_formativos ?? []) as string[];
+    const codigosPdas = (p.pdas ?? []) as string[];
+    const codigosEjes = (p.ejes_articuladores ?? []) as string[];
+    const preguntasRaw = modalidadData.preguntas_det;
+    const metadataFull = (p.metadata ?? {}) as {
+      workbook?: import('@/lib/planeaciones/tipo-workbook').WorkbookMetadata;
+    };
+    const wbConfig = resolverWorkbookConfig({
+      modalidad,
+      workbookMetadata: metadataFull.workbook ?? null,
+    });
+    const diasHabiles = diasHabilesEnRango(p.periodo_inicio, p.periodo_fin);
+    workbook = {
+      nombre: p.nombre,
+      periodoInicio: p.periodo_inicio,
+      periodoFin: p.periodo_fin,
+      clasificacionPeriodo: wbConfig.etiquetaAlcance,
+      totalDiasHabiles: diasHabiles.length,
+      workbook: metadataFull.workbook ?? null,
+      problemaContexto: p.problema_contexto,
+      proposito: p.proposito ?? null,
+      campos: camposCatalogo.filter((c) => codigosCampos.includes(c.codigo)),
+      pdas: todosPdas.filter((pd) => codigosPdas.includes(pd.codigo)),
+      ejes: ejesCatalogo.filter((e) => codigosEjes.includes(e.codigo)),
+      ajustesRazonables: p.ajustes_razonables ?? null,
+      temaCentro: typeof modalidadData.tema === 'string' ? modalidadData.tema : null,
+      preguntasDet: Array.isArray(preguntasRaw)
+        ? preguntasRaw.filter((x): x is string => typeof x === 'string')
+        : [],
+      etiquetaGrupo,
+      cct: p.cct,
+      pdaCampoCodigo,
+      productoIntegrador: p.producto_integrador ?? null,
+    };
+  }
 
   return (
-    <div className="container mx-auto max-w-6xl px-4 py-6">
+    <div
+      className={`container mx-auto px-4 py-6 ${esWorkbook ? 'max-w-[1400px]' : 'max-w-6xl'}`}
+    >
       {isOwner && esNueva && (
         <PlaneacionNuevaBanner modalidad={modalidad} planeacionId={p.id} />
       )}
@@ -111,74 +193,78 @@ export default async function PlaneacionDetallePage({
             <p className="mt-1 text-sm text-muted-foreground">
               {p.periodo_inicio} → {p.periodo_fin} ·{' '}
               {MODALIDADES_LABELS[modalidad] ?? p.modalidad}
+              {etiquetaGrupo ? ` · ${etiquetaGrupo} preescolar` : ''}
             </p>
           </div>
           <Badge variant="secondary">{p.estado}</Badge>
         </div>
       </header>
 
-      <div className="space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Problema del contexto</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm">{p.problema_contexto}</p>
-          </CardContent>
-        </Card>
+      {!esWorkbook && (
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Problema del contexto</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm">{p.problema_contexto}</p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Campos formativos</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-1">
-            {(p.campos_formativos ?? []).map((c: string) => (
-              <Badge key={c} variant="verde">{c}</Badge>
-            ))}
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Campos formativos</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-1">
+              {(p.campos_formativos ?? []).map((c: string) => (
+                <Badge key={c} variant="verde">{c}</Badge>
+              ))}
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">PDA trabajados</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-1">
-            {(p.pdas ?? []).map((pd: string) => (
-              <Badge key={pd} variant="outline">{pd}</Badge>
-            ))}
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">PDA trabajados</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-1">
+              {(p.pdas ?? []).map((pd: string) => (
+                <Badge key={pd} variant="outline">{pd}</Badge>
+              ))}
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Ejes articuladores</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-1">
-            {(p.ejes_articuladores ?? []).length === 0 ? (
-              <span className="text-sm text-muted-foreground">—</span>
-            ) : (
-              (p.ejes_articuladores ?? []).map((e: string) => (
-                <Badge key={e} variant="amarillo">{e}</Badge>
-              ))
-            )}
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Ejes articuladores</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-1">
+              {(p.ejes_articuladores ?? []).length === 0 ? (
+                <span className="text-sm text-muted-foreground">—</span>
+              ) : (
+                (p.ejes_articuladores ?? []).map((e: string) => (
+                  <Badge key={e} variant="amarillo">{e}</Badge>
+                ))
+              )}
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Ajustes razonables</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm">{p.ajustes_razonables ?? '—'}</p>
-          </CardContent>
-        </Card>
-      </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Ajustes razonables</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm">{p.ajustes_razonables ?? '—'}</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
-      {/* ─── IMPL-20260820-01: unidad UI F1/F2/F3 ─── */}
       {isOwner && (
         <>
           <Separator className="my-6" />
-          <ModalidadEstructuraCard modalidad={modalidad} modalidadData={modalidadData} />
+          {!esWorkbook && (
+            <ModalidadEstructuraCard modalidad={modalidad} modalidadData={modalidadData} />
+          )}
           <section className="mt-4 space-y-4" aria-labelledby="actividades-heading">
             <h2 id="actividades-heading" className="sr-only">
               Actividades
@@ -189,11 +275,14 @@ export default async function PlaneacionDetallePage({
               cct={p.cct}
               modalidad={modalidad}
               camposFormativos={(p.campos_formativos ?? []) as string[]}
+              gradoPreescolar={gradoPreescolar}
+              pdaGradoPorCodigo={pdaGradoPorCodigo}
               bloquesIniciales={bloquesIniciales}
               sesionesIniciales={sesionesIniciales}
               catalogoInicial={catalogoInicial}
               recursosInventario={recursosInventario}
               recursosAsignadosInicial={recursosAsignadosInicial}
+              workbook={workbook}
             />
           </section>
 

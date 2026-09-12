@@ -52,12 +52,19 @@ import {
   type Modalidad,
   type FormState,
 } from '@/components/planeaciones/wizard-modalidad-data';
+import {
+  ALCANCES_TEMPORALES,
+  buildWorkbookMetadata,
+  modalidadRequiereAlcanceTemporal,
+  validarFechasContraAlcance,
+} from '@/lib/planeaciones/tipo-workbook';
 
 interface Props {
   docenteId: string;
   grupoId: string;
   cct: string;
   nivel: string | null;
+  gradoPreescolar: string;
   campos: CampoFormativo[];
   ejes: EjeArticulador[];
   pdas: PDA[];
@@ -126,14 +133,23 @@ export function WizardPlaneacion({
   grupoId,
   cct,
   nivel,
+  gradoPreescolar,
   campos,
   ejes,
   pdas,
-  contenidos: _contenidos,
+  contenidos,
 }: Props) {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const steps = useMemo(() => buildSteps(form.modalidad), [form.modalidad]);
+  const pdasVisibles = useMemo(() => {
+    if (form.camposFormativos.length === 0) return pdas;
+    const campoPorContenido = new Map(contenidos.map((c) => [c.codigo, c.campo_codigo]));
+    return pdas.filter((p) => {
+      const campo = campoPorContenido.get(p.contenido_codigo);
+      return campo != null && form.camposFormativos.includes(campo);
+    });
+  }, [pdas, contenidos, form.camposFormativos]);
   const [paso, setPaso] = useState(1);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -208,7 +224,7 @@ export function WizardPlaneacion({
   const stepName: string = steps[paso - 1] ?? steps[0] ?? 'Modalidad';
   const isProyectoComunitario = form.modalidad === 'proyecto_comunitario';
 
-  function validarPasoActual(): string | null {
+  function validarPaso(pasoNombre: string): string | null {
     const esCompartido = (msg: string) => {
       if (form.nombre.length < 3) return 'Nombre mínimo 3 caracteres';
       if (form.problemaContexto.length < 10) return 'Detalla el problema (≥10 caracteres)';
@@ -218,12 +234,20 @@ export function WizardPlaneacion({
         return 'Selecciona fecha de inicio y fin';
       if (form.periodoFin < form.periodoInicio)
         return 'La fecha fin debe ser posterior al inicio';
+      const errFechas = validarFechasContraAlcance(
+        form.alcanceTemporal,
+        form.periodoInicio,
+        form.periodoFin,
+      );
+      if (errFechas) return errFechas;
       return msg;
     };
 
-    switch (stepName) {
+    switch (pasoNombre) {
       case 'Modalidad':
         return null;
+      case 'Alcance del proyecto':
+        return form.alcanceTemporal ? null : 'Elige el alcance temporal del proyecto';
       case 'Contexto':
       case 'Problema':
         return esCompartido('');
@@ -295,6 +319,19 @@ export function WizardPlaneacion({
     }
   }
 
+  function validarPasoActual(): string | null {
+    return validarPaso(stepName);
+  }
+
+  function validarTodosLosPasos(): string | null {
+    for (const s of steps) {
+      if (s === 'Modalidad') continue;
+      const err = validarPaso(s);
+      if (err) return `${s}: ${err}`;
+    }
+    return null;
+  }
+
   function siguiente() {
     const err = validarPasoActual();
     if (err) {
@@ -311,13 +348,16 @@ export function WizardPlaneacion({
   }
 
   function guardar() {
-    const err = validarPasoActual();
+    const err = validarTodosLosPasos();
     if (err) {
       setError(err);
       return;
     }
     setError(null);
     const modalidadData = buildModalidadData(form);
+    const workbookMeta = modalidadRequiereAlcanceTemporal(form.modalidad)
+      ? buildWorkbookMetadata(form.modalidad, form.alcanceTemporal)
+      : undefined;
     startTransition(async () => {
       const res = await createPlaneacion({
         docenteId,
@@ -333,7 +373,11 @@ export function WizardPlaneacion({
         contenidoRef: form.contenidoRef ?? undefined,
         ajustesRazonables: form.ajustesRazonables,
         bancoPalabras: form.bancoPalabras,
-        metadata: { modalidad_data: modalidadData },
+        metadata: {
+          modalidad_data: modalidadData,
+          ...(workbookMeta ? { workbook: workbookMeta } : {}),
+        },
+        periodoTipo: workbookMeta?.periodo_tipo ?? 'rango_fechas',
         periodoInicio: form.periodoInicio,
         periodoFin: form.periodoFin,
       });
@@ -353,6 +397,35 @@ export function WizardPlaneacion({
   function renderModalidad() {
     return (
       <WizardModalidadSelector value={form.modalidad} onChange={cambiarModalidad} />
+    );
+  }
+
+  function renderAlcanceProyecto() {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-muted-foreground">
+          Esto define <strong>qué tipo de workbook</strong> se generará: cuántos días, cómo se
+          organiza el calendario y cómo se verá tu hoja de planeación.
+        </p>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {ALCANCES_TEMPORALES.map((a) => {
+            const selected = form.alcanceTemporal === a.value;
+            return (
+              <button
+                key={a.value}
+                type="button"
+                onClick={() => set('alcanceTemporal', a.value)}
+                className={`rounded-lg border p-3 text-left transition-colors ${
+                  selected ? 'border-nem-verde bg-nem-verde/5' : 'hover:bg-muted'
+                }`}
+              >
+                <p className="font-medium">{a.label}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{a.descripcion}</p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
     );
   }
 
@@ -632,7 +705,22 @@ export function WizardPlaneacion({
   function renderPDAs() {
     return (
       <div className="space-y-3">
-        {pdas.map((p) => {
+        <p className="rounded-md border border-nem-verde/20 bg-nem-verde/5 px-3 py-2 text-xs text-muted-foreground">
+          PDA de <span className="font-medium text-foreground">{gradoPreescolar} preescolar</span>
+          {form.camposFormativos.length > 0 && (
+            <>
+              {' '}
+              · campos:{' '}
+              <span className="font-medium text-foreground">{form.camposFormativos.length}</span>
+            </>
+          )}
+        </p>
+        {pdasVisibles.length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            No hay PDA para este grado con los campos seleccionados. Revisa el paso anterior.
+          </p>
+        )}
+        {pdasVisibles.map((p) => {
           const selected = form.pdas.includes(p.codigo);
           return (
             <button
@@ -813,6 +901,13 @@ export function WizardPlaneacion({
               : form.ejesArticuladores.join(', ')
           }
         />
+        <Row
+          label="Alcance / workbook"
+          value={
+            ALCANCES_TEMPORALES.find((a) => a.value === form.alcanceTemporal)?.label ??
+            form.alcanceTemporal
+          }
+        />
         <Row label="Periodo" value={`${form.periodoInicio} → ${form.periodoFin}`} />
         <Separator />
         <p className="text-xs text-muted-foreground">
@@ -831,6 +926,8 @@ export function WizardPlaneacion({
     switch (stepName) {
       case 'Modalidad':
         return renderModalidad();
+      case 'Alcance del proyecto':
+        return renderAlcanceProyecto();
       case 'Contexto':
       case 'Problema':
         return renderContexto();
@@ -879,6 +976,8 @@ export function WizardPlaneacion({
 
   const descripcionPorPaso: Record<string, string> = {
     Modalidad: 'Elige la modalidad pedagógica NEM de tu planeación.',
+    'Alcance del proyecto':
+      'Define si es una semana, quincena, rango de fechas o mes — esto arma tu workbook.',
     Contexto: 'Define el problema del contexto y propósito.',
     Problema: 'Define el problema del contexto que detonará el proyecto.',
     'Banco de palabras':

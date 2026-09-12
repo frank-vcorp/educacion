@@ -102,4 +102,22 @@
 - **Severidad:** P1
 - **Evidencia:** `EntrevistaDialogContent` era una función `async` renderizada desde `AlumnosManager` (`'use client'`); React 482 corresponde a un componente cliente async.
 - **Resolución:** FIX-20260820-03 convirtió el diálogo a componente cliente con estados loading/error/ready y carga válida mediante server action; guardián estático añadido. Commit `5dda75d` desplegado en producción; 278 pruebas y build correctos.
+
+## FND-20260822-13 — Alta real bloqueada por límite de correo de Supabase
+
+- **Estado:** confirmed
+- **Severidad:** P1 operativo
+- **Evidencia Playwright:** en producción, `/registro` con `frank.saavedra.marin@gmail.com`, nombre y contraseña válidos llega a la acción de registro y muestra `email rate limit exceeded`.
+- **Impacto:** no se crea/confirmar una cuenta nueva durante la prueba; por ello no puede continuar aún al CCT, grupo y planeación.
+- **Causa probable:** límite de envío/registro del proveedor de correo de Supabase, no la redirección de la aplicación.
+- **Siguiente acción:** esperar la ventana de rate limit o configurar proveedor SMTP/límites de Auth en Supabase; no repetir intentos automáticos para no extender el bloqueo.
+
+## FND-20260822-14 — Confirmación de correo usa Site URL localhost
+
+- **Estado:** confirmed
+- **Severidad:** P1 operativo
+- **Evidencia:** Frank recibió un enlace de confirmación que abre `http://localhost:3000/?code=...` en lugar de `https://educacion-nem-mvp.vercel.app/auth/callback`.
+- **Causa probable:** `Authentication → URL Configuration` de Supabase conserva `Site URL` localhost o el redirect de producción no está en la allowlist; cuando Supabase no acepta `emailRedirectTo`, usa el Site URL configurado. El token compartido se considera sensible y no se reutiliza.
+- **Corrección requerida:** Site URL `https://educacion-nem-mvp.vercel.app`; Redirect URLs `https://educacion-nem-mvp.vercel.app/auth/callback` y la variante con query `redirect`; guardar y solicitar un nuevo correo de confirmación.
+- **No inferir:** no cambiar la aplicación para aceptar tokens en `/`; el callback canónico debe permanecer en `/auth/callback`.
 - **Artefactos afectados:** `E22_CIERRE_DISCOVERY.md`, `SPEC_MVP_01_Modulo_Docente.md`, perfil de alumno, aviso de privacidad y escenarios de onboarding/seguimiento.
