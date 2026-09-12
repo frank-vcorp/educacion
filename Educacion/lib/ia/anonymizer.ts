@@ -61,9 +61,16 @@ export interface AnonymizeOptions {
  */
 const IRREDACTABLE_PATTERN = /\b[A-ZÁÉÍÓÚÑ]{3,}(?:\s+[A-ZÁÉÍÓÚÑ]{3,}){1,3}\b/g;
 
+/** Marcadores de plantilla NEM en MAYÚSCULAS ([FIGURA], [MATERIAL]). */
+const CATALOGO_MARCADOR_PATTERN = /\[[A-ZÁÉÍÓÚÑ_\s]{2,}\]/g;
+
+export function prepareTextForIrredactableCheck(text: string): string {
+  return text.replace(CATALOGO_MARCADOR_PATTERN, '[MARCADOR]');
+}
+
 export function detectIrredactablePII(text: string): boolean {
   if (!text) return false;
-  const matches = text.match(IRREDACTABLE_PATTERN) ?? [];
+  const matches = prepareTextForIrredactableCheck(text).match(IRREDACTABLE_PATTERN) ?? [];
   for (const m of matches) {
     // Si TODAS las palabras del match son tokens seguros, no es PII
     // irredactable (caso "MÉXICO NEM SEP").
@@ -79,6 +86,9 @@ export function anonymizeText(text: string, _opts: AnonymizeOptions = {}): strin
 
   let out = text;
 
+  // Marcadores de catálogo antes de redactar PII (evita confundir [FIGURA] con nombres)
+  out = out.replace(CATALOGO_MARCADOR_PATTERN, '[MARCADOR]');
+
   // Orden: primero los patrones específicos (email, CCT, CURP, celular)
   out = out.replace(CURP_PATTERN, '[CURP]');
   out = out.replace(CCT_PATTERN, '[CCT]');
@@ -89,6 +99,15 @@ export function anonymizeText(text: string, _opts: AnonymizeOptions = {}): strin
   out = out.replace(NOMBRE_PATTERN, (match) =>
     SAFE_TOKENS.has(match) ? match : '[NOMBRE]',
   );
+
+  // Mayúsculas sostenidas (posibles nombres) → redactar en vez de bloquear el flujo
+  out = out.replace(IRREDACTABLE_PATTERN, (match) => {
+    const words = match.split(/\s+/);
+    const allSafe = words.every(
+      (w) => SAFE_TOKENS.has(w) || SAFE_TOKENS.has(w.toUpperCase()),
+    );
+    return allSafe ? match : '[TEXTO]';
+  });
 
   return out;
 }

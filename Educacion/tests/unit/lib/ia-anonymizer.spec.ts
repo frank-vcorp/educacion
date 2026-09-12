@@ -166,4 +166,28 @@ describe('lib/ia/anonymizer — PII filter (P-PD8, P-PD9, D-FIN-13, AC-22)', () 
     // pedagógico NEM (no son nombres propios); deben seguir pasando.
     expect(detectIrredactablePII('MÉXICO NEM SEP')).toBe(false);
   });
+
+  it('marcadores de catálogo [FIGURA] no disparan bloqueo', () => {
+    const texto =
+      'La docente presenta la figura "[FIGURA]". Las niñas buscan objetos del aula.';
+    expect(detectIrredactablePII(texto)).toBe(false);
+  });
+
+  it('anonymizeText redacta mayúsculas sostenidas a [TEXTO] y normaliza marcadores', () => {
+    const r = anonymizeText(
+      'COLORÍN COLORANTE — plantilla con [FIGURA] para el aula.',
+    );
+    expect(r).toContain('[TEXTO]');
+    expect(r).toContain('[MARCADOR]');
+    expect(r).not.toContain('[FIGURA]');
+  });
+
+  it('findIrredactableField null tras anonymizeRequest con título en mayúsculas', () => {
+    const payload = JSON.stringify({
+      texto_actividad: 'Presenta la figura "[FIGURA]".',
+      resumen_centro: { nombre: 'COLORÍN COLORANTE' },
+    });
+    const anon = anonymizeRequest({ texto: payload });
+    expect(findIrredactableField({ texto: anon.texto })).toBeNull();
+  });
 });

@@ -454,18 +454,16 @@ describe('POST /api/planeaciones/:id/ia/variantes-bloque (F1, AC-1..AC-6)', () =
     expect(body.error.code).toBe('NEM_PLANEACIONES_ARCHIVED');
   });
 
-  // ─── Anonymizer irredactable ───
-  it('500 NEM_IA_ANONYMIZER_BLOCKED si PII irredactable', async () => {
-    // Sobreescribir contenido_textual para incluir PII irredactable
+  // ─── Anonymizer: mayúsculas sostenidas se redactan, no bloquean F1 ───
+  it('200 cuando el payload incluye mayúsculas sostenidas (redactadas)', async () => {
     const original = bloqueRow.contenido_textual;
-    bloqueRow.contenido_textual = 'Texto con MARIA LOPEZ GARCIA en mayúsculas.';
+    bloqueRow.contenido_textual =
+      'Texto con [FIGURA] y MARIA LOPEZ GARCIA en mayúsculas.';
     try {
       const res = await POST(req({ bloque_id: BLOQUE_ID, variante_tipo: 'rural' }), {
         params: { id: PLANEACION_ID },
       });
-      expect(res.status).toBe(500);
-      const body = await res.json();
-      expect(body.error.code).toBe('NEM_IA_ANONYMIZER_BLOCKED');
+      expect(res.status).toBe(200);
     } finally {
       bloqueRow.contenido_textual = original;
     }

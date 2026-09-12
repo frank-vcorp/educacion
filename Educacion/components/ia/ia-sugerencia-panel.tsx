@@ -112,7 +112,7 @@ function messageForError(
     case 'NEM_IA_ANONYMIZER_BLOCKED':
       return {
         message:
-          'El texto tiene mayúsculas sostenidas que podrían parecer nombres. Reformula en minúsculas o edita manualmente.',
+          'Hay datos sensibles que no se pueden enviar a la IA. Quita nombres de alumnos del texto o edita manualmente.',
       };
     case 'NEM_PLANEACIONES_VALIDATION_ERROR':
       return { message: 'Revisa los campos.' };

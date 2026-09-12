@@ -293,7 +293,7 @@ export async function POST(request: Request, { params }: RouteParams) {
 
   // ── Anonimización obligatoria antes de ir al proveedor ──
   const anon = anonymizeRequest({ texto: userMessage, variante_tipo });
-  const irredactableField = findIrredactableField({ texto: userMessage });
+  const irredactableField = findIrredactableField({ texto: anon.texto ?? userMessage });
   if (irredactableField) {
     return NextResponse.json(
       {
