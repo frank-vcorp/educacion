@@ -35,9 +35,9 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '2mb',
     },
+    // Puppeteer (PDF) no se bundlea — externalizado para serverless (Vercel)
+    serverComponentsExternalPackages: ['@sparticuz/chromium', 'puppeteer-core'],
   },
-  // Puppeteer (PDF generation) no se bundlea — se externaliza para serverless
-  serverExternalPackages: ['@sparticuz/chromium', 'puppeteer-core'],
 };
 
 export default nextConfig;
