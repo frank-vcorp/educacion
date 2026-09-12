@@ -7,13 +7,19 @@
  */
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X, BookOpen, Library, GraduationCap, BookText, LayoutDashboard, FileText, Users, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useConsultaRapidaOptional } from '@/components/consulta-rapida/consulta-rapida-context';
+import {
+  CONSULTA_RAPIDA_HREFS,
+  isPlaneacionEditorPath,
+  type ConsultaRapidaHref,
+} from '@/lib/navigation/planeacion-editor-path';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,8 +48,13 @@ const CATALOGO_ITEMS = [
   { href: '/catalogo/refs', label: 'Libros CONALITEG' },
 ];
 
+function isConsultaRapidaHref(href: string): href is ConsultaRapidaHref {
+  return (CONSULTA_RAPIDA_HREFS as readonly string[]).includes(href);
+}
+
 export function NavMenu() {
   const pathname = usePathname();
+  const consultaRapida = useConsultaRapidaOptional();
   const [mobileOpen, setMobileOpen] = useState(false);
   // FIX-20260821-04 — portal del drawer a <body>.
   // `backdrop-filter` en el header ancestro crea un containing block para
@@ -56,6 +67,22 @@ export function NavMenu() {
   function isActive(href: string) {
     if (href === '/dashboard') return pathname === '/dashboard';
     return pathname?.startsWith(href);
+  }
+
+  function handleNavItemClick(
+    e: MouseEvent,
+    href: string,
+    onAfter?: () => void,
+  ) {
+    if (
+      consultaRapida &&
+      isPlaneacionEditorPath(pathname) &&
+      isConsultaRapidaHref(href)
+    ) {
+      e.preventDefault();
+      consultaRapida.openConsulta(href);
+      onAfter?.();
+    }
   }
 
   // FIX-20260821-04 — cierre por teclado (Escape) además de overlay y X.
@@ -78,6 +105,7 @@ export function NavMenu() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={(e) => handleNavItemClick(e, item.href)}
               className={cn(
                 'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
                 isActive(item.href)
@@ -171,7 +199,9 @@ export function NavMenu() {
                       <Link
                         key={item.href}
                         href={item.href}
-                        onClick={() => setMobileOpen(false)}
+                        onClick={(e) =>
+                          handleNavItemClick(e, item.href, () => setMobileOpen(false))
+                        }
                         className={cn(
                           'flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors',
                           isActive(item.href)
