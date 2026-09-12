@@ -5,6 +5,7 @@
  * Incluye guías contextuales en lenguaje de docente (Tía Lola).
  */
 import { useMemo, useState, useTransition, useCallback, type ReactNode } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   DndContext,
@@ -56,7 +57,16 @@ import {
   GUIA_ACTIVIDADES,
   GUIA_CATALOGO,
   GUIA_ARRASTRAR,
+  GUIA_RECURSOS,
 } from '@/lib/planeaciones/guias';
+import {
+  assignRecursoToSesion,
+  removeRecursoFromSesion,
+  getRecursosPorPlaneacion,
+  type SesionRecursoAsignado,
+} from '@/services/planeaciones/sesion-recurso-actions';
+import { matchRecursosInventario } from '@/lib/planeaciones/matching-recursos';
+import { CATEGORIAS_RECURSO } from '@/services/recursos-aula/sugerir-uso';
 
 const TIPO_LABEL: Record<string, string> = {
   apertura: 'Inicio',
@@ -68,6 +78,14 @@ const TIPO_LABEL: Record<string, string> = {
   banco_palabras: 'Banco de palabras',
 };
 
+export interface RecursoInventarioItem {
+  id: string;
+  nombre: string;
+  categoria: string;
+  uso: string;
+  cantidad: number;
+}
+
 export interface ActividadesEditorProps {
   planeacionId: string;
   docenteId: string;
@@ -77,6 +95,12 @@ export interface ActividadesEditorProps {
   bloquesIniciales: Bloque[];
   sesionesIniciales: Sesion[];
   catalogoInicial: BloqueCatalogo[];
+  recursosInventario: RecursoInventarioItem[];
+  recursosAsignadosInicial: SesionRecursoAsignado[];
+}
+
+function emojiCategoriaRecurso(codigo: string): string {
+  return CATEGORIAS_RECURSO.find((c) => c.codigo === codigo)?.emoji ?? '📦';
 }
 
 function CatalogoCard({
@@ -144,20 +168,76 @@ function CatalogoCard({
   );
 }
 
+function RecursoInventarioCard({
+  item,
+  onAgregar,
+  disabled,
+}: {
+  item: RecursoInventarioItem;
+  onAgregar: () => void;
+  disabled?: boolean;
+}) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `rec-${item.id}`,
+    data: { type: 'recurso', recursoId: item.id },
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      data-testid={`recurso-item-${item.id}`}
+      className={`rounded-md border bg-background p-2 text-sm ${isDragging ? 'opacity-40' : ''}`}
+      data-dnd-draggable
+    >
+      <div className="flex items-start gap-2">
+        <button
+          type="button"
+          className="mt-0.5 shrink-0 cursor-grab touch-none text-muted-foreground"
+          aria-label={`Arrastrar ${item.nombre}`}
+          {...listeners}
+          {...attributes}
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+        <div className="min-w-0 flex-1">
+          <p className="font-medium leading-snug">
+            {emojiCategoriaRecurso(item.categoria)} {item.nombre}
+          </p>
+          <p className="text-xs text-muted-foreground">{item.uso}</p>
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            className="mt-1 h-7 px-2 text-xs"
+            onClick={onAgregar}
+            disabled={disabled}
+          >
+            Agregar al día
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ActividadSortable({
   bloque,
   planeacionId,
   docenteId,
   cct,
+  inventario,
   onDelete,
   onRefresh,
+  onUsarRecurso,
 }: {
   bloque: Bloque;
   planeacionId: string;
   docenteId: string;
   cct: string;
+  inventario: RecursoInventarioItem[];
   onDelete: () => void;
   onRefresh: () => void;
+  onUsarRecurso: (recursoId: string) => Promise<void>;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({
@@ -174,6 +254,11 @@ function ActividadSortable({
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
+
+  const sugeridos = useMemo(
+    () => matchRecursosInventario(bloque.recursos_requeridos ?? [], inventario),
+    [bloque.recursos_requeridos, inventario],
+  );
 
   const guardar = async () => {
     if (!texto.trim()) {
@@ -256,6 +341,28 @@ function ActividadSortable({
         <p className="whitespace-pre-wrap text-sm">{bloque.contenido_textual}</p>
       )}
 
+      {sugeridos.length > 0 && (
+        <div className="mt-2 rounded-md border border-amber-200 bg-amber-50/80 p-2">
+          <p className="text-xs font-medium text-amber-900">Materiales que podrías usar:</p>
+          <ul className="mt-1 space-y-1">
+            {sugeridos.map((s) => (
+              <li key={s.recursoId} className="flex items-center justify-between gap-2 text-xs">
+                <span>{s.nombre}</span>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-6 px-2 text-[10px]"
+                  onClick={() => onUsarRecurso(s.recursoId)}
+                >
+                  Usar
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className="mt-3 space-y-2 border-t pt-2">
         <IASugerenciaPanel
           planeacionId={planeacionId}
@@ -285,14 +392,18 @@ function ActividadSortable({
 function SesionZona({
   sesion,
   bloques,
+  recursos,
   isOver,
   setNodeRef,
+  onQuitarRecurso,
   children,
 }: {
   sesion: Sesion;
   bloques: Bloque[];
+  recursos: SesionRecursoAsignado[];
   isOver: boolean;
   setNodeRef: (node: HTMLElement | null) => void;
+  onQuitarRecurso: (recursoId: string) => void;
   children: ReactNode;
 }) {
   return (
@@ -308,10 +419,36 @@ function SesionZona({
       </h3>
       {bloques.length === 0 ? (
         <p className="mb-2 text-xs text-muted-foreground">
-          Suelta aquí tu actividad (arrastra del catálogo o escribe abajo).
+          Suelta aquí actividades o materiales (catálogo / Mi aula).
         </p>
       ) : null}
       {children}
+      {recursos.length > 0 && (
+        <div className="mt-3 border-t pt-2">
+          <p className="mb-1 text-xs font-medium text-muted-foreground">
+            Materiales de este día
+          </p>
+          <div className="flex flex-wrap gap-1">
+            {recursos.map((r) => (
+              <Badge
+                key={r.recurso_id}
+                variant="secondary"
+                className="gap-1 pr-1 text-[11px]"
+              >
+                {emojiCategoriaRecurso(r.categoria)} {r.nombre}
+                <button
+                  type="button"
+                  className="ml-1 rounded px-0.5 hover:bg-muted"
+                  aria-label={`Quitar ${r.nombre}`}
+                  onClick={() => onQuitarRecurso(r.recurso_id)}
+                >
+                  ×
+                </button>
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -319,17 +456,25 @@ function SesionZona({
 function SesionDropArea({
   sesion,
   bloques,
+  recursos,
   planeacionId,
   docenteId,
   cct,
+  inventario,
   onRefresh,
+  onAssignRecurso,
+  onQuitarRecurso,
 }: {
   sesion: Sesion;
   bloques: Bloque[];
+  recursos: SesionRecursoAsignado[];
   planeacionId: string;
   docenteId: string;
   cct: string;
+  inventario: RecursoInventarioItem[];
   onRefresh: () => void;
+  onAssignRecurso: (sesionId: string, recursoId: string) => Promise<void>;
+  onQuitarRecurso: (sesionId: string, recursoId: string) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: `ses-${sesion.id}`,
@@ -343,7 +488,14 @@ function SesionDropArea({
   };
 
   return (
-    <SesionZona sesion={sesion} bloques={bloques} isOver={isOver} setNodeRef={setNodeRef}>
+    <SesionZona
+      sesion={sesion}
+      bloques={bloques}
+      recursos={recursos}
+      isOver={isOver}
+      setNodeRef={setNodeRef}
+      onQuitarRecurso={(recursoId) => onQuitarRecurso(sesion.id, recursoId)}
+    >
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
         <div className="space-y-2">
           {bloques.map((b) => (
@@ -353,8 +505,10 @@ function SesionDropArea({
               planeacionId={planeacionId}
               docenteId={docenteId}
               cct={cct}
+              inventario={inventario}
               onDelete={() => onDelete(b.id)}
               onRefresh={onRefresh}
+              onUsarRecurso={(recursoId) => onAssignRecurso(sesion.id, recursoId)}
             />
           ))}
         </div>
@@ -372,19 +526,24 @@ export function ActividadesEditor({
   bloquesIniciales,
   sesionesIniciales,
   catalogoInicial,
+  recursosInventario,
+  recursosAsignadosInicial,
 }: ActividadesEditorProps) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [bloques, setBloques] = useState<Bloque[]>(bloquesIniciales);
   const [sesiones] = useState<Sesion[]>(sesionesIniciales);
+  const [recursosAsignados, setRecursosAsignados] = useState(recursosAsignadosInicial);
+  const [panelIzquierdo, setPanelIzquierdo] = useState<'catalogo' | 'inventario'>('catalogo');
   const [busqueda, setBusqueda] = useState('');
   const [sesionSeleccionada, setSesionSeleccionada] = useState(sesionesIniciales[0]?.id ?? '');
   const [nuevoTexto, setNuevoTexto] = useState('');
   const [adding, setAdding] = useState(false);
   const [errorNuevo, setErrorNuevo] = useState<string | null>(null);
-  const [activeDrag, setActiveDrag] = useState<{ tipo: 'catalogo' | 'bloque'; label: string } | null>(
-    null,
-  );
+  const [activeDrag, setActiveDrag] = useState<{
+    tipo: 'catalogo' | 'bloque' | 'recurso';
+    label: string;
+  } | null>(null);
   const [pending, setPending] = useState(false);
 
   const sensors = useSensors(
@@ -430,6 +589,47 @@ export function ActividadesEditor({
     else startTransition(() => router.refresh());
   }, [planeacionId, router, startTransition]);
 
+  const refreshRecursos = useCallback(async () => {
+    const res = await getRecursosPorPlaneacion(planeacionId);
+    if (res.ok && res.data) setRecursosAsignados(res.data);
+  }, [planeacionId]);
+
+  const recursosPorSesion = useMemo(() => {
+    const map = new Map<string, SesionRecursoAsignado[]>();
+    for (const s of sesiones) map.set(s.id, []);
+    for (const r of recursosAsignados) {
+      const list = map.get(r.sesion_id);
+      if (list) list.push(r);
+      else map.set(r.sesion_id, [r]);
+    }
+    return map;
+  }, [recursosAsignados, sesiones]);
+
+  const assignRecurso = async (sesionId: string, recursoId: string) => {
+    setPending(true);
+    try {
+      const res = await assignRecursoToSesion({
+        sesionId,
+        recursoId,
+        docenteId,
+        cct,
+      });
+      if (!res.ok) {
+        setErrorNuevo(res.error ?? 'No se pudo asignar el material.');
+        return;
+      }
+      setErrorNuevo(null);
+      await refreshRecursos();
+    } finally {
+      setPending(false);
+    }
+  };
+
+  const quitarRecurso = async (sesionId: string, recursoId: string) => {
+    const res = await removeRecursoFromSesion({ sesionId, recursoId, docenteId });
+    if (res.ok) await refreshRecursos();
+  };
+
   const agregarDesdeCatalogo = async (codigo: string, sesionId: string) => {
     if (!sesionId) return;
     setPending(true);
@@ -461,6 +661,10 @@ export function ActividadesEditor({
       const bloqueId = id.replace('blk-', '');
       const b = bloques.find((x) => x.id === bloqueId);
       setActiveDrag({ tipo: 'bloque', label: b?.contenido_textual?.slice(0, 40) ?? 'Actividad' });
+    } else if (id.startsWith('rec-')) {
+      const recursoId = id.replace('rec-', '');
+      const r = recursosInventario.find((x) => x.id === recursoId);
+      setActiveDrag({ tipo: 'recurso', label: r?.nombre ?? 'Material' });
     }
   };
 
@@ -474,6 +678,13 @@ export function ActividadesEditor({
       const codigo = activeId.replace('cat-', '');
       const sesionId = overId.replace('ses-', '');
       await agregarDesdeCatalogo(codigo, sesionId);
+      return;
+    }
+
+    if (activeId.startsWith('rec-') && overId.startsWith('ses-')) {
+      const recursoId = activeId.replace('rec-', '');
+      const sesionId = overId.replace('ses-', '');
+      await assignRecurso(sesionId, recursoId);
       return;
     }
 
@@ -596,50 +807,93 @@ export function ActividadesEditor({
           onDragEnd={onDragEnd}
         >
           <div className="grid gap-4 lg:grid-cols-[minmax(240px,300px)_1fr]">
-            {/* Catálogo */}
+            {/* Catálogo + inventario */}
             <aside className="space-y-3 rounded-lg border bg-muted/20 p-3">
-              <div>
-                <h3 className="text-sm font-semibold">Catálogo de actividades</h3>
-                <SectionHelp
-                  helpId={GUIA_CATALOGO.id}
-                  ariaLabel={GUIA_CATALOGO.ariaLabel}
-                  breve={GUIA_CATALOGO.breve}
-                  detalle={GUIA_CATALOGO.detalle}
-                  className="mt-1"
-                />
+              <div className="flex gap-1 rounded-md border bg-background p-0.5">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={panelIzquierdo === 'catalogo' ? 'default' : 'ghost'}
+                  className="h-8 flex-1 text-xs"
+                  onClick={() => setPanelIzquierdo('catalogo')}
+                >
+                  Catálogo NEM
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={panelIzquierdo === 'inventario' ? 'default' : 'ghost'}
+                  className="h-8 flex-1 text-xs"
+                  onClick={() => setPanelIzquierdo('inventario')}
+                >
+                  Mi aula
+                </Button>
               </div>
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  className="pl-8"
-                  placeholder="Buscar actividad…"
-                  value={busqueda}
-                  onChange={(e) => setBusqueda(e.target.value)}
-                  data-testid="catalogo-busqueda"
-                />
-              </div>
-              <p className="text-[11px] text-muted-foreground">
-                {catalogoFiltrado.length} actividades · día seleccionado para
-                &quot;Agregar&quot;:{' '}
-                {sesiones.find((s) => s.id === sesionSeleccionada)
-                  ? etiquetaSesion(sesiones.find((s) => s.id === sesionSeleccionada)!)
-                  : '—'}
-              </p>
-              <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
-                {catalogoFiltrado.map((item) => (
-                  <CatalogoCard
-                    key={item.codigo}
-                    item={item}
-                    disabled={pending || !sesionSeleccionada}
-                    onAgregar={() => agregarDesdeCatalogo(item.codigo, sesionSeleccionada)}
+
+              {panelIzquierdo === 'catalogo' ? (
+                <>
+                  <SectionHelp
+                    helpId={GUIA_CATALOGO.id}
+                    ariaLabel={GUIA_CATALOGO.ariaLabel}
+                    breve={GUIA_CATALOGO.breve}
+                    detalle={GUIA_CATALOGO.detalle}
                   />
-                ))}
-                {catalogoFiltrado.length === 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    No hay actividades para tus filtros. Prueba otra búsqueda.
+                  <div className="relative">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      className="pl-8"
+                      placeholder="Buscar actividad…"
+                      value={busqueda}
+                      onChange={(e) => setBusqueda(e.target.value)}
+                      data-testid="catalogo-busqueda"
+                    />
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    {catalogoFiltrado.length} actividades · día:{' '}
+                    {sesiones.find((s) => s.id === sesionSeleccionada)
+                      ? etiquetaSesion(sesiones.find((s) => s.id === sesionSeleccionada)!)
+                      : '—'}
                   </p>
-                )}
-              </div>
+                  <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
+                    {catalogoFiltrado.map((item) => (
+                      <CatalogoCard
+                        key={item.codigo}
+                        item={item}
+                        disabled={pending || !sesionSeleccionada}
+                        onAgregar={() => agregarDesdeCatalogo(item.codigo, sesionSeleccionada)}
+                      />
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <SectionHelp
+                    helpId={GUIA_RECURSOS.id}
+                    ariaLabel={GUIA_RECURSOS.ariaLabel}
+                    breve={GUIA_RECURSOS.breve}
+                    detalle={GUIA_RECURSOS.detalle}
+                  />
+                  {recursosInventario.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      Aún no tienes materiales registrados.{' '}
+                      <Link href="/recursos-aula" className="text-nem-verde underline">
+                        Agregar en Recursos del aula
+                      </Link>
+                    </p>
+                  ) : (
+                    <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
+                      {recursosInventario.map((item) => (
+                        <RecursoInventarioCard
+                          key={item.id}
+                          item={item}
+                          disabled={pending || !sesionSeleccionada}
+                          onAgregar={() => assignRecurso(sesionSeleccionada, item.id)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </aside>
 
             {/* Sesiones / días */}
@@ -678,10 +932,14 @@ export function ActividadesEditor({
                   <SesionDropArea
                     sesion={s}
                     bloques={bloquesPorSesion.get(s.id) ?? []}
+                    recursos={recursosPorSesion.get(s.id) ?? []}
                     planeacionId={planeacionId}
                     docenteId={docenteId}
                     cct={cct}
+                    inventario={recursosInventario}
                     onRefresh={refresh}
+                    onAssignRecurso={assignRecurso}
+                    onQuitarRecurso={quitarRecurso}
                   />
                 </div>
               ))}

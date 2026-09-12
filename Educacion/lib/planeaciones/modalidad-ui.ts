@@ -193,7 +193,7 @@ export function buildModalidadDisplay(
   return { secciones, calendario };
 }
 
-export function getMensajePlaneacionNueva(modalidad: Modalidad): string {
+export function getMensajePlaneacionNueva(_modalidad: Modalidad): string {
   return `Tu planeación ya está guardada. Arrastra actividades del catálogo (izquierda) hacia cada día, o escribe las tuyas — como en tu Word.`;
 }
 
@@ -202,7 +202,7 @@ export function getMensajeSinActividades(modalidad: Modalidad): string {
 }
 
 export function getNotaDragDrop(): string {
-  return 'Arrastra una actividad del catálogo (izquierda) hacia el día o la sección de la derecha. También puedes escribir la tuya abajo.';
+  return 'Arrastra actividades del catálogo o materiales de “Mi aula” hacia cada día. También puedes escribir actividades propias abajo.';
 }
 
 export function etiquetaSesion(sesion: {

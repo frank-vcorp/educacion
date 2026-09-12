@@ -95,6 +95,12 @@ export interface Bloque {
   duracion_min: number | null;
   orden: number;
   origen: string;
+  bloque_catalogo_id: string | null;
+  recursos_requeridos: Array<{
+    categoria?: string;
+    clave_busqueda?: string;
+    cantidad?: number;
+  }>;
   created_at: string;
   updated_at: string;
 }
@@ -116,7 +122,7 @@ export async function getBloques(
   const { data, error } = await supabase
     .from('bloque')
     .select(
-      'id, planeacion_id, sesion_id, docente_id, cct, tipo, nivel_flexibilidad, contenido_textual, pda_ids, campos_formativos, ejes_articuladores, duracion_min, orden, origen, created_at, updated_at',
+      'id, planeacion_id, sesion_id, docente_id, cct, tipo, nivel_flexibilidad, contenido_textual, pda_ids, campos_formativos, ejes_articuladores, duracion_min, orden, origen, bloque_catalogo_id, recursos_requeridos, created_at, updated_at',
     )
     .eq('planeacion_id', planeacionId)
     .order('orden', { ascending: true });

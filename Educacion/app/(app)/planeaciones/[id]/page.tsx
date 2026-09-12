@@ -25,7 +25,9 @@ import { Separator } from '@/components/ui/separator';
 import { getPlaneacion } from '@/services/planeaciones/planeacion-actions';
 import { getBloques } from '@/services/planeaciones/bloque-actions';
 import { ensureSesionesForPlaneacion } from '@/services/planeaciones/sesion-actions';
+import { getRecursosPorPlaneacion } from '@/services/planeaciones/sesion-recurso-actions';
 import { getBloquesCatalogo } from '@/services/catalogo/catalogo';
+import { listRecursos } from '@/services/recursos-aula/recurso-actions';
 import { getServerSession } from '@/lib/auth/session';
 import { DuplicarPlaneacionDialog } from '@/components/planeaciones/duplicar-planeacion-dialog';
 import { ActividadesEditor } from '@/components/planeaciones/actividades-editor';
@@ -74,6 +76,23 @@ export default async function PlaneacionDetallePage({
     : { ok: false as const, data: null, error: 'not-owner' };
   const sesionesIniciales = sesionesRes.ok && sesionesRes.data ? sesionesRes.data : [];
   const catalogoInicial = isOwner ? await getBloquesCatalogo() : [];
+  const recursosRes = isOwner
+    ? await listRecursos(session.docenteId!)
+    : { ok: false as const, items: [] };
+  const recursosInventario = (recursosRes.items ?? []).map((r) => ({
+    id: r.id,
+    nombre: r.nombre,
+    categoria: r.categoria,
+    uso: r.uso,
+    cantidad: r.cantidad,
+  }));
+  const recursosAsignadosRes = isOwner
+    ? await getRecursosPorPlaneacion(p.id)
+    : { ok: false as const, data: null };
+  const recursosAsignadosInicial =
+    recursosAsignadosRes.ok && recursosAsignadosRes.data
+      ? recursosAsignadosRes.data
+      : [];
   const modalidad = p.modalidad as Modalidad;
   const modalidadData =
     ((p.metadata as { modalidad_data?: Record<string, unknown> } | null)?.modalidad_data ??
@@ -173,6 +192,8 @@ export default async function PlaneacionDetallePage({
               bloquesIniciales={bloquesIniciales}
               sesionesIniciales={sesionesIniciales}
               catalogoInicial={catalogoInicial}
+              recursosInventario={recursosInventario}
+              recursosAsignadosInicial={recursosAsignadosInicial}
             />
           </section>
 

@@ -85,3 +85,20 @@ F3 — Pulir PDF: revisa problema, propósito y ajustes antes de entregar.
 
 Quién decide: siempre tú. Si no te convence, ignora la sugerencia o edita a mano.`,
 };
+
+export const GUIA_RECURSOS: GuiaPlaneacion = {
+  id: 'planeacion-recursos',
+  ariaLabel: 'Ayuda: materiales de tu aula',
+  breve:
+    'Arrastra los materiales que usarás ese día (cartulina, colores, cuentos…) hacia la misma zona del día.',
+  detalle: `Qué es: tu inventario personal — lo que tienes en el salón.
+
+Cómo usarlo:
+1. Pestaña “Mi aula” (izquierda).
+2. Arrastra un material hacia el día donde lo necesitas.
+3. Aparecerá abajo del día, en “Materiales de este día”.
+
+Si una actividad del catálogo pide materiales, la app te sugerirá cuáles de tu inventario podrían servir (pulsa “Usar”).
+
+Si aún no registraste materiales, ve a Recursos del aula en el menú y agrégalos una vez; después los reutilizas en todas tus planeaciones.`,
+};
