@@ -24,9 +24,11 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { getPlaneacion } from '@/services/planeaciones/planeacion-actions';
 import { getBloques } from '@/services/planeaciones/bloque-actions';
+import { ensureSesionesForPlaneacion } from '@/services/planeaciones/sesion-actions';
+import { getBloquesCatalogo } from '@/services/catalogo/catalogo';
 import { getServerSession } from '@/lib/auth/session';
 import { DuplicarPlaneacionDialog } from '@/components/planeaciones/duplicar-planeacion-dialog';
-import { BloqueEditor } from '@/components/planeaciones/bloque-editor';
+import { ActividadesEditor } from '@/components/planeaciones/actividades-editor';
 import { ModalidadEstructuraCard } from '@/components/planeaciones/modalidad-estructura-card';
 import { PlaneacionNuevaBanner } from '@/components/planeaciones/planeacion-nueva-banner';
 import { IASugerenciaPanel } from '@/components/ia/ia-sugerencia-panel';
@@ -34,6 +36,8 @@ import {
   MODALIDADES_LABELS,
   type Modalidad,
 } from '@/lib/planeaciones/modalidad-ui';
+import { GUIA_IA } from '@/lib/planeaciones/guias';
+import { SectionHelp } from '@/components/ui/section-help';
 
 export const dynamic = 'force-dynamic';
 
@@ -61,6 +65,15 @@ export default async function PlaneacionDetallePage({
     ? await getBloques(p.id).catch(() => ({ ok: false, data: null, error: 'timeout' as const }))
     : { ok: false, data: null, error: 'not-owner' as const };
   const bloquesIniciales = bloquesRes.ok && bloquesRes.data ? bloquesRes.data : [];
+  const sesionesRes = isOwner
+    ? await ensureSesionesForPlaneacion(p.id, session.docenteId!).catch(() => ({
+        ok: false as const,
+        data: null,
+        error: 'timeout',
+      }))
+    : { ok: false as const, data: null, error: 'not-owner' };
+  const sesionesIniciales = sesionesRes.ok && sesionesRes.data ? sesionesRes.data : [];
+  const catalogoInicial = isOwner ? await getBloquesCatalogo() : [];
   const modalidad = p.modalidad as Modalidad;
   const modalidadData =
     ((p.metadata as { modalidad_data?: Record<string, unknown> } | null)?.modalidad_data ??
@@ -68,7 +81,7 @@ export default async function PlaneacionDetallePage({
   const esNueva = searchParams?.nueva === '1';
 
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-6">
+    <div className="container mx-auto max-w-6xl px-4 py-6">
       {isOwner && esNueva && (
         <PlaneacionNuevaBanner modalidad={modalidad} planeacionId={p.id} />
       )}
@@ -151,12 +164,15 @@ export default async function PlaneacionDetallePage({
             <h2 id="actividades-heading" className="sr-only">
               Actividades
             </h2>
-            <BloqueEditor
+            <ActividadesEditor
               planeacionId={p.id}
               docenteId={session.docenteId!}
               cct={p.cct}
               modalidad={modalidad}
+              camposFormativos={(p.campos_formativos ?? []) as string[]}
               bloquesIniciales={bloquesIniciales}
+              sesionesIniciales={sesionesIniciales}
+              catalogoInicial={catalogoInicial}
             />
           </section>
 
@@ -170,10 +186,13 @@ export default async function PlaneacionDetallePage({
             >
               Asistente IA
             </h2>
-            <p className="mb-3 text-xs text-muted-foreground">
-              La IA sugiere; tú decides. Pulsa &laquo;Aceptar&raquo; sólo si
-              quieres aplicar el texto a tu planeación.
-            </p>
+            <SectionHelp
+              helpId={GUIA_IA.id}
+              ariaLabel={GUIA_IA.ariaLabel}
+              breve={GUIA_IA.breve}
+              detalle={GUIA_IA.detalle}
+              className="mb-3"
+            />
             <IASugerenciaPanel
               planeacionId={p.id}
               docenteId={session.docenteId!}

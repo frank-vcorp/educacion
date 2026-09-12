@@ -59,6 +59,7 @@ const NIVELES_VALIDOS = ['cerrado', 'abierto', 'en_blanco'] as const;
 const CreateBloqueSchema = z.object({
   planeacionId: z.string().uuid(),
   docenteId: z.string().uuid(),
+  sesionId: z.string().uuid().optional(),
   // Texto del bloque (campo principal de la UI mínima).
   contenidoTextual: z.string().min(1).max(5000),
   tipo: z.enum(TIPOS_VALIDOS).default('desarrollo'),
@@ -194,7 +195,19 @@ export async function createBloque(
   if (errSes) {
     return { ok: false, error: errSes.message };
   }
-  if (sesiones && sesiones.length > 0) {
+  if (data.sesionId) {
+    const { data: sesionTarget, error: errTarget } = await supabase
+      .from('sesion')
+      .select('id')
+      .eq('id', data.sesionId)
+      .eq('planeacion_id', data.planeacionId)
+      .maybeSingle();
+    if (errTarget) return { ok: false, error: errTarget.message };
+    if (!sesionTarget) {
+      return { ok: false, error: 'Sesión no encontrada en esta planeación' };
+    }
+    sesionId = sesionTarget.id;
+  } else if (sesiones && sesiones.length > 0) {
     sesionId = sesiones[0]!.id;
   } else {
     const { data: nuevaSesion, error: errInsSes } = await supabase
@@ -273,4 +286,219 @@ export async function createBloque(
     };
   }
   return { ok: true, id: nuevoBloque.id };
+}
+
+const CreateFromCatalogoSchema = z.object({
+  planeacionId: z.string().uuid(),
+  docenteId: z.string().uuid(),
+  sesionId: z.string().uuid(),
+  catalogoCodigo: z.string().min(3).max(40),
+});
+
+export type CreateFromCatalogoInput = z.infer<typeof CreateFromCatalogoSchema>;
+
+/**
+ * Crea un bloque copiando campos desde `bloque_catalogo` (drag-drop M1).
+ * `origen='kit_template'` + `bloque_catalogo_id` para trazabilidad P-PD9.
+ */
+export async function createBloqueFromCatalogo(
+  input: CreateFromCatalogoInput,
+): Promise<CreateBloqueResult> {
+  const parsed = CreateFromCatalogoSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? 'Datos inválidos',
+      errorCode: 'NEM_VALIDATION',
+    };
+  }
+  const data = parsed.data;
+  const supabase = await createClient();
+
+  const { data: planeacion, error: errPlane } = await supabase
+    .from('planeacion')
+    .select('id, docente_id, cct, estado')
+    .eq('id', data.planeacionId)
+    .maybeSingle();
+  if (errPlane) return { ok: false, error: errPlane.message };
+  if (!planeacion) return { ok: false, error: 'Planeación no encontrada' };
+  if (planeacion.docente_id !== data.docenteId) {
+    return {
+      ok: false,
+      error: 'La planeación no pertenece al docente',
+      errorCode: 'NEM_AUTH_RLS_VIOLATION',
+    };
+  }
+  if (planeacion.estado === 'archivada') {
+    return {
+      ok: false,
+      error: 'La planeación está archivada',
+      errorCode: 'NEM_PLANEACIONES_ARCHIVED',
+    };
+  }
+
+  const { data: sesion, error: errSesion } = await supabase
+    .from('sesion')
+    .select('id, planeacion_id')
+    .eq('id', data.sesionId)
+    .eq('planeacion_id', data.planeacionId)
+    .maybeSingle();
+  if (errSesion) return { ok: false, error: errSesion.message };
+  if (!sesion) return { ok: false, error: 'Sesión no encontrada en esta planeación' };
+
+  const { data: catalogo, error: errCat } = await supabase
+    .from('bloque_catalogo')
+    .select(
+      'codigo, nombre, tipo, nivel_flexibilidad, contenido_textual, pda_ids, campos_formativos, ejes_articuladores, recursos_requeridos, duracion_min',
+    )
+    .eq('codigo', data.catalogoCodigo)
+    .maybeSingle();
+  if (errCat) return { ok: false, error: errCat.message };
+  if (!catalogo) return { ok: false, error: 'Actividad del catálogo no encontrada' };
+
+  const { count: countBloques } = await supabase
+    .from('bloque')
+    .select('id', { count: 'exact', head: true })
+    .eq('sesion_id', data.sesionId);
+  const orden = (countBloques ?? 0) + 1;
+
+  const { data: nuevoBloque, error: errIns } = await supabase
+    .from('bloque')
+    .insert({
+      sesion_id: data.sesionId,
+      planeacion_id: data.planeacionId,
+      docente_id: data.docenteId,
+      cct: planeacion.cct,
+      bloque_catalogo_id: catalogo.codigo,
+      tipo: catalogo.tipo,
+      nivel_flexibilidad: catalogo.nivel_flexibilidad,
+      contenido_textual: catalogo.contenido_textual ?? catalogo.nombre,
+      pda_ids: catalogo.pda_ids ?? [],
+      campos_formativos: catalogo.campos_formativos ?? [],
+      ejes_articuladores: catalogo.ejes_articuladores ?? [],
+      recursos_requeridos: catalogo.recursos_requeridos ?? [],
+      duracion_min: catalogo.duracion_min,
+      orden,
+      origen: 'kit_template',
+    })
+    .select('id')
+    .single();
+  if (errIns || !nuevoBloque) {
+    return {
+      ok: false,
+      error: errIns?.message ?? 'No se pudo agregar la actividad',
+      errorCode: 'NEM_INTERNAL_ERROR',
+    };
+  }
+  return { ok: true, id: nuevoBloque.id };
+}
+
+const ReorderSchema = z.object({
+  planeacionId: z.string().uuid(),
+  docenteId: z.string().uuid(),
+  sesionId: z.string().uuid(),
+  orderedIds: z.array(z.string().uuid()).min(1),
+});
+
+export async function reorderBloquesInSesion(
+  input: z.infer<typeof ReorderSchema>,
+): Promise<{ ok: boolean; error?: string }> {
+  const parsed = ReorderSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
+  }
+  const data = parsed.data;
+  const supabase = await createClient();
+
+  const { data: planeacion } = await supabase
+    .from('planeacion')
+    .select('docente_id')
+    .eq('id', data.planeacionId)
+    .maybeSingle();
+  if (!planeacion || planeacion.docente_id !== data.docenteId) {
+    return { ok: false, error: 'Sin permiso para reordenar' };
+  }
+
+  for (let i = 0; i < data.orderedIds.length; i++) {
+    const bloqueId = data.orderedIds[i]!;
+    const { error } = await supabase
+      .from('bloque')
+      .update({ orden: i + 1 })
+      .eq('id', bloqueId)
+      .eq('sesion_id', data.sesionId)
+      .eq('planeacion_id', data.planeacionId);
+    if (error) return { ok: false, error: error.message };
+  }
+  return { ok: true };
+}
+
+const MoveSchema = z.object({
+  planeacionId: z.string().uuid(),
+  docenteId: z.string().uuid(),
+  bloqueId: z.string().uuid(),
+  targetSesionId: z.string().uuid(),
+});
+
+export async function moveBloqueToSesion(
+  input: z.infer<typeof MoveSchema>,
+): Promise<{ ok: boolean; error?: string }> {
+  const parsed = MoveSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
+  }
+  const data = parsed.data;
+  const supabase = await createClient();
+
+  const { data: planeacion } = await supabase
+    .from('planeacion')
+    .select('docente_id')
+    .eq('id', data.planeacionId)
+    .maybeSingle();
+  if (!planeacion || planeacion.docente_id !== data.docenteId) {
+    return { ok: false, error: 'Sin permiso' };
+  }
+
+  const { data: targetSesion } = await supabase
+    .from('sesion')
+    .select('id')
+    .eq('id', data.targetSesionId)
+    .eq('planeacion_id', data.planeacionId)
+    .maybeSingle();
+  if (!targetSesion) return { ok: false, error: 'Sesión destino inválida' };
+
+  const { count } = await supabase
+    .from('bloque')
+    .select('id', { count: 'exact', head: true })
+    .eq('sesion_id', data.targetSesionId);
+  const orden = (count ?? 0) + 1;
+
+  const { error } = await supabase
+    .from('bloque')
+    .update({ sesion_id: data.targetSesionId, orden })
+    .eq('id', data.bloqueId)
+    .eq('planeacion_id', data.planeacionId);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
+const DeleteSchema = z.object({
+  bloqueId: z.string().uuid(),
+  docenteId: z.string().uuid(),
+});
+
+export async function deleteBloque(
+  input: z.infer<typeof DeleteSchema>,
+): Promise<{ ok: boolean; error?: string }> {
+  const parsed = DeleteSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
+  }
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('bloque')
+    .delete()
+    .eq('id', parsed.data.bloqueId)
+    .eq('docente_id', parsed.data.docenteId);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
 }

@@ -1,9 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { SectionHelp } from '@/components/ui/section-help';
 import {
   buildModalidadDisplay,
   MODALIDADES_LABELS,
   type Modalidad,
 } from '@/lib/planeaciones/modalidad-ui';
+import { GUIA_ESTRUCTURA } from '@/lib/planeaciones/guias';
 
 export interface ModalidadEstructuraCardProps {
   modalidad: Modalidad;
@@ -28,9 +30,12 @@ export function ModalidadEstructuraCard({
         <CardTitle className="text-base">
           Estructura — {MODALIDADES_LABELS[modalidad]}
         </CardTitle>
-        <p className="text-xs text-muted-foreground">
-          Lo que capturaste en el wizard y las fases donde van tus actividades.
-        </p>
+        <SectionHelp
+          helpId={GUIA_ESTRUCTURA.id}
+          ariaLabel={GUIA_ESTRUCTURA.ariaLabel}
+          breve={GUIA_ESTRUCTURA.breve}
+          detalle={GUIA_ESTRUCTURA.detalle}
+        />
       </CardHeader>
       <CardContent className="space-y-4">
         {calendario.length > 0 && (

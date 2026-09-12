@@ -10,7 +10,7 @@ describe('modalidad-ui', () => {
     expect(getEtiquetaActividades('proyecto_comunitario')).toBe(
       'Actividades del proyecto',
     );
-    expect(getMensajeSinActividades('proyecto_comunitario')).toMatch(/actividades del proyecto/i);
+    expect(getMensajeSinActividades('proyecto_comunitario')).toMatch(/arrastra/i);
   });
 
   it('muestra fases guía para centro de interés', () => {

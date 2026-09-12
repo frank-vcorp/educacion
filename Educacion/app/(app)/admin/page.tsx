@@ -58,10 +58,9 @@ export default async function AdminPage() {
           <CardTitle className="text-base">Nota sobre &quot;no aparece nada&quot; en planeaciones</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
-          El wizard guarda la planeación con metadatos (problema, PDA, campos…) pero{' '}
-          <strong>no crea actividades automáticamente</strong>. La sección de actividades queda vacía
-          hasta que la maestra escribe en el cuadro y pulsa &quot;+ Añadir actividad&quot;. Eso es
-          comportamiento MVP, no un error de la maestra.
+          El wizard guarda metadatos (problema, PDA, campos…). Las actividades se agregan
+          después: arrastrando del catálogo o escribiendo manualmente. Si la maestra ve la
+          sección vacía, debe arrastrar o pulsar &quot;+ Añadir actividad&quot; — no es un error.
         </CardContent>
       </Card>
 

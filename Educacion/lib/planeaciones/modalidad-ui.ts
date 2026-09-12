@@ -194,13 +194,21 @@ export function buildModalidadDisplay(
 }
 
 export function getMensajePlaneacionNueva(modalidad: Modalidad): string {
-  return `Tu planeación ya está guardada. Ahora agrega las ${getEtiquetaActividades(modalidad).toLowerCase()} de cada día, como en tu formato en Word.`;
+  return `Tu planeación ya está guardada. Arrastra actividades del catálogo (izquierda) hacia cada día, o escribe las tuyas — como en tu Word.`;
 }
 
 export function getMensajeSinActividades(modalidad: Modalidad): string {
-  return `Esta planeación aún no tiene ${getEtiquetaActividades(modalidad).toLowerCase()}. Escribe la primera actividad abajo para empezar (por ejemplo: "Tintura con café" o "Honores a la bandera").`;
+  return `Aún no hay ${getEtiquetaActividades(modalidad).toLowerCase()}. Arrastra una del catálogo o escribe abajo (ej.: "Tintura con café", "Honores a la bandera").`;
 }
 
 export function getNotaDragDrop(): string {
-  return 'El arrastre desde el catálogo de bloques (M1) llegará en una fase posterior. Por ahora escribe cada actividad manualmente.';
+  return 'Arrastra una actividad del catálogo (izquierda) hacia el día o la sección de la derecha. También puedes escribir la tuya abajo.';
+}
+
+export function etiquetaSesion(sesion: {
+  numero: number;
+  ajustes_sesion?: string | null;
+}): string {
+  if (sesion.ajustes_sesion?.trim()) return sesion.ajustes_sesion.trim();
+  return `Sesión ${sesion.numero}`;
 }

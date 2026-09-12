@@ -697,8 +697,8 @@ export function WizardPlaneacion({
     return (
       <div className="space-y-3">
         <p className="text-sm text-muted-foreground">
-          En esta versión MVP la planeación se guarda sin sesiones/bloques. Después podrás
-          arrastrar bloques del catálogo M1 en la vista de edición.
+          Al guardar, abrirás tu planeación para arrastrar actividades del catálogo o
+          escribir las tuyas (como en tu formato en Word).
         </p>
         <div className="grid grid-cols-5 gap-2">
           {['L', 'M', 'M', 'J', 'V'].map((d, i) => (
