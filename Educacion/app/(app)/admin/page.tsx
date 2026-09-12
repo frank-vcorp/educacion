@@ -59,9 +59,9 @@ export default async function AdminPage() {
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
           El wizard guarda la planeación con metadatos (problema, PDA, campos…) pero{' '}
-          <strong>no crea bloques automáticamente</strong>. La sección Bloques queda vacía hasta que
-          la maestra escribe en el cuadro y pulsa &quot;+ Añadir bloque&quot;. Eso es comportamiento
-          MVP, no un error de la maestra.
+          <strong>no crea actividades automáticamente</strong>. La sección de actividades queda vacía
+          hasta que la maestra escribe en el cuadro y pulsa &quot;+ Añadir actividad&quot;. Eso es
+          comportamiento MVP, no un error de la maestra.
         </CardContent>
       </Card>
 
@@ -80,7 +80,7 @@ export default async function AdminPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Planeaciones sin bloques</CardDescription>
+            <CardDescription>Planeaciones sin actividades</CardDescription>
             <CardTitle className="text-3xl text-amber-700">{sinBloques}</CardTitle>
           </CardHeader>
         </Card>
@@ -155,7 +155,7 @@ export default async function AdminPage() {
                           </div>
                           <div className="flex items-center gap-2">
                             <Badge variant={p.bloquesCount > 0 ? 'default' : 'outline'}>
-                              {p.bloquesCount} bloque{p.bloquesCount === 1 ? '' : 's'}
+                              {p.bloquesCount} actividad{p.bloquesCount === 1 ? '' : 'es'}
                             </Badge>
                             <Badge variant="secondary">{p.sesionesCount} sesiones</Badge>
                           </div>

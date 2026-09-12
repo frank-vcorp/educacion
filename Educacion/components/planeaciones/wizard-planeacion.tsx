@@ -341,7 +341,7 @@ export function WizardPlaneacion({
         setError(res.error ?? 'Error desconocido');
         return;
       }
-      router.push(`/planeaciones/${res.id}`);
+      router.push(`/planeaciones/${res.id}?nueva=1`);
       router.refresh();
     });
   }

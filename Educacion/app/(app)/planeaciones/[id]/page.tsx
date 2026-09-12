@@ -27,11 +27,23 @@ import { getBloques } from '@/services/planeaciones/bloque-actions';
 import { getServerSession } from '@/lib/auth/session';
 import { DuplicarPlaneacionDialog } from '@/components/planeaciones/duplicar-planeacion-dialog';
 import { BloqueEditor } from '@/components/planeaciones/bloque-editor';
+import { ModalidadEstructuraCard } from '@/components/planeaciones/modalidad-estructura-card';
+import { PlaneacionNuevaBanner } from '@/components/planeaciones/planeacion-nueva-banner';
 import { IASugerenciaPanel } from '@/components/ia/ia-sugerencia-panel';
+import {
+  MODALIDADES_LABELS,
+  type Modalidad,
+} from '@/lib/planeaciones/modalidad-ui';
 
 export const dynamic = 'force-dynamic';
 
-export default async function PlaneacionDetallePage({ params }: { params: { id: string } }) {
+export default async function PlaneacionDetallePage({
+  params,
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams?: { nueva?: string };
+}) {
   const session = await getServerSession();
   if (!session) redirect('/login');
 
@@ -49,15 +61,24 @@ export default async function PlaneacionDetallePage({ params }: { params: { id: 
     ? await getBloques(p.id).catch(() => ({ ok: false, data: null, error: 'timeout' as const }))
     : { ok: false, data: null, error: 'not-owner' as const };
   const bloquesIniciales = bloquesRes.ok && bloquesRes.data ? bloquesRes.data : [];
+  const modalidad = p.modalidad as Modalidad;
+  const modalidadData =
+    ((p.metadata as { modalidad_data?: Record<string, unknown> } | null)?.modalidad_data ??
+      {}) as Record<string, unknown>;
+  const esNueva = searchParams?.nueva === '1';
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-6">
+      {isOwner && esNueva && (
+        <PlaneacionNuevaBanner modalidad={modalidad} planeacionId={p.id} />
+      )}
       <header className="mb-6">
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-nem-verde">{p.nombre}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {p.periodo_inicio} → {p.periodo_fin} · Modalidad {p.modalidad}
+              {p.periodo_inicio} → {p.periodo_fin} ·{' '}
+              {MODALIDADES_LABELS[modalidad] ?? p.modalidad}
             </p>
           </div>
           <Badge variant="secondary">{p.estado}</Badge>
@@ -125,14 +146,16 @@ export default async function PlaneacionDetallePage({ params }: { params: { id: 
       {isOwner && (
         <>
           <Separator className="my-6" />
-          <section className="space-y-4" aria-labelledby="bloques-heading">
-            <h2 id="bloques-heading" className="sr-only">
-              Bloques
+          <ModalidadEstructuraCard modalidad={modalidad} modalidadData={modalidadData} />
+          <section className="mt-4 space-y-4" aria-labelledby="actividades-heading">
+            <h2 id="actividades-heading" className="sr-only">
+              Actividades
             </h2>
             <BloqueEditor
               planeacionId={p.id}
               docenteId={session.docenteId!}
               cct={p.cct}
+              modalidad={modalidad}
               bloquesIniciales={bloquesIniciales}
             />
           </section>
