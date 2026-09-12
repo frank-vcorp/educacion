@@ -145,13 +145,14 @@ export function IASugerenciaPanel(props: IASugerenciaPanelProps) {
   // Ref anti-doble-submit defensivo (complemento al `disabled` visual).
   const inFlightRef = useRef(false);
 
-  const fetchSugerencia = useCallback(async () => {
+  const fetchSugerencia = useCallback(async (opts?: { forzarRefresh?: boolean }) => {
     if (inFlightRef.current) return; // anti-doble-submit (defensa en profundidad)
     inFlightRef.current = true;
     setEstado({ kind: 'loading' });
     setErrorPatch(null);
     try {
       const endpoint = endpointFor(props.feature);
+      const forzarRefresh = opts?.forzarRefresh === true;
       let body: Record<string, unknown>;
       if (props.feature === 'F1') {
         if (!props.bloqueId) {
@@ -165,6 +166,7 @@ export function IASugerenciaPanel(props: IASugerenciaPanelProps) {
         body = {
           bloque_id: props.bloqueId,
           ...(props.varianteTipo ? { variante_tipo: props.varianteTipo } : {}),
+          ...(forzarRefresh ? { forzar_refresh: true } : {}),
         };
       } else if (props.feature === 'F2') {
         body = {
@@ -358,12 +360,12 @@ export function IASugerenciaPanel(props: IASugerenciaPanelProps) {
     setF3Campos({});
   }, []);
 
-  const onReset = useCallback(() => {
-    setEstado({ kind: 'idle' });
+  const onPedirOtra = useCallback(() => {
     setSugerenciaTexto('');
     setF3Campos({});
     setErrorPatch(null);
-  }, []);
+    void fetchSugerencia({ forzarRefresh: props.feature === 'F1' });
+  }, [fetchSugerencia, props.feature]);
 
   const isLoading = estado.kind === 'loading';
   const label = props.label ?? defaultLabel(props.feature);
@@ -387,7 +389,7 @@ export function IASugerenciaPanel(props: IASugerenciaPanelProps) {
         <Button
           type="button"
           size="sm"
-          onClick={fetchSugerencia}
+          onClick={() => fetchSugerencia()}
           disabled={isLoading}
           data-testid={`ia-panel-${props.feature}-solicitar`}
           aria-label={boton}
@@ -431,6 +433,18 @@ export function IASugerenciaPanel(props: IASugerenciaPanelProps) {
               <X className="mr-1 h-4 w-4" />
               Rechazar
             </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={onPedirOtra}
+              disabled={isLoading}
+              data-testid={`ia-panel-${props.feature}-otra`}
+              aria-label="Pedir otra sugerencia"
+            >
+              <RotateCw className="mr-1 h-4 w-4" />
+              Pedir otra sugerencia
+            </Button>
           </>
         )}
         {estado.kind === 'error' && (
@@ -438,7 +452,7 @@ export function IASugerenciaPanel(props: IASugerenciaPanelProps) {
             type="button"
             size="sm"
             variant="outline"
-            onClick={fetchSugerencia}
+            onClick={() => fetchSugerencia({ forzarRefresh: props.feature === 'F1' })}
             disabled={isLoading}
           >
             <RotateCw className="mr-1 h-4 w-4" />
@@ -548,10 +562,18 @@ export function IASugerenciaPanel(props: IASugerenciaPanelProps) {
           type="button"
           size="sm"
           variant="ghost"
-          onClick={onReset}
+          onClick={onPedirOtra}
+          disabled={isLoading}
           data-testid={`ia-panel-${props.feature}-reset`}
         >
-          Pedir otra sugerencia
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+              Pidiendo…
+            </>
+          ) : (
+            'Pedir otra sugerencia'
+          )}
         </Button>
       )}
     </div>

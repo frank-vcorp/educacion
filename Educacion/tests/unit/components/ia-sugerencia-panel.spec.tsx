@@ -71,4 +71,40 @@ describe('IASugerenciaPanel — AC-UI-2 anti-doble-submit', () => {
     // Limpiamos la promesa pendiente para no dejar el test colgado.
     if (pendingFetch) pendingFetch.resolve(new Response('{}', { status: 200 }));
   });
+
+  it('"Pedir otra sugerencia" envía forzar_refresh para obtener texto distinto (F1)', async () => {
+    const user = userEvent.setup();
+    const fetchMock = globalThis.fetch as unknown as {
+      mock: { calls: Array<[string, RequestInit]> };
+    };
+
+    fetchMock.mockImplementation((_url, init) => {
+      const body = JSON.parse(String(init?.body ?? '{}')) as Record<string, unknown>;
+      const origen = body.forzar_refresh ? 'ia' : 'cache';
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({
+            data: {
+              variante_texto: origen === 'cache' ? 'Texto cacheado.' : 'Texto nuevo.',
+              origen,
+            },
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        ),
+      );
+    });
+
+    render(<IASugerenciaPanel {...PROPS_BASE} />);
+
+    await user.click(screen.getByTestId('ia-panel-F1-solicitar'));
+    expect(await screen.findByDisplayValue('Texto cacheado.')).toBeInTheDocument();
+
+    await user.click(screen.getByTestId('ia-panel-F1-otra'));
+    expect(await screen.findByDisplayValue('Texto nuevo.')).toBeInTheDocument();
+
+    const lastBody = JSON.parse(
+      String(fetchMock.mock.calls.at(-1)?.[1]?.body ?? '{}'),
+    ) as Record<string, unknown>;
+    expect(lastBody.forzar_refresh).toBe(true);
+  });
 });
