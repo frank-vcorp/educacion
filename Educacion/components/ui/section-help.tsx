@@ -46,6 +46,8 @@ export interface SectionHelpProps {
   className?: string;
   /** Si se desactiva el botón (sigue mostrando el `breve`). */
   disabled?: boolean;
+  /** Solo icono (?) — para sidebars donde el espacio importa. */
+  compact?: boolean;
 }
 
 export function SectionHelp({
@@ -55,6 +57,7 @@ export function SectionHelp({
   detalle,
   className,
   disabled = false,
+  compact = false,
 }: SectionHelpProps) {
   const [abierto, setAbierto] = React.useState(false);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
@@ -123,16 +126,22 @@ export function SectionHelp({
   return (
     <div
       ref={wrapperRef}
-      className={cn('relative inline-flex flex-col gap-1', className)}
+      className={cn(
+        'relative inline-flex',
+        compact ? 'flex-row items-center' : 'flex-col gap-1',
+        className,
+      )}
       data-testid={`section-help-${helpId}`}
       data-open={abierto ? 'true' : 'false'}
     >
-      <p
-        className="text-xs text-muted-foreground"
-        data-testid={`section-help-${helpId}-breve`}
-      >
-        {breve}
-      </p>
+      {!compact && (
+        <p
+          className="text-xs text-muted-foreground"
+          data-testid={`section-help-${helpId}-breve`}
+        >
+          {breve}
+        </p>
+      )}
       <button
         ref={buttonRef}
         type="button"
@@ -141,17 +150,21 @@ export function SectionHelp({
         aria-expanded={abierto}
         aria-controls={panelId}
         aria-describedby={panelId}
-        aria-label={ariaLabel}
+        aria-label={compact ? ariaLabel : ariaLabel}
+        title={compact ? ariaLabel : undefined}
         data-testid={`section-help-${helpId}-button`}
         className={cn(
-          'inline-flex h-9 min-h-[36px] items-center gap-1.5 self-start rounded-md border border-input bg-background px-2.5 text-xs font-medium text-foreground',
+          'inline-flex items-center justify-center rounded-md border border-input bg-background text-foreground',
           'hover:bg-accent hover:text-accent-foreground',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
           'disabled:pointer-events-none disabled:opacity-50',
+          compact
+            ? 'h-7 w-7 shrink-0'
+            : 'h-9 min-h-[36px] gap-1.5 self-start px-2.5 text-xs font-medium',
         )}
       >
-        <Info className="h-4 w-4" aria-hidden="true" />
-        <span>Ayuda</span>
+        <Info className={compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} aria-hidden="true" />
+        {!compact && <span>Ayuda</span>}
       </button>
       {abierto && (
         <div

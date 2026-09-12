@@ -1155,41 +1155,71 @@ export function ActividadesEditor({
       />
     ));
 
-  const renderPanelCatalogo = (sesionId: string, diaLabel: string) => (
+  const renderPanelCatalogo = (sesionId: string, diaLabel: string, compact = false) => {
+    const catalogoDetalle = [
+      GUIA_CATALOGO.detalle,
+      `\nFiltro actual: ${etiquetaFiltro}`,
+      workbook?.temaCentro ? `Tema del centro: ${workbook.temaCentro}` : '',
+      `Día seleccionado: ${diaLabel}`,
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    return (
     <>
-      <SectionHelp
-        helpId={GUIA_CATALOGO.id}
-        ariaLabel={GUIA_CATALOGO.ariaLabel}
-        breve={GUIA_CATALOGO.breve}
-        detalle={GUIA_CATALOGO.detalle}
-      />
-      <p
-        className="rounded-md border border-nem-verde/20 bg-nem-verde/5 px-2 py-1.5 text-[11px] leading-relaxed text-muted-foreground"
-        data-testid="catalogo-filtro-contexto"
-      >
-        Filtrado por: <span className="font-medium text-foreground">{etiquetaFiltro}</span>
-        {workbook?.temaCentro ? (
-          <>
-            {' '}
-            · tema:{' '}
-            <span className="font-medium text-foreground">{workbook.temaCentro}</span>
-          </>
-        ) : null}
-      </p>
+      {compact ? (
+        <div className="flex items-center gap-1.5 border-t pt-3">
+          <p className="min-w-0 flex-1 text-xs font-medium">Catálogo NEM</p>
+          <Badge variant="secondary" className="shrink-0 text-[10px] font-normal">
+            {catalogoFiltrado.length}
+          </Badge>
+          <SectionHelp
+            compact
+            helpId={GUIA_CATALOGO.id}
+            ariaLabel={GUIA_CATALOGO.ariaLabel}
+            breve={GUIA_CATALOGO.breve}
+            detalle={catalogoDetalle}
+          />
+        </div>
+      ) : (
+        <>
+          <SectionHelp
+            helpId={GUIA_CATALOGO.id}
+            ariaLabel={GUIA_CATALOGO.ariaLabel}
+            breve={GUIA_CATALOGO.breve}
+            detalle={GUIA_CATALOGO.detalle}
+          />
+          <p
+            className="rounded-md border border-nem-verde/20 bg-nem-verde/5 px-2 py-1.5 text-[11px] leading-relaxed text-muted-foreground"
+            data-testid="catalogo-filtro-contexto"
+          >
+            Filtrado por: <span className="font-medium text-foreground">{etiquetaFiltro}</span>
+            {workbook?.temaCentro ? (
+              <>
+                {' '}
+                · tema:{' '}
+                <span className="font-medium text-foreground">{workbook.temaCentro}</span>
+              </>
+            ) : null}
+          </p>
+        </>
+      )}
       <div className="relative">
         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           className="pl-8"
-          placeholder="Filtrar (ej. observación, experimento, naturaleza…)"
+          placeholder={compact ? 'Buscar actividad…' : 'Filtrar (ej. observación, experimento, naturaleza…)'}
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           data-testid="catalogo-busqueda"
         />
       </div>
-      <p className="text-[11px] text-muted-foreground">
-        {catalogoFiltrado.length} actividades · día:{' '}
-        <span className="font-medium text-foreground">{diaLabel}</span>
-      </p>
+      {!compact && (
+        <p className="text-[11px] text-muted-foreground">
+          {catalogoFiltrado.length} actividades · día:{' '}
+          <span className="font-medium text-foreground">{diaLabel}</span>
+        </p>
+      )}
       {catalogoFiltrado.length === 0 ? (
         <div
           className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-950"
@@ -1203,15 +1233,19 @@ export function ActividadesEditor({
           </p>
         </div>
       ) : (
-        <div className="max-h-[420px] space-y-3 overflow-y-auto pr-1">
+        <div
+          className={`space-y-3 overflow-y-auto pr-1 ${compact ? 'max-h-[min(52dvh,560px)]' : 'max-h-[420px]'}`}
+        >
           {catalogoSugeridas.length > 0 && !busqueda.trim() && (
             <div className="space-y-2">
               <p className="text-[11px] font-semibold text-nem-verde">
                 Sugeridas para tu centro
               </p>
-              <p className="text-[10px] text-muted-foreground">
-                Coinciden con tus PDA, campo y tema. Arrastra o pulsa Agregar.
-              </p>
+              {!compact && (
+                <p className="text-[10px] text-muted-foreground">
+                  Coinciden con tus PDA, campo y tema. Arrastra o pulsa Agregar.
+                </p>
+              )}
               {renderCatalogoLista(catalogoSugeridas, sesionId)}
             </div>
           )}
@@ -1228,18 +1262,32 @@ export function ActividadesEditor({
         </div>
       )}
     </>
-  );
+    );
+  };
 
-  const panelCatalogo = renderPanelCatalogo(sesionIdCatalogo, diaSeleccionadoLabel);
+  const panelCatalogo = renderPanelCatalogo(sesionIdCatalogo, diaSeleccionadoLabel, esWorkbook);
 
   const panelInventario = (
     <>
-      <SectionHelp
-        helpId={GUIA_RECURSOS.id}
-        ariaLabel={GUIA_RECURSOS.ariaLabel}
-        breve={GUIA_RECURSOS.breve}
-        detalle={GUIA_RECURSOS.detalle}
-      />
+      {esWorkbook ? (
+        <div className="flex items-center gap-1.5">
+          <p className="flex-1 text-xs font-medium">Mi aula</p>
+          <SectionHelp
+            compact
+            helpId={GUIA_RECURSOS.id}
+            ariaLabel={GUIA_RECURSOS.ariaLabel}
+            breve={GUIA_RECURSOS.breve}
+            detalle={GUIA_RECURSOS.detalle}
+          />
+        </div>
+      ) : (
+        <SectionHelp
+          helpId={GUIA_RECURSOS.id}
+          ariaLabel={GUIA_RECURSOS.ariaLabel}
+          breve={GUIA_RECURSOS.breve}
+          detalle={GUIA_RECURSOS.detalle}
+        />
+      )}
       {recursosInventario.length === 0 ? (
         <p className="text-xs text-muted-foreground">
           Aún no tienes materiales registrados.{' '}
@@ -1383,10 +1431,6 @@ export function ActividadesEditor({
         onAgregarDia={abrirDiaParaEscribir}
         renderBloqueCompacto={renderBloqueCompacto}
       />
-      <p className="text-[11px] text-muted-foreground">
-        Arrastra <strong>Actividad propia</strong> o del catálogo a un día. Pulsa una actividad
-        para editarla; <strong>Agregar</strong> abre el formulario de una nueva.
-      </p>
     </div>
   ) : (
     <div className="space-y-4">
@@ -1435,30 +1479,41 @@ export function ActividadesEditor({
 
   return (
     <Card data-testid="actividades-editor" className={pending ? 'opacity-90' : ''}>
-      <CardHeader>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-          <div>
+      <CardHeader className={esWorkbook ? 'pb-3' : undefined}>
+        {esWorkbook ? (
+          <div className="flex items-start justify-between gap-2">
             <CardTitle className="text-base">{titulo}</CardTitle>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {esWorkbook
-                ? 'Arrastra Actividad propia o del catálogo a un día del calendario. Puedes mover actividades entre días.'
-                : getNotaDragDrop()}
-            </p>
+            <SectionHelp
+              compact
+              helpId={GUIA_ACTIVIDADES.id}
+              ariaLabel={GUIA_ACTIVIDADES.ariaLabel}
+              breve={GUIA_ACTIVIDADES.breve}
+              detalle={`${GUIA_ACTIVIDADES.detalle}\n\n${GUIA_ARRASTRAR.detalle}`}
+            />
           </div>
-          <SectionHelp
-            helpId={GUIA_ACTIVIDADES.id}
-            ariaLabel={GUIA_ACTIVIDADES.ariaLabel}
-            breve={GUIA_ACTIVIDADES.breve}
-            detalle={GUIA_ACTIVIDADES.detalle}
-          />
-        </div>
-        <SectionHelp
-          helpId={GUIA_ARRASTRAR.id}
-          ariaLabel={GUIA_ARRASTRAR.ariaLabel}
-          breve={GUIA_ARRASTRAR.breve}
-          detalle={GUIA_ARRASTRAR.detalle}
-          className="mt-2"
-        />
+        ) : (
+          <>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <CardTitle className="text-base">{titulo}</CardTitle>
+                <p className="mt-1 text-xs text-muted-foreground">{getNotaDragDrop()}</p>
+              </div>
+              <SectionHelp
+                helpId={GUIA_ACTIVIDADES.id}
+                ariaLabel={GUIA_ACTIVIDADES.ariaLabel}
+                breve={GUIA_ACTIVIDADES.breve}
+                detalle={GUIA_ACTIVIDADES.detalle}
+              />
+            </div>
+            <SectionHelp
+              helpId={GUIA_ARRASTRAR.id}
+              ariaLabel={GUIA_ARRASTRAR.ariaLabel}
+              breve={GUIA_ARRASTRAR.breve}
+              detalle={GUIA_ARRASTRAR.detalle}
+              className="mt-2"
+            />
+          </>
+        )}
       </CardHeader>
       <CardContent>
         <DndContext
@@ -1479,7 +1534,6 @@ export function ActividadesEditor({
               {esWorkbook ? (
                 <>
                   <ActividadPropiaCard />
-                  <p className="border-t pt-3 text-xs font-medium">Catálogo NEM</p>
                   {panelCatalogo}
                 </>
               ) : (
@@ -1518,7 +1572,6 @@ export function ActividadesEditor({
 
             {esWorkbook && (
               <aside className="sticky top-[4.5rem] z-10 max-h-[calc(100dvh-5.5rem)] self-start space-y-3 overflow-y-auto rounded-lg border bg-background/95 p-3 shadow-md backdrop-blur supports-[backdrop-filter]:bg-background/85">
-                <p className="text-xs font-medium">Mi aula</p>
                 {panelInventario}
               </aside>
             )}
