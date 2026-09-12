@@ -5,6 +5,8 @@ import { resolveSupabaseCreds } from './supabase-creds';
 
 const DEFAULT_EMAIL = 'frank@vcorp.mx';
 
+type SupabaseCookie = { name: string; value: string; options: CookieOptions };
+
 export async function dismissAvisoIfVisible(page: Page): Promise<void> {
   const checkbox = page.getByRole('checkbox', {
     name: /he leído|aviso de privacidad/i,
@@ -24,14 +26,14 @@ async function injectSupabaseSession(
   accessToken: string,
   refreshToken: string,
 ): Promise<void> {
-  const cookiesToSet: Array<{ name: string; value: string; options: CookieOptions }> = [];
+  const cookiesToSet: SupabaseCookie[] = [];
 
   const supabase = createServerClient(supabaseUrl, anonKey, {
     cookies: {
       getAll() {
         return [];
       },
-      setAll(cookies) {
+      setAll(cookies: SupabaseCookie[]) {
         cookiesToSet.push(...cookies);
       },
     },

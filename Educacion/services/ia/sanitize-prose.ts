@@ -34,12 +34,16 @@ export function sanitizeIaProse(raw: string | undefined | null): string {
   text = text.replace(/\n\s*---+\s*\n[\s\S]*$/, '').trim();
 
   const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
-  while (lines.length > 1 && lines[0].length <= 140 && PREAMBLE_LINE.test(lines[0])) {
+  while (lines.length > 1) {
+    const first = lines[0];
+    if (!first || first.length > 140 || !PREAMBLE_LINE.test(first)) break;
     lines.shift();
   }
 
   if (lines.length === 1) {
-    const single = lines[0].match(/^(?:texto|sugerencia|propuesta|resultado)\s*:\s*(.+)$/i);
+    const only = lines[0];
+    if (!only) return '';
+    const single = only.match(/^(?:texto|sugerencia|propuesta|resultado)\s*:\s*(.+)$/i);
     if (single?.[1]?.trim()) return single[1].trim();
   }
 
