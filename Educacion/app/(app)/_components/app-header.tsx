@@ -5,6 +5,7 @@
 import Link from 'next/link';
 import type { User } from '@supabase/supabase-js';
 import { GrupoSelector } from '@/components/grupo/grupo-selector';
+import { AdminNavLink } from './admin-nav-link';
 import { NavMenu } from './nav-menu';
 import { UserMenu } from './user-menu';
 
@@ -22,6 +23,7 @@ export function AppHeader({ user }: { user: User }) {
           <NavMenu />
         </div>
         <div className="flex items-center gap-2">
+          <AdminNavLink />
           <GrupoSelector />
           <UserMenu user={user} />
         </div>

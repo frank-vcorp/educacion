@@ -163,8 +163,9 @@ export function BloqueEditor({
       <CardHeader>
         <CardTitle className="text-base">Bloques</CardTitle>
         <p className="text-xs text-muted-foreground">
-          Lista mínima de bloques para activar F1 y F2. El editor completo
-          con drag-drop del catálogo M1 es alcance de Fase 2.
+          Después del wizard, aquí escribes cada actividad de tu planeación (un
+          bloque = una actividad). Escribe el texto abajo y pulsa &quot;+ Añadir
+          bloque&quot;. El arrastre desde catálogo M1 llegará en Fase 2.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
