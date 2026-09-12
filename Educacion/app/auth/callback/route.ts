@@ -18,6 +18,12 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Fallback: redirige a login con error
-  return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
+  // Sin ?code=: el token puede venir en el hash (#access_token). Preservamos redirect
+  // para que AuthHashHandler en /login complete la sesión.
+  const loginUrl = new URL(`${origin}/login`);
+  loginUrl.searchParams.set('error', 'auth_callback_failed');
+  if (redirectTo && redirectTo !== '/dashboard') {
+    loginUrl.searchParams.set('redirect', redirectTo);
+  }
+  return NextResponse.redirect(loginUrl.toString());
 }

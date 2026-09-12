@@ -308,7 +308,6 @@ export default async function PlaneacionDetallePage({
               docenteId={session.docenteId!}
               cct={p.cct}
               feature="F3"
-              label="Pulir campos del PDF (F3)"
             />
           </section>
         </>

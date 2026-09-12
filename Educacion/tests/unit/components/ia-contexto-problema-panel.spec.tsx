@@ -144,7 +144,7 @@ describe('IAContextoProblemaPanel — AC-12..AC-16', () => {
   });
 
   // AC-14: aplicar problema no afecta los otros
-  it('AC-14: pulsar "Usar esta propuesta" en bloque problema sólo invoca onApplyProblema', async () => {
+  it('AC-14: pulsar "Aplicar a la planeación" en bloque problema sólo invoca onApplyProblema', async () => {
     const user = userEvent.setup();
     const onApplyProblema = vi.fn();
     const onApplyProposito = vi.fn();

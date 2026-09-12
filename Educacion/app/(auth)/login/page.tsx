@@ -2,6 +2,8 @@
  * Página de login con email + password + magic link.
  * SPEC_TEC_04 §9.1: Auth Supabase.
  */
+import { Suspense } from 'react';
+import { AuthHashHandler } from '@/components/auth/auth-hash-handler';
 import { LoginForm } from './login-form';
 
 export const metadata = {
@@ -38,6 +40,9 @@ export default function LoginPage({
         </div>
       )}
 
+      <Suspense fallback={null}>
+        <AuthHashHandler />
+      </Suspense>
       <LoginForm redirect={searchParams.redirect} />
     </div>
   );

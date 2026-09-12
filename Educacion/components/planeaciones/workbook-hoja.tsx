@@ -97,18 +97,22 @@ export function WorkbookHoja({ ctx }: { ctx: WorkbookContexto }) {
         </div>
       )}
 
-      {ctx.ejes.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-1">
-          <span className="w-full text-xs font-medium uppercase text-muted-foreground">
-            Ejes articuladores
-          </span>
-          {ctx.ejes.map((e) => (
+      <div className="mt-3 flex flex-wrap gap-1">
+        <span className="w-full text-xs font-medium uppercase text-muted-foreground">
+          Ejes articuladores
+        </span>
+        {ctx.ejes.length > 0 ? (
+          ctx.ejes.map((e) => (
             <Badge key={e.codigo} variant="amarillo">
               {e.nombre}
             </Badge>
-          ))}
-        </div>
-      )}
+          ))
+        ) : (
+          <span className="text-xs text-muted-foreground">
+            Ninguno seleccionado — elígelos al crear la planeación (paso Ejes del wizard).
+          </span>
+        )}
+      </div>
 
       <div className="mt-4 overflow-x-auto">
         <table className="w-full min-w-[480px] border-collapse text-left text-xs">

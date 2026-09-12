@@ -9,17 +9,19 @@
  * Auth: E2E_EMAIL + E2E_PASSWORD, o magic link vía SUPABASE_SERVICE_ROLE_KEY.
  */
 import { test, expect } from '@playwright/test';
-import { loginDocente } from './helpers/login-docente';
+import { dismissAvisoIfVisible, loginDocente } from './helpers/login-docente';
 import { LOLITA_CENTRO_INTERES } from './fixtures/lolita-centro-interes-data';
 
 const ENABLED = process.env.E2E_LOLITA_DEMO === '1' || process.env.E2E_BASE_URL;
 
 test.describe('Planeación ejemplo Lolita — Centro de interés', () => {
   test('wizard + actividades del calendario (Colorín colorante)', async ({ page, baseURL }) => {
+    test.setTimeout(180_000);
     test.skip(!ENABLED, 'Define E2E_LOLITA_DEMO=1 o E2E_BASE_URL para ejecutar este demo.');
 
     const email = await loginDocente(page, baseURL!);
     await page.goto('/planeaciones/nueva');
+    await dismissAvisoIfVisible(page);
     await expect(page.getByText(/Paso 1 de/i)).toBeVisible();
 
     // Paso 1 — Modalidad
@@ -62,7 +64,13 @@ test.describe('Planeación ejemplo Lolita — Centro de interés', () => {
     }
     await page.getByRole('button', { name: 'Siguiente' }).click();
 
-    // Paso 7 — Revisión y guardar
+    // Paso 7 — Ejes articuladores
+    for (const eje of d.ejes) {
+      await page.getByRole('button', { name: eje }).click();
+    }
+    await page.getByRole('button', { name: 'Siguiente' }).click();
+
+    // Paso 8 — Revisión y guardar
     await expect(page.getByText(d.nombre)).toBeVisible();
     await page.getByRole('button', { name: 'Guardar planeación' }).click();
 
@@ -83,11 +91,13 @@ test.describe('Planeación ejemplo Lolita — Centro de interés', () => {
       }
     }
 
-    // Actividades propias del calendario L–V de Lolita
+    // Actividades propias del calendario L–V de Lolita (una por día hábil)
     for (const actividad of d.actividadesCalendario) {
-      await page.getByTestId('bloque-editor-nuevo').fill(actividad);
+      await page.getByRole('button', { name: actividad.dia }).click();
+      await expect(page.getByTestId('dia-actividad-modal')).toBeVisible({ timeout: 10_000 });
+      await page.getByTestId('bloque-editor-nuevo').fill(actividad.texto);
       await page.getByTestId('bloque-editor-crear').click();
-      await expect(page.getByText(actividad.slice(0, 40), { exact: false })).toBeVisible({
+      await expect(page.getByText(actividad.texto.slice(0, 40), { exact: false })).toBeVisible({
         timeout: 15_000,
       });
     }

@@ -190,12 +190,14 @@ export async function POST(request: Request) {
     );
   }
 
+  const { sanitizeIaProse } = await import('@/services/ia/sanitize-prose');
+
   return NextResponse.json(
     {
       data: {
-        problema_estructurado: parsedF0.problema_estructurado,
-        proposito: parsedF0.proposito,
-        ajustes_razonables: parsedF0.ajustes_razonables,
+        problema_estructurado: sanitizeIaProse(parsedF0.problema_estructurado),
+        proposito: sanitizeIaProse(parsedF0.proposito),
+        ajustes_razonables: sanitizeIaProse(parsedF0.ajustes_razonables),
         origen: 'ia',
       },
     },

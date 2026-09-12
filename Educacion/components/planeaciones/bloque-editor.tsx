@@ -183,8 +183,8 @@ export function BloqueEditor({
             data-testid="bloque-editor-empty"
             className="rounded-md border border-dashed bg-muted/30 px-3 py-2 text-sm text-muted-foreground"
           >
-            {getMensajeSinActividades(modalidad)} Las sugerencias de la IA (F1 y
-            F2) se habilitan al agregar la primera actividad.
+            {getMensajeSinActividades(modalidad)} Las herramientas de IA (adaptar
+            contexto y mejorar redacción) se habilitan al agregar la primera actividad.
           </p>
         )}
 
@@ -307,7 +307,6 @@ export function BloqueEditor({
                     textoBase={b.contenido_textual ?? ''}
                     feature="F1"
                     varianteTipo="rural"
-                    label="Variante de actividad (F1)"
                   />
                   <IASugerenciaPanel
                     planeacionId={planeacionId}
@@ -317,7 +316,6 @@ export function BloqueEditor({
                     textoBase={b.contenido_textual ?? ''}
                     feature="F2"
                     f2Accion="expandir"
-                    label="Ayuda a redactar (F2)"
                   />
                 </div>
               </div>

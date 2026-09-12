@@ -23,26 +23,24 @@ Cómo agregarlas:
 
 Para qué sirve: aquí queda el detalle de tu planeación; arriba ya guardaste el problema, los PDA y el propósito.
 
-La IA (F1 y F2) solo sugiere textos: tú decides si aceptarlos. Nada se guarda solo.`,
+La IA solo sugiere textos: tú decides si aceptarlos. Nada se guarda solo.`,
 };
 
 export const GUIA_CATALOGO: GuiaPlaneacion = {
   id: 'planeacion-catalogo',
   ariaLabel: 'Ayuda: catálogo de actividades sugeridas',
   breve:
-    'Son ideas listas del NEM. Mantén pulsado y arrastra hacia el día donde la harás.',
-  detalle: `Qué es: un banco de actividades sugeridas por campo formativo (Lenguajes, Saberes, etc.), filtradas por el grado de tu grupo (1°, 2° o 3°), la modalidad y los campos de tu planeación.
+    'Ideas del NEM filtradas por tu campo, grado y PDA. Las más relevantes a tu centro aparecen arriba.',
+  detalle: `Qué es: actividades sugeridas según tu planeación (campo formativo, PDA, grado y tema del centro).
 
-Cómo usarlo:
-• Toca el ícono ⋮⋮ y arrastra hacia la zona punteada del día.
-• Si prefieres, pulsa “Agregar” en la tarjeta (útil en celular).
+Cómo empezar:
+1. Elige el día arriba (Lunes 10 feb, etc.).
+2. Arrastra una sugerida del catálogo (izquierda) o escribe la tuya abajo en «Escribir actividad propia».
+3. Si vienes de tu Word, copia el texto del día tal cual — no necesitas buscar nada.
 
-Niveles:
-• Cerrado = texto casi listo.
-• Abierto = puedes adaptarlo a tu grupo.
-• En blanco = tú completas la idea.
+Las sugeridas arriba coinciden con tus PDA y el tema del centro. El buscador sirve para afinar (ej. “observación”, “experimento”).
 
-No sustituye tu criterio: son apoyo, como las plantillas de Editorial.`,
+Niveles: cerrado (casi listo), abierto (adaptas), en blanco (tú completas).`,
 };
 
 export const GUIA_ARRASTRAR: GuiaPlaneacion = {
@@ -78,13 +76,37 @@ export const GUIA_IA: GuiaPlaneacion = {
   id: 'planeacion-ia',
   ariaLabel: 'Ayuda: sugerencias de la IA',
   breve:
-    'La IA propone variantes; nada se aplica hasta que pulses “Aceptar”.',
-  detalle: `F1 — Variante: otra forma de redactar la misma actividad (por ejemplo, para contexto rural).
-F2 — Ayuda a redactar: expande o mejora el texto que escribiste.
-F3 — Pulir PDF: revisa problema, propósito y ajustes antes de entregar.
+    'En cada actividad puedes pedir adaptar el texto a tu contexto o mejorar la redacción. Nada se guarda hasta que pulses “Aceptar”.',
+  detalle: `Adaptar a mi contexto: la IA propone otra redacción de la actividad (por ejemplo, para escuela rural o urbana).
 
-Quién decide: siempre tú. Si no te convence, ignora la sugerencia o edita a mano.`,
+Mejorar redacción: amplía o aclara el texto que tú escribiste.
+
+Revisar campos del PDF: pulir problema, propósito y ajustes antes de entregar al director.
+
+Siempre tú decides: puedes editar la sugerencia o ignorarla.`,
 };
+
+/** Textos visibles de las herramientas IA (sin códigos F1/F2 en la UI). */
+export const IA_COPY = {
+  F1: {
+    label: 'Adaptar a mi contexto',
+    descripcion:
+      'Propone otra redacción de esta actividad para tu realidad (rural, urbana, materiales de tu comunidad). Revisa y pulsa Aceptar para usarla.',
+    boton: 'Pedir adaptación',
+  },
+  F2: {
+    label: 'Mejorar redacción',
+    descripcion:
+      'Amplía o aclara el texto que escribiste. Puedes editarlo antes de aplicarlo a la actividad.',
+    boton: 'Pedir mejora',
+  },
+  F3: {
+    label: 'Revisar campos del PDF',
+    descripcion:
+      'Sugiere mejoras al problema, propósito, producto integrador y ajustes razonables antes de entregar.',
+    boton: 'Pedir revisión',
+  },
+} as const;
 
 export const GUIA_RECURSOS: GuiaPlaneacion = {
   id: 'planeacion-recursos',

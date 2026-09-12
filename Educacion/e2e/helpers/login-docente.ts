@@ -1,10 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import type { Page } from '@playwright/test';
 import { resolveSupabaseCreds } from './supabase-creds';
 
 const DEFAULT_EMAIL = 'frank@vcorp.mx';
 
-async function dismissAvisoIfVisible(page: Page): Promise<void> {
+export async function dismissAvisoIfVisible(page: Page): Promise<void> {
   const checkbox = page.getByRole('checkbox', {
     name: /he leído|aviso de privacidad/i,
   });
@@ -13,6 +14,59 @@ async function dismissAvisoIfVisible(page: Page): Promise<void> {
     await page.getByRole('button', { name: /aceptar/i }).click();
     await page.waitForTimeout(500);
   }
+}
+
+async function injectSupabaseSession(
+  page: Page,
+  baseURL: string,
+  supabaseUrl: string,
+  anonKey: string,
+  accessToken: string,
+  refreshToken: string,
+): Promise<void> {
+  const cookiesToSet: Array<{ name: string; value: string; options: CookieOptions }> = [];
+
+  const supabase = createServerClient(supabaseUrl, anonKey, {
+    cookies: {
+      getAll() {
+        return [];
+      },
+      setAll(cookies) {
+        cookiesToSet.push(...cookies);
+      },
+    },
+  });
+
+  const { error } = await supabase.auth.setSession({
+    access_token: accessToken,
+    refresh_token: refreshToken,
+  });
+  if (error) {
+    throw new Error(`setSession E2E: ${error.message}`);
+  }
+
+  const normalizeSameSite = (value: CookieOptions['sameSite']): 'Lax' | 'Strict' | 'None' => {
+    const s = String(value ?? 'lax').toLowerCase();
+    if (s === 'strict') return 'Strict';
+    if (s === 'none') return 'None';
+    return 'Lax';
+  };
+
+  const { hostname } = new URL(baseURL);
+  await page.context().addCookies(
+    cookiesToSet.map(({ name, value, options }) => ({
+      name,
+      value,
+      domain: hostname,
+      path: options.path ?? '/',
+      httpOnly: options.httpOnly ?? false,
+      secure: options.secure ?? baseURL.startsWith('https'),
+      sameSite: normalizeSameSite(options.sameSite),
+      expires: options.maxAge
+        ? Math.floor(Date.now() / 1000) + options.maxAge
+        : undefined,
+    })),
+  );
 }
 
 async function loginWithPassword(
@@ -29,27 +83,48 @@ async function loginWithPassword(
 }
 
 async function loginWithMagicLink(page: Page, email: string, baseURL: string): Promise<void> {
-  const { url: supabaseUrl, serviceRoleKey: serviceKey } = await resolveSupabaseCreds();
+  const { url: supabaseUrl, serviceRoleKey, anonKey } = await resolveSupabaseCreds();
 
-  const admin = createClient(supabaseUrl, serviceKey, {
+  const admin = createClient(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  const redirectTo = `${baseURL.replace(/\/$/, '')}/auth/callback?redirect=/planeaciones/nueva`;
   const { data, error } = await admin.auth.admin.generateLink({
     type: 'magiclink',
     email,
-    options: { redirectTo },
+    options: {
+      redirectTo: `${baseURL.replace(/\/$/, '')}/auth/callback?redirect=/planeaciones/nueva`,
+    },
   });
 
-  if (error || !data.properties?.action_link) {
+  if (error || !data.properties?.hashed_token) {
     throw new Error(error?.message ?? 'No se pudo generar magic link de admin');
   }
 
-  await page.goto(data.properties.action_link);
-  await page.waitForURL(/\/planeaciones\/nueva|\/dashboard|\/onboarding/, {
-    timeout: 45_000,
+  const anon = createClient(supabaseUrl, anonKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
   });
+
+  const { data: verified, error: verifyError } = await anon.auth.verifyOtp({
+    token_hash: data.properties.hashed_token,
+    type: 'email',
+  });
+
+  if (verifyError || !verified.session) {
+    throw new Error(verifyError?.message ?? 'verifyOtp falló en E2E');
+  }
+
+  await injectSupabaseSession(
+    page,
+    baseURL,
+    supabaseUrl,
+    anonKey,
+    verified.session.access_token,
+    verified.session.refresh_token,
+  );
+
+  await page.goto('/planeaciones/nueva');
+  await page.waitForURL(/\/(planeaciones\/nueva|dashboard|onboarding)/, { timeout: 30_000 });
   await dismissAvisoIfVisible(page);
 }
 

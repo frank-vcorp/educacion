@@ -69,3 +69,4 @@ backups/
 # Cache de Pyenv para catalogar
 Educacion/scripts/catalogar/__pycache__/
 *.pyc
+.env*

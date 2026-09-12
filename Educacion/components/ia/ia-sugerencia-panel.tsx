@@ -24,10 +24,11 @@ import { useRouter } from 'next/navigation';
 import { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Loader2, Sparkles, Check, X, FileDown, RotateCw } from 'lucide-react';
 import { updateBloque, updatePlaneacion } from '@/services/planeaciones/update-actions';
+import { IA_COPY } from '@/lib/planeaciones/guias';
+import { sanitizeIaProse } from '@/services/ia/sanitize-prose';
 
 // ─── Tipos ────────────────────────────────────────────────────────────
 export type Feature = 'F1' | 'F2' | 'F3';
@@ -54,6 +55,8 @@ export interface IASugerenciaPanelProps {
   f2EdadDestino?: '3-4' | '4-5' | '5-6';
   /** Tras aceptar F3, callback opcional que abre la descarga PDF. */
   onF3Accepted?: (planeacionId: string) => void;
+  /** Tras guardar en servidor: actualiza UI local (evita copiar/pegar). */
+  onAccepted?: (payload: { texto?: string }) => void;
 }
 
 type Estado =
@@ -73,9 +76,15 @@ function endpointFor(feature: Feature): string {
 }
 
 function defaultLabel(feature: Feature): string {
-  if (feature === 'F1') return 'Variante de bloque (F1)';
-  if (feature === 'F2') return 'Ayuda a redactar (F2)';
-  return 'Pulir campos del PDF (F3)';
+  return IA_COPY[feature].label;
+}
+
+function defaultDescripcion(feature: Feature): string {
+  return IA_COPY[feature].descripcion;
+}
+
+function defaultBoton(feature: Feature): string {
+  return IA_COPY[feature].boton;
 }
 
 function messageForError(
@@ -207,9 +216,11 @@ export function IASugerenciaPanel(props: IASugerenciaPanelProps) {
 
       if (origen === 'fallback_vacio') {
         setSugerenciaTexto(
-          props.feature === 'F1'
-            ? (data.variante_texto ?? '')
-            : (data.texto_propuesto ?? ''),
+          sanitizeIaProse(
+            props.feature === 'F1'
+              ? (data.variante_texto ?? '')
+              : (data.texto_propuesto ?? ''),
+          ),
         );
         setEstado({ kind: 'fallback_vacio' });
         return;
@@ -219,15 +230,17 @@ export function IASugerenciaPanel(props: IASugerenciaPanelProps) {
       if (props.feature === 'F3') {
         const map: Record<string, string> = {};
         for (const c of data.campos_pulidos ?? []) {
-          map[c.campo] = c.texto_pulido;
+          map[c.campo] = sanitizeIaProse(c.texto_pulido);
         }
         setF3Campos(map);
         setSugerenciaTexto('');
       } else {
         setSugerenciaTexto(
-          props.feature === 'F1'
-            ? (data.variante_texto ?? '')
-            : (data.texto_propuesto ?? ''),
+          sanitizeIaProse(
+            props.feature === 'F1'
+              ? (data.variante_texto ?? '')
+              : (data.texto_propuesto ?? ''),
+          ),
         );
         setF3Campos({});
       }
@@ -273,6 +286,7 @@ export function IASugerenciaPanel(props: IASugerenciaPanelProps) {
           return;
         }
         setEstado({ kind: 'accepted' });
+        props.onAccepted?.({});
         router.refresh();
       } else {
         if (!props.bloqueId) {
@@ -314,6 +328,7 @@ export function IASugerenciaPanel(props: IASugerenciaPanelProps) {
           return;
         }
         setEstado({ kind: 'accepted' });
+        props.onAccepted?.({ texto });
         router.refresh();
       }
     } catch (err) {
@@ -347,22 +362,20 @@ export function IASugerenciaPanel(props: IASugerenciaPanelProps) {
 
   const isLoading = estado.kind === 'loading';
   const label = props.label ?? defaultLabel(props.feature);
+  const descripcion = defaultDescripcion(props.feature);
+  const boton = defaultBoton(props.feature);
 
   return (
     <div
       data-testid={`ia-panel-${props.feature}`}
       className="space-y-3 rounded-md border border-dashed border-nem-verde/40 bg-nem-verde/5 p-4"
     >
-      <div className="flex items-center justify-between">
+      <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-nem-verde" aria-hidden="true" />
+          <Sparkles className="h-4 w-4 shrink-0 text-nem-verde" aria-hidden="true" />
           <Label className="text-sm font-medium">{label}</Label>
         </div>
-        {estado.kind === 'success' && (
-          <Badge variant="outline" className="text-[10px] uppercase">
-            origen: {estado.origen}
-          </Badge>
-        )}
+        <p className="text-xs leading-relaxed text-muted-foreground">{descripcion}</p>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -372,7 +385,7 @@ export function IASugerenciaPanel(props: IASugerenciaPanelProps) {
           onClick={fetchSugerencia}
           disabled={isLoading}
           data-testid={`ia-panel-${props.feature}-solicitar`}
-          aria-label={label}
+          aria-label={boton}
         >
           {isLoading ? (
             <>
@@ -382,7 +395,7 @@ export function IASugerenciaPanel(props: IASugerenciaPanelProps) {
           ) : (
             <>
               <Sparkles className="mr-1 h-4 w-4" />
-              Pedir sugerencia
+              {boton}
             </>
           )}
         </Button>
@@ -460,14 +473,14 @@ export function IASugerenciaPanel(props: IASugerenciaPanelProps) {
         props.feature !== 'F3' && (
           <div className="space-y-1">
             <Label htmlFor={`ia-text-${props.feature}-${props.bloqueId ?? 'planeacion'}`} className="text-xs">
-              Sugerencia (editable)
+              Texto propuesto (puedes editarlo)
             </Label>
             <Textarea
               id={`ia-text-${props.feature}-${props.bloqueId ?? 'planeacion'}`}
               data-testid={`ia-panel-${props.feature}-texto`}
               value={sugerenciaTexto}
               onChange={(e) => setSugerenciaTexto(e.target.value)}
-              placeholder="La sugerencia aparecerá aquí. Puedes editarla antes de aceptar."
+              placeholder="Aquí verás el texto que propone la IA. Edítalo si quieres y pulsa Aceptar."
               rows={4}
               disabled={isLoading}
             />

@@ -436,10 +436,10 @@ function Bloque(props: {
           onClick={props.onAplicar}
           disabled={props.disabled || vacio}
           data-testid={`ia-panel-f0-usar-${props.campo}`}
-          aria-label={`Usar esta propuesta (${props.label})`}
+          aria-label={`Aplicar a la planeación (${props.label})`}
         >
           <Check className="mr-1 h-3.5 w-3.5" />
-          Usar esta propuesta
+          Aplicar a la planeación
         </Button>
       </div>
     </div>

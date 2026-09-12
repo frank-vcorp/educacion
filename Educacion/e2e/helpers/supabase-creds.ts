@@ -19,6 +19,7 @@ function isPlaceholder(url: string | undefined): boolean {
 async function fetchFromSupabaseCli(): Promise<{
   url: string;
   serviceRoleKey: string;
+  anonKey: string;
 }> {
   const tokenPath = path.join(os.homedir(), '.supabase', 'access-token');
   if (!fs.existsSync(tokenPath)) {
@@ -37,24 +38,37 @@ async function fetchFromSupabaseCli(): Promise<{
   const serviceRoleKey =
     keys.find((k) => k.name === 'service_role')?.api_key ??
     keys.find((k) => k.name?.includes('service'))?.api_key;
+  const anonKey = keys.find((k) => k.name === 'anon')?.api_key;
   if (!serviceRoleKey) {
     throw new Error('No se encontró service_role en Supabase API keys');
+  }
+  if (!anonKey) {
+    throw new Error('No se encontró anon key en Supabase API keys');
   }
   return {
     url: `https://${projectRef}.supabase.co`,
     serviceRoleKey,
+    anonKey,
   };
 }
 
 export async function resolveSupabaseCreds(): Promise<{
   url: string;
   serviceRoleKey: string;
+  anonKey: string;
 }> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!isPlaceholder(url) && serviceRoleKey && !serviceRoleKey.includes('placeholder')) {
-    return { url: url!, serviceRoleKey };
+  if (
+    !isPlaceholder(url) &&
+    serviceRoleKey &&
+    !serviceRoleKey.includes('placeholder') &&
+    anonKey &&
+    !anonKey.includes('placeholder')
+  ) {
+    return { url: url!, serviceRoleKey, anonKey };
   }
 
   return fetchFromSupabaseCli();

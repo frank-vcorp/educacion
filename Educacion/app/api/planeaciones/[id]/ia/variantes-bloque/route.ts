@@ -269,10 +269,12 @@ export async function POST(request: Request, { params }: RouteParams) {
     responseStatus: 200,
   });
 
+  const { sanitizeIaProse } = await import('@/services/ia/sanitize-prose');
+
   return NextResponse.json(
     {
       data: {
-        variante_texto: result.text,
+        variante_texto: sanitizeIaProse(result.text),
         variante_tipo,
         bloque_id,
         origen: 'ia',
