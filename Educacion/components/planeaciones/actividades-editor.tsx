@@ -93,6 +93,8 @@ import { WorkbookHoja } from '@/components/planeaciones/workbook-hoja';
 import { WorkbookCalendario } from '@/components/planeaciones/workbook-calendario';
 import { DiaActividadModal } from '@/components/planeaciones/dia-actividad-modal';
 import { RutinariasPanel } from '@/components/planeaciones/rutinarias-panel';
+import { ConsultaRapidaSidebar } from '@/components/consulta-rapida/consulta-rapida-sidebar';
+import { useConsultaRapidaOptional } from '@/components/consulta-rapida/consulta-rapida-context';
 import {
   agruparFechasPorSemana,
   fechaDesdeEtiquetaSesion,
@@ -804,6 +806,7 @@ export function ActividadesEditor({
     [esWorkbook, modalidad],
   );
   const router = useRouter();
+  const consultaRapida = useConsultaRapidaOptional();
   const [, startTransition] = useTransition();
   const [bloques, setBloques] = useState<Bloque[]>(bloquesIniciales);
   const [sesiones] = useState<Sesion[]>(sesionesIniciales);
@@ -1290,9 +1293,19 @@ export function ActividadesEditor({
       {recursosInventario.length === 0 ? (
         <p className="text-xs text-muted-foreground">
           Aún no tienes materiales registrados.{' '}
-          <Link href="/recursos-aula" className="text-nem-verde underline">
-            Agregar en Recursos del aula
-          </Link>
+          {consultaRapida ? (
+            <button
+              type="button"
+              className="text-nem-verde underline"
+              onClick={() => consultaRapida.openConsulta('/recursos-aula')}
+            >
+              Agregar en Recursos del aula
+            </button>
+          ) : (
+            <Link href="/recursos-aula" className="text-nem-verde underline">
+              Agregar en Recursos del aula
+            </Link>
+          )}
         </p>
       ) : (
         <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
@@ -1525,7 +1538,7 @@ export function ActividadesEditor({
             className={
               esWorkbook
                 ? 'grid gap-4 xl:grid-cols-[minmax(220px,260px)_minmax(0,1fr)_minmax(220px,260px)]'
-                : 'grid gap-4 lg:grid-cols-[minmax(240px,300px)_1fr]'
+                : 'grid gap-4 lg:grid-cols-[minmax(240px,300px)_1fr_minmax(200px,240px)]'
             }
             data-testid={esWorkbook ? 'workbook-layout' : 'classic-layout'}
           >
@@ -1569,11 +1582,15 @@ export function ActividadesEditor({
               {panelSesiones}
             </div>
 
-            {esWorkbook && (
-              <aside className="sticky top-[4.5rem] z-10 max-h-[calc(100dvh-5.5rem)] self-start space-y-3 overflow-y-auto rounded-lg border bg-background/95 p-3 shadow-md backdrop-blur supports-[backdrop-filter]:bg-background/85">
-                {panelInventario}
-              </aside>
-            )}
+            <aside className="sticky top-[4.5rem] z-10 max-h-[calc(100dvh-5.5rem)] self-start space-y-4 overflow-y-auto rounded-lg border bg-background/95 p-3 shadow-md backdrop-blur supports-[backdrop-filter]:bg-background/85">
+              <ConsultaRapidaSidebar />
+              {esWorkbook && (
+                <>
+                  <div className="border-t" />
+                  {panelInventario}
+                </>
+              )}
+            </aside>
           </div>
 
           {esWorkbook && <RutinariasPanel />}
