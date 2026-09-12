@@ -17,6 +17,7 @@ import {
 import { SYSTEM_PROMPT_F1 } from '@/services/ia/prompts';
 import {
   F1_PROMPT_VERSION,
+  buildContextoActividadF1,
   buildContextoPlaneacionF1,
   buildF1UserMessage,
   validarAdaptacionMinima,
@@ -116,7 +117,7 @@ export async function POST(request: Request, { params }: RouteParams) {
   const { data: bloque, error: errBloque } = await supabase
     .from('bloque')
     .select(
-      'id, planeacion_id, docente_id, cct, contenido_textual, momento, pda_ids, campos_formativos, ejes_articuladores, planeacion:planeacion(estado, nombre, problema_contexto, proposito, ajustes_razonables, producto_integrador, campos_formativos, ejes_articuladores, pdas, periodo_inicio, periodo_fin, metadata, modalidad)',
+      'id, planeacion_id, docente_id, cct, sesion_id, origen, bloque_catalogo_id, tipo, nivel_flexibilidad, contenido_textual, momento, observacion, recursos_requeridos, duracion_min, pda_ids, campos_formativos, ejes_articuladores, planeacion:planeacion(estado, nombre, problema_contexto, proposito, ajustes_razonables, producto_integrador, campos_formativos, ejes_articuladores, pdas, periodo_inicio, periodo_fin, metadata, modalidad)',
     )
     .eq('id', bloque_id)
     .maybeSingle();
@@ -165,12 +166,39 @@ export async function POST(request: Request, { params }: RouteParams) {
       ? (momentosGuia.find((m) => m.key === momentoKey)?.label ?? momentoKey)
       : null;
 
-  const [camposCatalogo, ejesCatalogo, pdasCatalogo, contenidos] = await Promise.all([
-    getCamposFormativos(),
-    getEjesArticuladores(),
-    getPDAs(),
-    getContenidos(),
-  ]);
+  const catalogoF1 = {
+    campos: [] as Awaited<ReturnType<typeof getCamposFormativos>>,
+    ejes: [] as Awaited<ReturnType<typeof getEjesArticuladores>>,
+    pdas: [] as Awaited<ReturnType<typeof getPDAs>>,
+    contenidos: [] as Awaited<ReturnType<typeof getContenidos>>,
+  };
+
+  const [camposCatalogo, ejesCatalogo, pdasCatalogo, contenidos, sesionRes, plantillaCatalogoRes] =
+    await Promise.all([
+      getCamposFormativos(),
+      getEjesArticuladores(),
+      getPDAs(),
+      getContenidos(),
+      bloque.sesion_id
+        ? supabase
+            .from('sesion')
+            .select('ajustes_sesion')
+            .eq('id', bloque.sesion_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      bloque.bloque_catalogo_id
+        ? supabase
+            .from('bloque_catalogo')
+            .select('codigo, nombre, descripcion, contenido_textual')
+            .eq('codigo', bloque.bloque_catalogo_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+    ]);
+
+  catalogoF1.campos = camposCatalogo;
+  catalogoF1.ejes = ejesCatalogo;
+  catalogoF1.pdas = pdasCatalogo;
+  catalogoF1.contenidos = contenidos;
 
   const contextoF1 = buildContextoPlaneacionF1({
     nombre: planeacionRow?.nombre,
@@ -189,13 +217,29 @@ export async function POST(request: Request, { params }: RouteParams) {
     momento_actividad_label: momentoLabel,
     pda_ids_actividad: (bloque.pda_ids ?? []) as string[],
     momentos_guia: momentosGuia,
-    catalogo: {
-      campos: camposCatalogo,
-      ejes: ejesCatalogo,
-      pdas: pdasCatalogo,
-      contenidos,
-    },
+    catalogo: catalogoF1,
   });
+
+  const contextoActividad = buildContextoActividadF1({
+    origen: bloque.origen,
+    bloque_catalogo_id: bloque.bloque_catalogo_id,
+    tipo: bloque.tipo,
+    nivel_flexibilidad: bloque.nivel_flexibilidad,
+    pda_ids: (bloque.pda_ids ?? []) as string[],
+    campos_formativos: (bloque.campos_formativos ?? []) as string[],
+    ejes_articuladores: (bloque.ejes_articuladores ?? []) as string[],
+    recursos_requeridos: (bloque.recursos_requeridos ?? []) as Array<{
+      categoria?: string;
+      clave_busqueda?: string;
+      cantidad?: number;
+    }>,
+    duracion_min: bloque.duracion_min,
+    observacion: bloque.observacion,
+    dia_calendario: sesionRes.data?.ajustes_sesion ?? null,
+    catalogo: catalogoF1,
+    plantilla_catalogo: plantillaCatalogoRes.data,
+  });
+
   const variante_tipo =
     varianteTipoBody === 'urbana' || varianteTipoBody === 'rural'
       ? varianteTipoBody
@@ -207,6 +251,7 @@ export async function POST(request: Request, { params }: RouteParams) {
   const userMessage = buildF1UserMessage({
     contenidoTextual: bloque.contenido_textual ?? '',
     contexto: contextoF1,
+    actividad: contextoActividad,
     varianteTipo: variante_tipo,
   });
 

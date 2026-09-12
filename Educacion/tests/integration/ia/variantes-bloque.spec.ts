@@ -15,14 +15,24 @@ const BLOQUE_ID = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
 type AuditInsert = { payload: Record<string, unknown> };
 const auditInserts: AuditInsert[] = [];
 
+const SESION_ID = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+
 const bloqueRow = {
   id: BLOQUE_ID,
   planeacion_id: PLANEACION_ID,
+  sesion_id: SESION_ID,
   docente_id: DOCENTE_ID,
+  origen: 'kit_template',
+  bloque_catalogo_id: 'BC-FORMAS-01',
+  tipo: 'desarrollo',
+  nivel_flexibilidad: 'abierto',
   contenido_textual: 'Texto original del bloque. Trabajamos PDA-F2-LNG-001.',
   momento: 'contacto',
+  observacion: null,
+  recursos_requeridos: [{ categoria: 'material', clave_busqueda: 'hojas', cantidad: 1 }],
+  duracion_min: 30,
   pda_ids: ['PDA-F2-LNG-001'],
-  campos_formativos: ['LENGUAJES'],
+  campos_formativos: ['SPC'],
   ejes_articuladores: ['INCLUSION'],
   planeacion: {
     estado: 'borrador' as string,
@@ -131,7 +141,10 @@ function buildSupabaseMock() {
                       data: {
                         ...bloqueRow,
                         cct: CCT,
-                        planeacion: { estado: supaState.planeacionEstado },
+                        planeacion: {
+                          ...bloqueRow.planeacion,
+                          estado: supaState.planeacionEstado,
+                        },
                       },
                       error: null,
                     };
@@ -151,6 +164,45 @@ function buildSupabaseMock() {
               maybeSingle: async () => {
                 if (val === PLANEACION_ID) {
                   return { data: { id: PLANEACION_ID, estado: supaState.planeacionEstado, docente_id: DOCENTE_ID, cct: CCT }, error: null };
+                }
+                return { data: null, error: null };
+              },
+            }),
+          }),
+        };
+      }
+      if (table === 'sesion') {
+        return {
+          select: () => ({
+            eq: (_col: string, val: string) => ({
+              maybeSingle: async () => {
+                if (val === SESION_ID) {
+                  return {
+                    data: { ajustes_sesion: 'Lunes 10 feb' },
+                    error: null,
+                  };
+                }
+                return { data: null, error: null };
+              },
+            }),
+          }),
+        };
+      }
+      if (table === 'bloque_catalogo') {
+        return {
+          select: () => ({
+            eq: (_col: string, val: string) => ({
+              maybeSingle: async () => {
+                if (val === 'BC-FORMAS-01') {
+                  return {
+                    data: {
+                      codigo: 'BC-FORMAS-01',
+                      nombre: 'Buscar formas',
+                      descripcion: 'Plantilla NEM',
+                      contenido_textual: 'Plantilla con [FIGURA].',
+                    },
+                    error: null,
+                  };
                 }
                 return { data: null, error: null };
               },

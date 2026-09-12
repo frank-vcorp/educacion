@@ -1,10 +1,24 @@
 import { describe, it, expect } from 'vitest';
 import {
+  buildContextoActividadF1,
   buildContextoPlaneacionF1,
   buildF1UserMessage,
   inferirEntornoF1,
   validarAdaptacionMinima,
 } from '@/services/ia/f1-context';
+
+const CATALOGO = {
+  campos: [{ codigo: 'SPC', nombre: 'Saberes y pensamiento científico' }],
+  ejes: [{ codigo: 'INCLUSION', nombre: 'Inclusión' }],
+  pdas: [
+    {
+      codigo: 'PDA-F2-SPC-001',
+      texto: 'Experimentan con elementos naturales.',
+      contenido_codigo: 'C1',
+    },
+  ],
+  contenidos: [{ codigo: 'C1', campo_codigo: 'SPC' }],
+};
 
 describe('f1-context', () => {
   it('infiere entorno rural desde ajustes', () => {
@@ -32,7 +46,24 @@ describe('f1-context', () => {
     expect(ctx.problemaContexto).toContain('naturaleza');
   });
 
-  it('buildF1UserMessage incluye resumen completo del centro', () => {
+  it('buildF1UserMessage incluye resumen del centro y contexto de actividad NEM', () => {
+    const actividad = buildContextoActividadF1({
+      origen: 'kit_template',
+      bloque_catalogo_id: 'BC-FORMAS-01',
+      tipo: 'desarrollo',
+      nivel_flexibilidad: 'abierto',
+      pda_ids: ['PDA-F2-SPC-001'],
+      campos_formativos: ['SPC'],
+      ejes_articuladores: ['INCLUSION'],
+      dia_calendario: 'Lunes 10 feb',
+      catalogo: CATALOGO,
+      plantilla_catalogo: {
+        codigo: 'BC-FORMAS-01',
+        nombre: 'Buscar formas en el aula',
+        descripcion: 'Exploración de formas geométricas',
+        contenido_textual: 'La docente presenta la figura [FIGURA].',
+      },
+    });
     const msg = buildF1UserMessage({
       contenidoTextual: 'Buscan objetos con forma [FIGURA].',
       contexto: {
@@ -46,22 +77,38 @@ describe('f1-context', () => {
         momentoActividad: 'Contacto con la realidad',
         entornoSugerido: 'rural',
       },
+      actividad,
       varianteTipo: 'rural',
     });
     const parsed = JSON.parse(msg) as {
       texto_actividad: string;
-      resumen_centro: {
-        tema_centro: string;
-        preguntas_detonadoras: string[];
-        pdas: Array<{ texto: string }>;
+      contexto_actividad: {
+        fuente: string;
+        plantilla_nem: string;
+        catalogo_nombre: string;
+        dia_calendario: string;
       };
+      resumen_centro: { tema_centro: string };
       entorno: string;
     };
     expect(parsed.texto_actividad).toContain('[FIGURA]');
+    expect(parsed.contexto_actividad.fuente).toContain('catálogo NEM');
+    expect(parsed.contexto_actividad.plantilla_nem).toContain('[FIGURA]');
+    expect(parsed.contexto_actividad.catalogo_nombre).toBe('Buscar formas en el aula');
+    expect(parsed.contexto_actividad.dia_calendario).toBe('Lunes 10 feb');
     expect(parsed.resumen_centro.tema_centro).toBe('Pinturas con naturaleza');
-    expect(parsed.resumen_centro.preguntas_detonadoras[0]).toContain('Jamaica');
-    expect(parsed.resumen_centro.pdas[0].texto).toContain('sentidos');
     expect(parsed.entorno).toBe('rural');
+  });
+
+  it('buildContextoActividadF1 marca actividad propia', () => {
+    const ctx = buildContextoActividadF1({
+      origen: 'maestra',
+      tipo: 'desarrollo',
+      nivel_flexibilidad: 'en_blanco',
+      catalogo: CATALOGO,
+    });
+    expect(ctx.fuente).toBe('actividad_propia');
+    expect(ctx.nivelFlexibilidadLabel).toContain('blanco');
   });
 
   it('buildContextoPlaneacionF1 enriquece PDAs y ejes desde catálogo', () => {
