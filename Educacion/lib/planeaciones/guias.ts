@@ -91,7 +91,7 @@ export const IA_COPY = {
   F1: {
     label: 'Adaptar a mi contexto',
     descripcion:
-      'Propone otra redacción de esta actividad para tu realidad (rural, urbana, materiales de tu comunidad). Revisa y pulsa Aceptar para usarla.',
+      'Usa el resumen del centro (problemática, tema, preguntas detonadoras, PDAs, ejes y ajustes) para proponer otra redacción concreta. Revisa y pulsa Aceptar.',
     boton: 'Pedir adaptación',
   },
   F2: {

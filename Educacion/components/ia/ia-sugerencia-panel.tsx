@@ -98,6 +98,11 @@ function messageForError(
         message:
           'La sugerencia viola la estructura NEM. Intenta con otro texto o edita manualmente.',
       };
+    case 'NEM_IA_ADAPTACION_TRIVIAL':
+      return {
+        message:
+          'La adaptación quedó casi igual al original. Vuelve a pedirla o edita el texto a mano.',
+      };
     case 'NEM_RATE_LIMIT_EXCEEDED':
       return {
         message:
@@ -159,7 +164,7 @@ export function IASugerenciaPanel(props: IASugerenciaPanelProps) {
         }
         body = {
           bloque_id: props.bloqueId,
-          variante_tipo: props.varianteTipo ?? 'rural',
+          ...(props.varianteTipo ? { variante_tipo: props.varianteTipo } : {}),
         };
       } else if (props.feature === 'F2') {
         body = {

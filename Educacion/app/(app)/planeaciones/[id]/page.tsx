@@ -8,13 +8,10 @@
  * IMPL-20260820-01 — Incluye unidades UI:
  *  - "Bloques" (`BloqueEditor`, SPEC_TEC_08 §4.1) — lista, crea, edita
  *    bloques y por cada bloque expone F1 + F2.
- *  - "Asistente IA" F3 (`IASugerenciaPanel` para F3 en cabecera) — pule
- *    `problema_contexto` / `proposito` / `producto_integrador` /
- *    `ajustes_razonables`.
+ * La IA por actividad (F1/F2) vive en `ActividadesEditor`, no en esta página.
  *
  * Las Cards preexistentes (problema, campos, PDA, ejes, ajustes) y los
  * botones (Evaluar / Entregar / Duplicar / Volver) se preservan intactos.
- * La unidad IA es aditiva.
  */
 import { redirect, notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -45,13 +42,10 @@ import { DuplicarPlaneacionDialog } from '@/components/planeaciones/duplicar-pla
 import { ActividadesEditor } from '@/components/planeaciones/actividades-editor';
 import { ModalidadEstructuraCard } from '@/components/planeaciones/modalidad-estructura-card';
 import { PlaneacionNuevaBanner } from '@/components/planeaciones/planeacion-nueva-banner';
-import { IASugerenciaPanel } from '@/components/ia/ia-sugerencia-panel';
 import {
   MODALIDADES_LABELS,
   type Modalidad,
 } from '@/lib/planeaciones/modalidad-ui';
-import { GUIA_IA } from '@/lib/planeaciones/guias';
-import { SectionHelp } from '@/components/ui/section-help';
 
 export const dynamic = 'force-dynamic';
 
@@ -283,31 +277,6 @@ export default async function PlaneacionDetallePage({
               recursosInventario={recursosInventario}
               recursosAsignadosInicial={recursosAsignadosInicial}
               workbook={workbook}
-            />
-          </section>
-
-          <section
-            className="mt-6"
-            aria-labelledby="asistente-ia-heading"
-          >
-            <h2
-              id="asistente-ia-heading"
-              className="mb-3 text-base font-semibold"
-            >
-              Asistente IA
-            </h2>
-            <SectionHelp
-              helpId={GUIA_IA.id}
-              ariaLabel={GUIA_IA.ariaLabel}
-              breve={GUIA_IA.breve}
-              detalle={GUIA_IA.detalle}
-              className="mb-3"
-            />
-            <IASugerenciaPanel
-              planeacionId={p.id}
-              docenteId={session.docenteId!}
-              cct={p.cct}
-              feature="F3"
             />
           </section>
         </>

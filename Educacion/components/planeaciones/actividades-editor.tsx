@@ -566,7 +566,6 @@ function ActividadSortable({
           bloqueId={bloque.id}
           textoBase={bloque.contenido_textual ?? ''}
           feature="F1"
-          varianteTipo="rural"
           onAccepted={({ texto: aceptado }) => {
             if (aceptado) {
               setTexto(aceptado);

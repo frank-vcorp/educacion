@@ -306,7 +306,6 @@ export function BloqueEditor({
                     bloqueId={b.id}
                     textoBase={b.contenido_textual ?? ''}
                     feature="F1"
-                    varianteTipo="rural"
                   />
                   <IASugerenciaPanel
                     planeacionId={planeacionId}

@@ -20,10 +20,31 @@ const bloqueRow = {
   planeacion_id: PLANEACION_ID,
   docente_id: DOCENTE_ID,
   contenido_textual: 'Texto original del bloque. Trabajamos PDA-F2-LNG-001.',
+  momento: 'contacto',
   pda_ids: ['PDA-F2-LNG-001'],
   campos_formativos: ['LENGUAJES'],
   ejes_articuladores: ['INCLUSION'],
-  planeacion: { estado: 'borrador' as string },
+  planeacion: {
+    estado: 'borrador' as string,
+    nombre: 'Formas en la naturaleza',
+    problema_contexto:
+      '¿Qué formas encontramos en el huerto y en objetos de nuestra comunidad?',
+    proposito: 'Reconocer formas geométricas en el entorno rural.',
+    ajustes_razonables: 'Materiales del campo y del huerto escolar.',
+    producto_integrador: 'Tabla colectiva de formas',
+    campos_formativos: ['SPC'],
+    ejes_articuladores: ['INCLUSION'],
+    pdas: ['PDA-F2-LNG-001'],
+    periodo_inicio: '2025-02-10',
+    periodo_fin: '2025-02-28',
+    modalidad: 'centros_interes',
+    metadata: {
+      modalidad_data: {
+        tema: 'Formas en la naturaleza',
+        preguntas_det: ['¿Qué formas hay en las hojas?'],
+      },
+    },
+  },
 };
 
 // ─── Mocks globales ───
@@ -34,6 +55,25 @@ vi.mock('@/lib/supabase/server', () => ({
 
 vi.mock('@/lib/auth/session', () => ({
   getServerSession: vi.fn(),
+}));
+
+vi.mock('@/services/catalogo/catalogo', () => ({
+  getCamposFormativos: vi.fn(async () => [
+    { codigo: 'SPC', nombre: 'Saberes y pensamiento científico' },
+  ]),
+  getEjesArticuladores: vi.fn(async () => [
+    { codigo: 'INCLUSION', nombre: 'Inclusión' },
+  ]),
+  getPDAs: vi.fn(async () => [
+    {
+      codigo: 'PDA-F2-LNG-001',
+      texto: 'Usan los sentidos para percibir plantas.',
+      contenido_codigo: 'CONT-001',
+    },
+  ]),
+  getContenidos: vi.fn(async () => [
+    { codigo: 'CONT-001', campo_codigo: 'SPC' },
+  ]),
 }));
 
 // ─── Mock fetch (sustituye cliente IA sin tocar `globalThis.fetch` global) ───

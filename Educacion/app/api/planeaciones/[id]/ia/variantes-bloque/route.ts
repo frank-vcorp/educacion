@@ -16,6 +16,12 @@ import {
 } from '@/lib/ia/anonymizer';
 import { SYSTEM_PROMPT_F1 } from '@/services/ia/prompts';
 import {
+  F1_PROMPT_VERSION,
+  buildContextoPlaneacionF1,
+  buildF1UserMessage,
+  validarAdaptacionMinima,
+} from '@/services/ia/f1-context';
+import {
   cacheGet,
   cacheSet,
   cacheInvalidate,
@@ -24,6 +30,13 @@ import {
 import { checkRateLimit, rateLimitHeaders } from '@/services/ia/rate-limiter';
 import { validarEstructuraF1 } from '@/services/ia/validate';
 import { auditPostIA } from '@/lib/ia/audit-post';
+import {
+  getCamposFormativos,
+  getContenidos,
+  getEjesArticuladores,
+  getPDAs,
+} from '@/services/catalogo/catalogo';
+import { getSeccionesGuia, type Modalidad } from '@/lib/planeaciones/modalidad-ui';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -32,7 +45,7 @@ const VARIANTES_VALIDAS = ['urbana', 'rural', 'plurilingue'] as const;
 
 const Body = z.object({
   bloque_id: z.string().uuid(),
-  variante_tipo: z.enum(VARIANTES_VALIDAS),
+  variante_tipo: z.enum(VARIANTES_VALIDAS).optional(),
   forzar_refresh: z.boolean().optional().default(false),
 });
 
@@ -82,9 +95,9 @@ export async function POST(request: Request, { params }: RouteParams) {
       { status: 422, headers: headersBase },
     );
   }
-  const { bloque_id, variante_tipo, forzar_refresh } = parsed.data;
+  const { bloque_id, variante_tipo: varianteTipoBody, forzar_refresh } = parsed.data;
 
-  if (variante_tipo === 'plurilingue') {
+  if (varianteTipoBody === 'plurilingue') {
     return NextResponse.json(
       {
         error: {
@@ -103,7 +116,7 @@ export async function POST(request: Request, { params }: RouteParams) {
   const { data: bloque, error: errBloque } = await supabase
     .from('bloque')
     .select(
-      'id, planeacion_id, docente_id, cct, contenido_textual, pda_ids, campos_formativos, ejes_articuladores, planeacion:planeacion(estado)',
+      'id, planeacion_id, docente_id, cct, contenido_textual, momento, pda_ids, campos_formativos, ejes_articuladores, planeacion:planeacion(estado, nombre, problema_contexto, proposito, ajustes_razonables, producto_integrador, campos_formativos, ejes_articuladores, pdas, periodo_inicio, periodo_fin, metadata, modalidad)',
     )
     .eq('id', bloque_id)
     .maybeSingle();
@@ -141,8 +154,70 @@ export async function POST(request: Request, { params }: RouteParams) {
     );
   }
 
+  const planeacionRow = Array.isArray(bloque.planeacion)
+    ? bloque.planeacion[0]
+    : bloque.planeacion;
+  const modalidad = (planeacionRow?.modalidad ?? 'centros_interes') as Modalidad;
+  const momentosGuia = getSeccionesGuia(modalidad);
+  const momentoKey = bloque.momento ?? null;
+  const momentoLabel =
+    momentoKey != null
+      ? (momentosGuia.find((m) => m.key === momentoKey)?.label ?? momentoKey)
+      : null;
+
+  const [camposCatalogo, ejesCatalogo, pdasCatalogo, contenidos] = await Promise.all([
+    getCamposFormativos(),
+    getEjesArticuladores(),
+    getPDAs(),
+    getContenidos(),
+  ]);
+
+  const contextoF1 = buildContextoPlaneacionF1({
+    nombre: planeacionRow?.nombre,
+    problema_contexto: planeacionRow?.problema_contexto,
+    proposito: planeacionRow?.proposito,
+    ajustes_razonables: planeacionRow?.ajustes_razonables,
+    producto_integrador: planeacionRow?.producto_integrador,
+    modalidad: planeacionRow?.modalidad,
+    periodo_inicio: planeacionRow?.periodo_inicio,
+    periodo_fin: planeacionRow?.periodo_fin,
+    campos_formativos: (planeacionRow?.campos_formativos ?? []) as string[],
+    ejes_articuladores: (planeacionRow?.ejes_articuladores ?? []) as string[],
+    pdas: (planeacionRow?.pdas ?? []) as string[],
+    metadata: planeacionRow?.metadata,
+    momento_actividad: momentoKey,
+    momento_actividad_label: momentoLabel,
+    pda_ids_actividad: (bloque.pda_ids ?? []) as string[],
+    momentos_guia: momentosGuia,
+    catalogo: {
+      campos: camposCatalogo,
+      ejes: ejesCatalogo,
+      pdas: pdasCatalogo,
+      contenidos,
+    },
+  });
+  const variante_tipo =
+    varianteTipoBody === 'urbana' || varianteTipoBody === 'rural'
+      ? varianteTipoBody
+      : contextoF1.entornoSugerido === 'urbana' ||
+          contextoF1.entornoSugerido === 'rural'
+        ? contextoF1.entornoSugerido
+        : 'rural';
+
+  const userMessage = buildF1UserMessage({
+    contenidoTextual: bloque.contenido_textual ?? '',
+    contexto: contextoF1,
+    varianteTipo: variante_tipo,
+  });
+
   // ── Cache F1 ──
-  const hash = requestHash([docenteId, bloque_id, variante_tipo]);
+  const hash = requestHash([
+    F1_PROMPT_VERSION,
+    docenteId,
+    bloque_id,
+    variante_tipo,
+    userMessage,
+  ]);
   if (forzar_refresh) cacheInvalidate(hash);
   const { sanitizeIaProse } = await import('@/services/ia/sanitize-prose');
 
@@ -172,15 +247,8 @@ export async function POST(request: Request, { params }: RouteParams) {
   }
 
   // ── Anonimización obligatoria antes de ir al proveedor ──
-  const userPayload = JSON.stringify({
-    contenido_textual: bloque.contenido_textual,
-    pda_ids: bloque.pda_ids,
-    campos_formativos: bloque.campos_formativos,
-    ejes_articuladores: bloque.ejes_articuladores,
-    variante_tipo,
-  });
-  const anon = anonymizeRequest({ texto: userPayload, variante_tipo });
-  const irredactableField = findIrredactableField({ texto: userPayload });
+  const anon = anonymizeRequest({ texto: userMessage, variante_tipo });
+  const irredactableField = findIrredactableField({ texto: userMessage });
   if (irredactableField) {
     return NextResponse.json(
       {
@@ -194,13 +262,13 @@ export async function POST(request: Request, { params }: RouteParams) {
   }
 
   // ── Llamada al proveedor ──
-  const result = await iaChat([
-    { role: 'system', content: SYSTEM_PROMPT_F1 },
-    {
-      role: 'user',
-      content: `Contexto: variante=${anon.variante_tipo}. Bloque (texto del docente, anonimizado): ${anon.texto}`,
-    },
-  ]);
+  const result = await iaChat(
+    [
+      { role: 'system', content: SYSTEM_PROMPT_F1 },
+      { role: 'user', content: anon.texto ?? userMessage },
+    ],
+    { temperature: 0.65, maxTokens: 900 },
+  );
 
   if (result.origen === 'fallback_vacio') {
     // P1-1: insert audit_log POST (fallback_vacio). El `body_hash` se computa
@@ -228,10 +296,12 @@ export async function POST(request: Request, { params }: RouteParams) {
     );
   }
 
+  const textoAdaptado = sanitizeIaProse(result.text);
+
   // ── Validación post-IA P-PD8 ──
   const violacion = validarEstructuraF1({
     pdaOriginales: bloque.pda_ids ?? [],
-    varianteTexto: result.text,
+    varianteTexto: textoAdaptado,
   });
   if (violacion) {
     // P1-1: insert audit_log POST con response_status=422 (evento de
@@ -257,8 +327,32 @@ export async function POST(request: Request, { params }: RouteParams) {
     );
   }
 
+  const trivial = validarAdaptacionMinima(
+    bloque.contenido_textual ?? '',
+    textoAdaptado,
+  );
+  if (trivial) {
+    await auditPostIA(supabase, {
+      cct: bloque.cct,
+      docenteId,
+      endpoint: ENDPOINT,
+      method: 'POST',
+      bodyHashSource: anon.texto ?? '',
+      responseStatus: 422,
+    });
+    return NextResponse.json(
+      {
+        error: {
+          code: trivial.code,
+          message: trivial.message,
+        },
+      },
+      { status: 422, headers: headersBase },
+    );
+  }
+
   // ── Cache populate ──
-  cacheSet(hash, sanitizeIaProse(result.text));
+  cacheSet(hash, textoAdaptado);
 
   // P1-1: insert audit_log POST (200 éxito). body_hash sobre el payload
   // anonimizado (anon.texto) — nunca el prompt crudo ni texto con PII.
@@ -274,7 +368,7 @@ export async function POST(request: Request, { params }: RouteParams) {
   return NextResponse.json(
     {
       data: {
-        variante_texto: result.text,
+        variante_texto: textoAdaptado,
         variante_tipo,
         bloque_id,
         origen: 'ia',
