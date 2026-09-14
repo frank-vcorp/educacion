@@ -968,13 +968,14 @@ export function ActividadesEditor({
       }
       setErrorNuevo(null);
       const cat = catalogoInicial.find((c) => c.codigo === codigo);
-      if (res.id && cat) {
+      const nuevoBloqueId = res.id;
+      if (nuevoBloqueId && cat) {
         const ahora = new Date().toISOString();
         const ordenEnSesion = (bloquesPorSesion.get(sesionId)?.length ?? 0) + 1;
         setBloques((prev) => [
           ...prev,
           {
-            id: res.id,
+            id: nuevoBloqueId,
             planeacion_id: planeacionId,
             sesion_id: sesionId,
             docente_id: docenteId,
