@@ -42,6 +42,8 @@ import { DuplicarPlaneacionDialog } from '@/components/planeaciones/duplicar-pla
 import { ActividadesEditor } from '@/components/planeaciones/actividades-editor';
 import { ModalidadEstructuraCard } from '@/components/planeaciones/modalidad-estructura-card';
 import { PlaneacionNuevaBanner } from '@/components/planeaciones/planeacion-nueva-banner';
+import { RecadoMaterialesModal } from '@/components/planeaciones/recado-materiales-modal';
+import { BookOpen, Printer } from 'lucide-react';
 import {
   MODALIDADES_LABELS,
   type Modalidad,
@@ -87,16 +89,28 @@ export default async function PlaneacionDetallePage({
 
   let gradoPreescolar = GRADOS_PREESCOLAR[0];
   let etiquetaGrupo: string | null = null;
+  let alumnosGrupo: Array<{ id: string; nombre: string }> = [];
   if (p.grupo_id && isOwner) {
     const supabase = await createClient();
-    const { data: grupoPlaneacion } = await supabase
-      .from('grupo')
-      .select('grado, grupo')
-      .eq('id', p.grupo_id)
-      .maybeSingle();
+    const [{ data: grupoPlaneacion }, { data: alumnosList }] = await Promise.all([
+      supabase
+        .from('grupo')
+        .select('grado, grupo')
+        .eq('id', p.grupo_id)
+        .maybeSingle(),
+      supabase
+        .from('alumno')
+        .select('id, nombre')
+        .eq('grupo_id', p.grupo_id)
+        .eq('activo', true)
+        .order('nombre', { ascending: true }),
+    ]);
     if (grupoPlaneacion?.grado) gradoPreescolar = grupoPlaneacion.grado as typeof gradoPreescolar;
     if (grupoPlaneacion) {
       etiquetaGrupo = `${grupoPlaneacion.grado} ${grupoPlaneacion.grupo}`.trim();
+    }
+    if (alumnosList) {
+      alumnosGrupo = alumnosList;
     }
   }
   const recursosRes = isOwner
@@ -288,7 +302,29 @@ export default async function PlaneacionDetallePage({
         {isOwner && (
           <>
             <Button asChild variant="outline">
+              <Link href={`/planeaciones/${p.id}/bitacora`} className="flex items-center gap-1.5">
+                <BookOpen className="w-4 h-4 text-nem-verde" />
+                <span>Bitácora Diaria</span>
+              </Link>
+            </Button>
+            <RecadoMaterialesModal
+              planeacionNombre={p.nombre}
+              materiales={recursosInventario.map((r) => r.nombre)}
+              alumnos={alumnosGrupo}
+            />
+            <Button asChild variant="outline">
               <Link href={`/planeaciones/${p.id}/evaluar`}>Evaluar</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <a
+                href={`/api/planeaciones/${p.id}/generar-pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5"
+              >
+                <Printer className="w-4 h-4" />
+                <span>Expediente Imprimible</span>
+              </a>
             </Button>
             <Button asChild>
               <Link href={`/planeaciones/${p.id}/entregar`}>Entregar al director</Link>

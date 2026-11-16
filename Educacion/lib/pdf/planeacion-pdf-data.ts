@@ -43,25 +43,51 @@ export async function fetchPlaneacionPdfPayload(
     if (grupo) grupoEtiqueta = `${grupo.grado} ${grupo.grupo}`.trim();
   }
 
-  const [camposCatalogo, ejesCatalogo, pdasCatalogo, contenidos, sesionesRes, bloquesRes] =
-    await Promise.all([
-      getCamposFormativos(),
-      getEjesArticuladores(),
-      getPDAs(),
-      getContenidos(),
-      supabase
-        .from('sesion')
-        .select('id, numero, ajustes_sesion')
-        .eq('planeacion_id', planeacionId)
-        .order('numero', { ascending: true }),
-      supabase
-        .from('bloque')
-        .select(
-          'id, sesion_id, contenido_textual, momento, observacion, recursos_requeridos, orden',
-        )
-        .eq('planeacion_id', planeacionId)
-        .order('orden', { ascending: true }),
-    ]);
+  const [
+    camposCatalogo,
+    ejesCatalogo,
+    pdasCatalogo,
+    contenidos,
+    sesionesRes,
+    bloquesRes,
+    bitacorasRes,
+    evaluacionesRes,
+    alumnosRes,
+  ] = await Promise.all([
+    getCamposFormativos(),
+    getEjesArticuladores(),
+    getPDAs(),
+    getContenidos(),
+    supabase
+      .from('sesion')
+      .select('id, numero, ajustes_sesion')
+      .eq('planeacion_id', planeacionId)
+      .order('numero', { ascending: true }),
+    supabase
+      .from('bloque')
+      .select(
+        'id, sesion_id, contenido_textual, momento, observacion, recursos_requeridos, orden',
+      )
+      .eq('planeacion_id', planeacionId)
+      .order('orden', { ascending: true }),
+    supabase
+      .from('bitacora')
+      .select('fecha, sesion_id, participacion_grupo, dificultades')
+      .eq('planeacion_id', planeacionId)
+      .order('fecha', { ascending: true }),
+    supabase
+      .from('evaluacion_alumno')
+      .select('alumno_id, nivel, observaciones, fecha')
+      .eq('planeacion_id', planeacionId),
+    planeacion.grupo_id
+      ? supabase
+          .from('alumno')
+          .select('id, nombre')
+          .eq('grupo_id', planeacion.grupo_id)
+          .eq('activo', true)
+          .order('nombre', { ascending: true })
+      : Promise.resolve({ data: [] }),
+  ]);
 
   const modalidad = (planeacion.modalidad ?? 'proyecto_comunitario') as Modalidad;
   const modalidadData =
@@ -193,6 +219,25 @@ export async function fetchPlaneacionPdfPayload(
     rutinarias: [...RUTINARIAS_PREESCOLAR],
     recurrentes: [...RECURRENTES_EJEMPLO],
     sesiones,
+    bitacoras: (bitacorasRes.data ?? []).map((b) => {
+      const ses = (sesionesRes.data ?? []).find((s) => s.id === b.sesion_id);
+      return {
+        fecha: b.fecha,
+        sesion_numero: ses?.numero,
+        participacion_grupo: b.participacion_grupo,
+        dificultades: b.dificultades,
+      };
+    }),
+    alumnos_evaluaciones: ((alumnosRes.data ?? []) as Array<{ id: string; nombre: string }>).map((al) => {
+      // Tomar la evaluación más reciente o relevante del alumno en esta planeación
+      const evalsAlumno = (evaluacionesRes.data ?? []).filter((e) => e.alumno_id === al.id);
+      const ultEval = evalsAlumno[evalsAlumno.length - 1];
+      return {
+        alumno_nombre: al.nombre,
+        nivel: ultEval?.nivel ?? null,
+        observaciones: ultEval?.observaciones ?? null,
+      };
+    }),
     },
     docenteId: planeacion.docente_id,
   };

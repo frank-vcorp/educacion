@@ -102,6 +102,19 @@ export interface PlaneacionPdfData {
   rutinarias?: string[];
   recurrentes?: string[];
   sesiones?: PlaneacionPdfSesion[];
+  /** Notas de bitácora diaria / diario de clase registradas */
+  bitacoras?: Array<{
+    fecha: string;
+    sesion_numero?: number;
+    participacion_grupo: number;
+    dificultades?: string | null;
+  }>;
+  /** Concentrado de alumnos con semáforo y firmas */
+  alumnos_evaluaciones?: Array<{
+    alumno_nombre: string;
+    nivel?: number | null;
+    observaciones?: string | null;
+  }>;
   /**
    * Timestamp ISO de la última edición de la planeación. Usado por
    * `buildPlaneacionHtml` para renderizar una fecha determinista en el
@@ -236,6 +249,80 @@ function buildRutinariasHtml(planeacion: PlaneacionPdfData): string {
     <h2>Rutinarias y recurrentes</h2>
     ${rut.length > 0 ? `<p class="subtitulo">Rutinarias</p><ul>${rutList}</ul>` : ''}
     ${rec.length > 0 ? `<p class="subtitulo">Recurrentes</p><ul>${recList}</ul>` : ''}
+  </section>`;
+}
+
+function buildBitacorasHtml(planeacion: PlaneacionPdfData): string {
+  const bitacoras = planeacion.bitacoras ?? [];
+  if (bitacoras.length === 0) return '';
+
+  const filas = bitacoras
+    .map((b) => {
+      const participacionTxt = ['—', 'Muy baja', 'Baja', 'Media', 'Buena', 'Excelente'][b.participacion_grupo] || `${b.participacion_grupo}/5`;
+      return `<tr>
+        <td style="white-space: nowrap;">${escapeHtml(b.fecha)}${b.sesion_numero ? ` (Sesión ${b.sesion_numero})` : ''}</td>
+        <td style="text-align: center;">${escapeHtml(participacionTxt)}</td>
+        <td>${escapeHtml(b.dificultades || '—')}</td>
+      </tr>`;
+    })
+    .join('\n');
+
+  return `<section class="bloque-seccion">
+    <h2>Bitácora y reflexiones post-clase</h2>
+    <table class="pda bitacora-table">
+      <thead>
+        <tr>
+          <th style="width: 25%;">Fecha / Sesión</th>
+          <th style="width: 20%; text-align: center;">Participación</th>
+          <th>Observaciones y dificultades pedagógicas</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${filas}
+      </tbody>
+    </table>
+  </section>`;
+}
+
+function buildConcentradoAlumnosHtml(planeacion: PlaneacionPdfData): string {
+  const alumnos = planeacion.alumnos_evaluaciones ?? [];
+  if (alumnos.length === 0) return '';
+
+  const nivelesMap: Record<number, { label: string; emoji: string }> = {
+    1: { label: 'Logrado sin apoyo', emoji: '🟢' },
+    2: { label: 'Con apoyo', emoji: '🟡' },
+    3: { label: 'Apoyo constante', emoji: '🟠' },
+    4: { label: 'Requiere apoyo', emoji: '🔴' },
+  };
+
+  const filas = alumnos
+    .map((a, idx) => {
+      const niv = a.nivel ? nivelesMap[a.nivel] : null;
+      const nivelTxt = niv ? `${niv.emoji} ${niv.label}` : '—';
+      return `<tr>
+        <td style="text-align: center;">${idx + 1}</td>
+        <td>${escapeHtml(a.alumno_nombre)}</td>
+        <td>${escapeHtml(nivelTxt)}</td>
+        <td>${escapeHtml(a.observaciones || '—')}</td>
+      </tr>`;
+    })
+    .join('\n');
+
+  return `<section class="bloque-seccion">
+    <h2>Concentrado de valoración formativa por alumno</h2>
+    <table class="pda concentrado-table">
+      <thead>
+        <tr>
+          <th style="width: 6%; text-align: center;">#</th>
+          <th style="width: 34%;">Nombre de la alumna / alumno</th>
+          <th style="width: 25%;">Nivel de logro</th>
+          <th>Observaciones cualitativas</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${filas}
+      </tbody>
+    </table>
   </section>`;
 }
 
@@ -441,6 +528,8 @@ export function buildPlaneacionHtml(planeacion: PlaneacionPdfData): string {
     ${buildModalidadHtml(planeacion)}
     ${buildRutinariasHtml(planeacion)}
     ${buildCalendarioHtml(planeacion)}
+    ${buildBitacorasHtml(planeacion)}
+    ${buildConcentradoAlumnosHtml(planeacion)}
 
     <div class="firmas-grid">
       <div class="firma-col">
