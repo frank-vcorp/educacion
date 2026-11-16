@@ -1,0 +1,39 @@
+name: Supabase Migrations Auto Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Educacion/supabase/migrations/**'
+      - 'supabase/migrations/**'
+  workflow_dispatch:
+
+jobs:
+  deploy-migrations:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link Supabase Project & Push Migrations
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID || 'fbhdxugyqtsmicopjhet' }}
+        run: |
+          if [ -d "Educacion/supabase" ]; then
+            cd Educacion
+          fi
+
+          echo "Vinculando proyecto Supabase ($PROJECT_ID)..."
+          supabase link --project-ref "$PROJECT_ID" --password "$SUPABASE_DB_PASSWORD"
+
+          echo "Aplicando migraciones pendientes..."
+          supabase db push --password "$SUPABASE_DB_PASSWORD"
