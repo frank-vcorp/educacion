@@ -373,6 +373,55 @@ export function PaseListaLudicoModal({
             })
           )}
         </div>
+
+        {/* Barra Flotante / Sticky Counter inferior para celulares y pantallas pequeñas (P2-UI-01) */}
+        <div className="sticky bottom-0 z-10 -mx-6 -mb-6 border-t border-emerald-200/80 bg-white/95 px-4 py-2.5 shadow-lg backdrop-blur-md">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <span className="font-semibold text-gray-700 flex items-center gap-1">
+                <Users className="w-3.5 h-3.5 text-nem-verde" />
+                <span className="font-bold">{resumen.total}</span>
+              </span>
+              <span className="text-green-700 font-medium">
+                🟢 {resumen.presentes}
+              </span>
+              <span className="text-red-700 font-medium">
+                🔴 {resumen.ausentes}
+              </span>
+              {resumen.retardos > 0 && (
+                <span className="text-amber-700 font-medium hidden sm:inline">
+                  🟡 {resumen.retardos}
+                </span>
+              )}
+              <Badge variant="outline" className="bg-emerald-50 text-nem-verde border-nem-verde/40 font-bold text-[11px] px-1.5 h-5">
+                {resumen.porcentajeAsistencia}%
+              </Badge>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => handleMarcarTodos('presente')}
+                className="h-7 text-[11px] px-2 text-emerald-800 border-emerald-200 hover:bg-emerald-50"
+              >
+                Todos Presentes
+              </Button>
+              {onRegistrarEnBitacora && (
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleAgregarABitacora}
+                  className="h-7 text-[11px] px-2 bg-emerald-700 hover:bg-emerald-800 text-white flex items-center gap-1"
+                >
+                  <ClipboardList className="w-3 h-3" />
+                  <span>{agregadoBitacora ? '¡Guardado!' : 'Anotar'}</span>
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

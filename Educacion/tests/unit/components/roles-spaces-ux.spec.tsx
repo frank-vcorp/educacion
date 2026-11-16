@@ -97,4 +97,56 @@ describe('Roles y Espacios UX / UI (Docente, Director, Superusuario)', () => {
       expect(screen.getAllByText(/100% Vigente/i).length).toBe(2);
     });
   });
+
+  describe('4. Pulidos P1 y P2 — Rutina Diaria y Pase de Lista', () => {
+    it('[P1-UX-01] renderiza el widget de Jornada Escolar con acceso rápido a Pase de Lista y Bitácora', async () => {
+      const { DashboardRutinaDiariaWidget } = await import(
+        '@/components/dashboard/dashboard-rutina-diaria-widget'
+      );
+
+      render(
+        <DashboardRutinaDiariaWidget
+          planeacionActiva={{
+            id: 'mock-plan-1',
+            nombre: 'Las plantas y sus hojas — Proyecto de Invierno',
+            periodoInicio: '2026-11-17',
+            periodoFin: '2026-11-28',
+          }}
+          alumnos={[
+            { id: '1', nombre: 'Ana Sofía' },
+            { id: '2', nombre: 'Mateo Emiliano' },
+          ]}
+          grupoNombre="2° B"
+        />
+      );
+
+      expect(screen.getByText(/Tu Jornada Escolar/i)).toBeInTheDocument();
+      expect(screen.getByText(/Las plantas y sus hojas/i)).toBeInTheDocument();
+      expect(screen.getByText(/⚡ Pase de Lista Lúdico/i)).toBeInTheDocument();
+      expect(screen.getByText(/📝 Bitácora de Hoy/i)).toBeInTheDocument();
+    });
+
+    it('[P2-UI-01] modal de Pase de Lista contiene la barra flotante/sticky para pantallas pequeñas', async () => {
+      const { PaseListaLudicoModal } = await import(
+        '@/components/asistencia/pase-lista-ludico-modal'
+      );
+      const { fireEvent } = await import('@testing-library/react');
+
+      render(
+        <PaseListaLudicoModal
+          alumnos={[
+            { id: '1', nombre: 'Ana Sofía' },
+            { id: '2', nombre: 'Mateo Emiliano' },
+          ]}
+        />
+      );
+
+      // Abrir modal con fireEvent
+      fireEvent.click(screen.getByRole('button', { name: /Pase de Lista Lúdico/i }));
+
+      // Debe mostrar contador y resumen
+      expect(screen.getAllByText(/Todos Presentes/i).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText(/Consigna para los niños/i)).toBeInTheDocument();
+    });
+  });
 });

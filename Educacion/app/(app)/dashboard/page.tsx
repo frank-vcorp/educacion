@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/shared/states';
 import { OnboardingDocenteBanner } from '@/components/dashboard/onboarding-docente-banner';
+import { DashboardRutinaDiariaWidget } from '@/components/dashboard/dashboard-rutina-diaria-widget';
 import { getServerSession } from '@/lib/auth/session';
 import { listPlaneaciones } from '@/services/planeaciones/planeacion-actions';
 import { listRecursos } from '@/services/recursos-aula/recurso-actions';
@@ -33,21 +34,34 @@ export default async function DashboardPage() {
   // No redirigir a /login (eso sería un loop con el middleware).
   if (!session.docenteId) redirect('/onboarding/cct');
 
+  const supabase = await createClient();
   const [{ items: planeaciones }, { items: recursos }, gruposRes] = await Promise.all([
     listPlaneaciones(session.docenteId),
     listRecursos(session.docenteId),
-    createClient().then((s) =>
-      s
-        .from('grupo')
-        .select('id, nombre, grado')
-        .eq('docente_id', session.docenteId)
-        .eq('activo', true)
-        .limit(1)
-        .maybeSingle(),
-    ),
+    supabase
+      .from('grupo')
+      .select('id, nombre, grado')
+      .eq('docente_id', session.docenteId)
+      .eq('activo', true)
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const grupo = gruposRes.data;
+
+  // Alumnos del grupo para el widget de rutina diaria (pase de lista rápido)
+  let alumnosGrupo: Array<{ id: string; nombre: string }> = [];
+  if (grupo?.id) {
+    const { data: alumnosData } = await supabase
+      .from('alumno')
+      .select('id, nombre')
+      .eq('grupo_id', grupo.id)
+      .eq('activo', true)
+      .order('nombre');
+    alumnosGrupo = alumnosData ?? [];
+  }
+
+  const planeacionActiva = planeaciones[0] ?? null;
 
   return (
     <div className="container mx-auto max-w-5xl px-4 py-6">
@@ -75,6 +89,19 @@ export default async function DashboardPage() {
         nombreDocente={session.user.user_metadata?.nombre as string | undefined}
         hasGrupo={!!grupo}
         planeacionesCount={planeaciones.length}
+      />
+
+      {/* Widget de Rutina Diaria (P1-UX-01) */}
+      <DashboardRutinaDiariaWidget
+        planeacionActiva={planeacionActiva ? {
+          id: planeacionActiva.id,
+          nombre: planeacionActiva.nombre,
+          periodoInicio: planeacionActiva.periodo_inicio,
+          periodoFin: planeacionActiva.periodo_fin,
+          modalidad: planeacionActiva.modalidad,
+        } : null}
+        alumnos={alumnosGrupo}
+        grupoNombre={grupo ? `${grupo.nombre} (${grupo.grado})` : undefined}
       />
 
       {/* C-7: empty state cuando no hay grupo */}

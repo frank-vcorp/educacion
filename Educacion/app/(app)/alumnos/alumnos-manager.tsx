@@ -9,7 +9,7 @@
 'use client';
 
 import { useState, useTransition, useMemo } from 'react';
-import { Pencil, Trash2, UserPlus, Search, Loader2, ClipboardList } from 'lucide-react';
+import { Pencil, Trash2, UserPlus, Search, Loader2, ClipboardList, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -21,6 +21,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { createAlumno, updateAlumno, deleteAlumno, bulkAddAlumnos } from '@/services/alumnos/alumno-actions';
+import { generarHtmlEtiquetasTermicas } from '@/lib/planeaciones/recado-materiales';
 import { EntrevistaDialogContent } from './entrevista-dialog-content';
 
 interface Alumno {
@@ -71,6 +72,32 @@ export function AlumnosManager({
     setAlumnos((prev) => prev.filter((x) => x.id !== id));
   }
 
+  function handleImprimirEtiquetasNiimbot() {
+    if (alumnos.length === 0) return;
+    const ventana = window.open('', '_blank');
+    if (!ventana) {
+      alert('Permite las ventanas emergentes en tu navegador para imprimir etiquetas');
+      return;
+    }
+
+    const items = alumnos.map((a) => ({
+      alumnoNombre: a.nombre,
+      material: `${grupo.grado} "${grupo.grupo}" · Preescolar`,
+    }));
+
+    const htmlTermico = generarHtmlEtiquetasTermicas({
+      etiquetas: items,
+      tamano: '50x30',
+      tituloEncabezado: '🌟 IDENTIFICACIÓN ALUMNO',
+      icono: '🎒',
+      institucion: 'Jardín de Niños',
+      mensajeCortesia: `Ciclo ${grupo.ciclo_escolar} · NEM Preescolar`,
+    });
+
+    ventana.document.write(htmlTermico);
+    ventana.document.close();
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -83,7 +110,18 @@ export function AlumnosManager({
             className="pl-9"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          {alumnos.length > 0 && (
+            <Button
+              variant="outline"
+              onClick={handleImprimirEtiquetasNiimbot}
+              className="border-emerald-600/40 text-emerald-800 hover:bg-emerald-50 text-xs sm:text-sm font-medium"
+              title="Imprimir etiquetas térmicas (50x30mm) para libretas, gafetes y casilleros"
+            >
+              <Printer className="mr-2 h-4 w-4 text-emerald-600" />
+              🖨️ Etiquetas de Identificación (Niimbot / Sticker)
+            </Button>
+          )}
           <Button variant="outline" onClick={() => setBulkOpen(true)}>
             Agregar varios
           </Button>

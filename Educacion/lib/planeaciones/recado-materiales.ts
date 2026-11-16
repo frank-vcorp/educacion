@@ -123,6 +123,8 @@ export interface EtiquetaTermicaItem {
 export interface GenerarEtiquetasTermicasOptions {
   etiquetas: EtiquetaTermicaItem[];
   tamano?: '40x30' | '50x30';
+  tituloEncabezado?: string;
+  icono?: string;
   mensajeCortesia?: string;
   institucion?: string;
   fechaEntrega?: string;
@@ -135,6 +137,8 @@ export interface GenerarEtiquetasTermicasOptions {
 export function generarHtmlEtiquetasTermicas({
   etiquetas,
   tamano = '50x30',
+  tituloEncabezado = '🎒 MATERIAL ESCOLAR',
+  icono = '📦',
   mensajeCortesia,
   institucion = 'Jardín de Niños',
   fechaEntrega,
@@ -152,10 +156,10 @@ export function generarHtmlEtiquetasTermicas({
       return `
       <div class="sticker-page">
         <div class="sticker-content">
-          <div class="sticker-header">🎒 MATERIAL ESCOLAR</div>
+          <div class="sticker-header">${escapeHtml(tituloEncabezado)}</div>
           <div class="sticker-alumno">${escapeHtml(item.alumnoNombre)}</div>
           <div class="sticker-material-box">
-            <span class="sticker-material-icon">📦</span>
+            <span class="sticker-material-icon">${icono}</span>
             <span class="sticker-material-text">${escapeHtml(item.material)}</span>
           </div>
           ${pieTexto ? `<div class="sticker-footer">${escapeHtml(pieTexto)}</div>` : ''}
