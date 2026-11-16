@@ -43,7 +43,7 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Rutas protegidas: /(app)/* requiere sesión
+  // Rutas protegidas: /(app)/*, /director, /admin requieren sesión
   const isAppRoute = request.nextUrl.pathname.startsWith('/dashboard') ||
     request.nextUrl.pathname.startsWith('/planeaciones') ||
     request.nextUrl.pathname.startsWith('/onboarding') ||
@@ -51,7 +51,9 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/recursos-aula') ||
     request.nextUrl.pathname.startsWith('/evaluaciones') ||
     request.nextUrl.pathname.startsWith('/biblioteca') ||
-    request.nextUrl.pathname.startsWith('/ajustes');
+    request.nextUrl.pathname.startsWith('/ajustes') ||
+    request.nextUrl.pathname.startsWith('/director') ||
+    request.nextUrl.pathname.startsWith('/admin');
 
   if (isAppRoute && !user) {
     const url2 = request.nextUrl.clone();

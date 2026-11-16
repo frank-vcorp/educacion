@@ -74,11 +74,9 @@ describe('IASugerenciaPanel — AC-UI-2 anti-doble-submit', () => {
 
   it('"Pedir otra sugerencia" envía forzar_refresh para obtener texto distinto (F1)', async () => {
     const user = userEvent.setup();
-    const fetchMock = globalThis.fetch as unknown as {
-      mock: { calls: Array<[string, RequestInit]> };
-    };
+    const fetchMock = globalThis.fetch as unknown as import('vitest').Mock;
 
-    fetchMock.mockImplementation((_url, init) => {
+    fetchMock.mockImplementation((_url: unknown, init?: RequestInit) => {
       const body = JSON.parse(String(init?.body ?? '{}')) as Record<string, unknown>;
       const origen = body.forzar_refresh ? 'ia' : 'cache';
       return Promise.resolve(

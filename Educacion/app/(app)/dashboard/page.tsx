@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/shared/states';
+import { OnboardingDocenteBanner } from '@/components/dashboard/onboarding-docente-banner';
 import { getServerSession } from '@/lib/auth/session';
 import { listPlaneaciones } from '@/services/planeaciones/planeacion-actions';
 import { listRecursos } from '@/services/recursos-aula/recurso-actions';
@@ -69,6 +70,12 @@ export default async function DashboardPage() {
           </p>
         )}
       </header>
+
+      <OnboardingDocenteBanner
+        nombreDocente={session.user.user_metadata?.nombre as string | undefined}
+        hasGrupo={!!grupo}
+        planeacionesCount={planeaciones.length}
+      />
 
       {/* C-7: empty state cuando no hay grupo */}
       {!grupo && (

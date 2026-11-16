@@ -14,7 +14,7 @@ describe('Verificación de las 3 Planeaciones Reales de Preescolar Fase 2', () =
   });
 
   it('la planeación 1 (Centros de Interés) incluye actividades rutinarias y recurrentes', () => {
-    const p1 = PLANEACIONES_REALES_LOLITA[0];
+    const p1 = PLANEACIONES_REALES_LOLITA[0]!;
     expect(p1.modalidad).toBe('centros_interes');
     expect(p1.camposFormativos).toContain('SABERES_PENSAMIENTO_CIENTIFICO');
     expect(p1.pdas).toHaveLength(2);
@@ -22,7 +22,7 @@ describe('Verificación de las 3 Planeaciones Reales de Preescolar Fase 2', () =
   });
 
   it('la planeación 2 (Proyecto Comunitario) incluye BAP y carteles como producto', () => {
-    const p2 = PLANEACIONES_REALES_LOLITA[1];
+    const p2 = PLANEACIONES_REALES_LOLITA[1]!;
     expect(p2.modalidad).toBe('proyecto_comunitario');
     expect(p2.camposFormativos).toContain('ETICA_NATURALEZA_SOCIEDADES');
     expect(p2.ajustesRazonablesBAP).toContain('Kassandra Yamileth');
@@ -31,7 +31,7 @@ describe('Verificación de las 3 Planeaciones Reales de Preescolar Fase 2', () =
   });
 
   it('la planeación 3 (Taller Crítico) incluye los 4 momentos del taller', () => {
-    const p3 = PLANEACIONES_REALES_LOLITA[2];
+    const p3 = PLANEACIONES_REALES_LOLITA[2]!;
     expect(p3.modalidad).toBe('taller_critico');
     expect(p3.camposFormativos).toContain('LENGUAJES');
     expect(p3.detallesModalidad.momentosTaller).toHaveLength(4);

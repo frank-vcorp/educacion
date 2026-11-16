@@ -121,7 +121,7 @@ describe('filtros-inventario', () => {
       pdas: ['PDA-F2-SPC-001'],
       temaCentro: 'Colorín colorante — pinturas con naturaleza',
     });
-    expect(ordenados[0].codigo).toBe('A');
-    expect(puntuarBloqueCatalogo(ordenados[0], { pdas: ['PDA-F2-SPC-001'] })).toBeGreaterThan(0);
+    expect(ordenados[0]?.codigo).toBe('A');
+    expect(puntuarBloqueCatalogo(ordenados[0]!, { pdas: ['PDA-F2-SPC-001'] })).toBeGreaterThan(0);
   });
 });

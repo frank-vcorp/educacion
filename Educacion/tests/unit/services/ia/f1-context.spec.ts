@@ -139,7 +139,7 @@ describe('f1-context', () => {
     });
     expect(ctx.preguntasDetonadoras?.[0]).toContain('limón');
     expect(ctx.ejesArticuladores).toEqual(['Inclusión']);
-    expect(ctx.pdas?.[0].texto).toContain('Experimentan');
+    expect(ctx.pdas?.[0]?.texto).toContain('Experimentan');
   });
 
   it('validarAdaptacionMinima rechaza cambios triviales', () => {
