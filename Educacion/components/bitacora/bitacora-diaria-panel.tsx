@@ -24,6 +24,7 @@ import {
   upsertBitacora,
   upsertEvaluacion,
 } from '@/services/evaluacion/evaluacion-actions';
+import { PaseListaLudicoModal } from '@/components/asistencia/pase-lista-ludico-modal';
 import { Star, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
 export interface SesionOption {
@@ -252,17 +253,28 @@ export function BitacoraDiariaPanel({
                 Selecciona la actividad o momento del día a registrar.
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <label htmlFor="fecha-sesion" className="text-sm font-medium">
-                Fecha:
-              </label>
-              <Input
-                id="fecha-sesion"
-                type="date"
-                value={fecha}
-                onChange={(e) => setFecha(e.target.value)}
-                className="w-40 h-9"
+            <div className="flex flex-wrap items-center gap-2">
+              <PaseListaLudicoModal
+                alumnos={alumnos}
+                fecha={fecha}
+                onRegistrarEnBitacora={(resumenTexto) => {
+                  setDificultades((prev) =>
+                    prev ? `${prev}\n\n${resumenTexto}` : resumenTexto,
+                  );
+                }}
               />
+              <div className="flex items-center gap-2">
+                <label htmlFor="fecha-sesion" className="text-sm font-medium">
+                  Fecha:
+                </label>
+                <Input
+                  id="fecha-sesion"
+                  type="date"
+                  value={fecha}
+                  onChange={(e) => setFecha(e.target.value)}
+                  className="w-40 h-9"
+                />
+              </div>
             </div>
           </div>
         </CardHeader>

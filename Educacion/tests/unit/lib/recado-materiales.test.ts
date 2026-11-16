@@ -3,6 +3,7 @@ import {
   distribuirMaterialesEquitativamente,
   generarMensajeMismoMaterial,
   generarMensajeMaterialIndividual,
+  generarHtmlEtiquetasTermicas,
 } from '@/lib/planeaciones/recado-materiales';
 
 describe('lib/planeaciones/recado-materiales', () => {
@@ -112,6 +113,44 @@ describe('lib/planeaciones/recado-materiales', () => {
       expect(msg).toContain('• *2 barras de plastilina azul*');
       expect(msg).toContain('*Martes 19 de Noviembre*');
       expect(msg).toContain('*Mtra. Lolita*');
+    });
+  });
+
+  describe('generarHtmlEtiquetasTermicas', () => {
+    it('genera un documento HTML estructurado con estilos @media print y tamaño térmico (50x30mm)', () => {
+      const html = generarHtmlEtiquetasTermicas({
+        etiquetas: [
+          { alumnoNombre: 'Mateo García', material: '1 vasito de plástico' },
+          { alumnoNombre: 'Sofía Morales', material: 'Cartulina blanca' },
+        ],
+        tamano: '50x30',
+        mensajeCortesia: 'Para el martes - Jardín Celestino Freinet',
+      });
+
+      expect(html).toContain('size: 50mm 30mm');
+      expect(html).toContain('page-break-after: always');
+      expect(html).toContain('break-after: page');
+      expect(html).toContain('Mateo García');
+      expect(html).toContain('1 vasito de plástico');
+      expect(html).toContain('Sofía Morales');
+      expect(html).toContain('Cartulina blanca');
+      expect(html).toContain('Para el martes - Jardín Celestino Freinet');
+      expect(html).toContain('window.print()');
+    });
+
+    it('soporta tamaño alternativo 40x30mm y escapa caracteres especiales de HTML', () => {
+      const html = generarHtmlEtiquetasTermicas({
+        etiquetas: [
+          { alumnoNombre: '<Elena & Tomás>', material: '1 tijera de "punta roma"' },
+        ],
+        tamano: '40x30',
+        fechaEntrega: '25/Nov',
+      });
+
+      expect(html).toContain('size: 40mm 30mm');
+      expect(html).toContain('&lt;Elena &amp; Tomás&gt;');
+      expect(html).toContain('1 tijera de &quot;punta roma&quot;');
+      expect(html).toContain('Para: 25/Nov');
     });
   });
 });

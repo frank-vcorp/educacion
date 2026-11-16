@@ -24,7 +24,9 @@ import {
   distribuirMaterialesEquitativamente,
   generarMensajeMismoMaterial,
   generarMensajeMaterialIndividual,
+  generarHtmlEtiquetasTermicas,
   type AsignacionMaterial,
+  type EtiquetaTermicaItem,
 } from '@/lib/planeaciones/recado-materiales';
 import {
   Copy,
@@ -34,6 +36,7 @@ import {
   Users,
   Printer,
   FileText,
+  Tag,
 } from 'lucide-react';
 
 export interface RecadoMaterialesModalProps {
@@ -200,6 +203,38 @@ export function RecadoMaterialesModal({
     ventanaImpresion.document.close();
   };
 
+  const handleImprimirEtiquetasTermicas = () => {
+    const ventanaImpresion = window.open('', '_blank');
+    if (!ventanaImpresion) return;
+
+    let itemsParaStickers: EtiquetaTermicaItem[] = [];
+
+    if (tab === 'mismo') {
+      const materialResumen = listaMateriales.join(', ');
+      itemsParaStickers = alumnos.map((al) => ({
+        alumnoNombre: al.nombre,
+        material: materialResumen || 'Material solicitado en recado',
+      }));
+    } else {
+      itemsParaStickers = asignaciones.map((asig) => ({
+        alumnoNombre: asig.alumnoNombre,
+        material: asig.material,
+      }));
+    }
+
+    const htmlTermico = generarHtmlEtiquetasTermicas({
+      etiquetas: itemsParaStickers,
+      tamano: '50x30',
+      fechaEntrega: fechaEntrega || undefined,
+      mensajeCortesia: fechaEntrega
+        ? `Para el ${fechaEntrega} - Jardín de Niños`
+        : 'Jardín de Niños - Preescolar',
+    });
+
+    ventanaImpresion.document.write(htmlTermico);
+    ventanaImpresion.document.close();
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -217,7 +252,7 @@ export function RecadoMaterialesModal({
             Recado de Materiales para Familias
           </DialogTitle>
           <DialogDescription>
-            Genera recados cálidos para WhatsApp o tiritas impresas y distribuye materiales colectivos equitativamente.
+            Genera recados cálidos para WhatsApp, tiritas impresas o etiquetas adhesivas térmicas (tipo Niimbot) para la playera del alumno.
           </DialogDescription>
         </DialogHeader>
 
@@ -236,7 +271,7 @@ export function RecadoMaterialesModal({
             />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               type="button"
               variant="outline"
@@ -246,6 +281,17 @@ export function RecadoMaterialesModal({
             >
               <Printer className="w-3.5 h-3.5" />
               <span>Imprimir Tiritas</span>
+            </Button>
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              onClick={handleImprimirEtiquetasTermicas}
+              className="flex items-center gap-1.5 text-xs h-8 bg-nem-verde hover:bg-nem-verde/90 text-white font-medium shadow-sm"
+              title="Formato continuo 50x30mm / 40x30mm para stickers autoadheribles"
+            >
+              <Tag className="w-3.5 h-3.5" />
+              <span>Imprimir Etiquetas (Niimbot / Térmica)</span>
             </Button>
           </div>
         </div>
