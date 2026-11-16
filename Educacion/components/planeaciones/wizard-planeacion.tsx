@@ -92,18 +92,32 @@ function PreguntasDet({
           Escribe una pregunta y presiona Enter. Mínimo 1.
         </p>
       </div>
-      <Input
-        value={inputPregunta}
-        onChange={(e) => setInputPregunta(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' && inputPregunta.trim()) {
-            e.preventDefault();
-            onChange([...value, inputPregunta.trim()]);
-            setInputPregunta('');
-          }
-        }}
-        placeholder="¿Qué pasaría si los oficios desaparecieran?"
-      />
+      <div className="flex gap-2">
+        <Input
+          value={inputPregunta}
+          onChange={(e) => setInputPregunta(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && inputPregunta.trim()) {
+              e.preventDefault();
+              onChange([...value, inputPregunta.trim()]);
+              setInputPregunta('');
+            }
+          }}
+          placeholder="¿Qué pasaría si los oficios desaparecieran?"
+        />
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => {
+            if (inputPregunta.trim()) {
+              onChange([...value, inputPregunta.trim()]);
+              setInputPregunta('');
+            }
+          }}
+        >
+          Agregar
+        </Button>
+      </div>
       <ul className="space-y-2">
         {value.map((p, i) => (
           <li key={i} className="flex items-start gap-2 rounded-md border bg-card p-2">
@@ -236,14 +250,14 @@ export function WizardPlaneacion({
 
   function validarPaso(pasoNombre: string): string | null {
     const esCompartido = (msg: string) => {
-      if (form.nombre.length < 3) return 'Nombre mínimo 3 caracteres';
-      if (form.problemaContexto.length < 10) return 'Detalla el problema (≥10 caracteres)';
+      if (form.nombre.length < 3) return 'Ingresa un nombre para tu planeación (al menos 3 letras)';
+      if (form.problemaContexto.length < 10) return 'Describe brevemente la situación o problema de la comunidad';
       if (form.ajustesRazonables.length < 20)
-        return 'Describe ajustes razonables (≥20 caracteres)';
+        return 'Detalla las estrategias o apoyos específicos (BAP) para tus alumnos';
       if (!form.periodoInicio || !form.periodoFin)
-        return 'Selecciona fecha de inicio y fin';
+        return 'Selecciona la fecha de inicio y término del periodo';
       if (form.periodoFin < form.periodoInicio)
-        return 'La fecha fin debe ser posterior al inicio';
+        return 'La fecha de término debe ser posterior a la de inicio';
       const errFechas = validarFechasContraAlcance(
         form.alcanceTemporal,
         form.periodoInicio,
@@ -382,6 +396,7 @@ export function WizardPlaneacion({
         pdas: form.pdas,
         contenidoRef: form.contenidoRef ?? undefined,
         ajustesRazonables: form.ajustesRazonables,
+        productoIntegrador: form.productoIntegrador || undefined,
         bancoPalabras: form.bancoPalabras,
         metadata: {
           modalidad_data: modalidadData,
@@ -491,13 +506,22 @@ export function WizardPlaneacion({
           />
         </div>
         <div>
-          <Label htmlFor="ajustes">Ajustes razonables (inclusión)</Label>
+          <Label htmlFor="ajustes">Estrategias y ajustes razonables (BAP)</Label>
           <Textarea
             id="ajustes"
             value={form.ajustesRazonables}
             onChange={(e) => set('ajustesRazonables', e.target.value)}
-            placeholder="Estrategias para que todos los niños puedan participar."
+            placeholder="Estrategias específicas para alumnos que enfrentan barreras para el aprendizaje (ej. apoyos en lenguaje, autorregulación, atención)."
             rows={3}
+          />
+        </div>
+        <div>
+          <Label htmlFor="producto">Producto central / integrador (opcional)</Label>
+          <Input
+            id="producto"
+            value={form.productoIntegrador}
+            onChange={(e) => set('productoIntegrador', e.target.value)}
+            placeholder="Ej. Carteles de los derechos, mural comunitario, recetario del aula"
           />
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
@@ -715,15 +739,20 @@ export function WizardPlaneacion({
   function renderPDAs() {
     return (
       <div className="space-y-3">
-        <p className="rounded-md border border-nem-verde/20 bg-nem-verde/5 px-3 py-2 text-xs text-muted-foreground">
-          PDA de <span className="font-medium text-foreground">{gradoPreescolar} preescolar</span>
-          {form.camposFormativos.length > 0 && (
-            <>
-              {' '}
-              · campos:{' '}
-              <span className="font-medium text-foreground">{form.camposFormativos.length}</span>
-            </>
-          )}
+        <p className="flex items-center justify-between rounded-md border border-nem-verde/20 bg-nem-verde/5 px-3 py-2 text-xs text-muted-foreground">
+          <span>
+            PDA de <span className="font-medium text-foreground">{gradoPreescolar} preescolar</span>
+            {form.camposFormativos.length > 0 && (
+              <>
+                {' '}
+                · campos:{' '}
+                <span className="font-medium text-foreground">{form.camposFormativos.length}</span>
+              </>
+            )}
+          </span>
+          <Badge variant={form.pdas.length > 0 ? "verde" : "outline"} className="text-xs">
+            {form.pdas.length} {form.pdas.length === 1 ? 'PDA seleccionado' : 'PDAs seleccionados'}
+          </Badge>
         </p>
         <div className="flex items-center gap-2">
           <Input

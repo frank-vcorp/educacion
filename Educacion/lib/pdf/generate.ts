@@ -300,6 +300,26 @@ export function buildPlaneacionHtml(planeacion: PlaneacionPdfData): string {
     .muted { color: #888; font-size: 10pt; font-style: italic; }
     ul { margin: 4px 0 8px; padding-left: 20px; }
     p { margin: 6px 0; }
+    .firmas-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-top: 36px;
+      padding-top: 10px;
+      text-align: center;
+      page-break-inside: avoid;
+    }
+    .firma-linea {
+      border-top: 1px solid #444;
+      padding-top: 6px;
+      font-size: 10pt;
+      color: #222;
+    }
+    .firma-cargo {
+      font-size: 8.5pt;
+      color: #666;
+      margin-top: 2px;
+    }
     .footer {
       margin-top: 28px;
       padding-top: 10px;
@@ -351,6 +371,17 @@ export function buildPlaneacionHtml(planeacion: PlaneacionPdfData): string {
 
     ${buildRutinariasHtml(planeacion)}
     ${buildCalendarioHtml(planeacion)}
+
+    <div class="firmas-grid">
+      <div class="firma-col">
+        <div class="firma-linea">Docente de Grupo</div>
+        <div class="firma-cargo">Educadora Titular</div>
+      </div>
+      <div class="firma-col">
+        <div class="firma-linea">Vo. Bo. Dirección Escolar</div>
+        <div class="firma-cargo">Directora / Directora del Plantel</div>
+      </div>
+    </div>
 
     <div class="footer">${footer}</div>
   </div>

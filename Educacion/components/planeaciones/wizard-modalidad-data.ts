@@ -50,6 +50,7 @@ export interface FormState {
   pdas: string[];
   contenidoRef: string | null;
   ajustesRazonables: string;
+  productoIntegrador: string;
   bancoPalabras: string[];
   sesionesSemana: SesionesSemana;
   rincones: Rincon[];
@@ -80,6 +81,7 @@ export const INITIAL_FORM: FormState = {
   pdas: [],
   contenidoRef: null,
   ajustesRazonables: '',
+  productoIntegrador: '',
   bancoPalabras: [],
   sesionesSemana: {},
   rincones: [{ nombre: '', materiales: '', reglas: '' }],
