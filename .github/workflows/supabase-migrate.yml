@@ -33,7 +33,7 @@ jobs:
           fi
 
           echo "Vinculando proyecto Supabase ($PROJECT_ID)..."
-          supabase link --project-ref "$PROJECT_ID" --password "$SUPABASE_DB_PASSWORD"
+          supabase link --project-ref "$PROJECT_ID"
 
           echo "Aplicando migraciones pendientes..."
           supabase db push --password "$SUPABASE_DB_PASSWORD"
