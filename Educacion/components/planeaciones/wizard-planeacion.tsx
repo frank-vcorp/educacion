@@ -142,14 +142,24 @@ export function WizardPlaneacion({
   const router = useRouter();
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const steps = useMemo(() => buildSteps(form.modalidad), [form.modalidad]);
+  const [busquedaPda, setBusquedaPda] = useState('');
   const pdasVisibles = useMemo(() => {
-    if (form.camposFormativos.length === 0) return pdas;
     const campoPorContenido = new Map(contenidos.map((c) => [c.codigo, c.campo_codigo]));
     return pdas.filter((p) => {
-      const campo = campoPorContenido.get(p.contenido_codigo);
-      return campo != null && form.camposFormativos.includes(campo);
+      if (form.camposFormativos.length > 0) {
+        const campo = campoPorContenido.get(p.contenido_codigo);
+        if (!campo || !form.camposFormativos.includes(campo)) return false;
+      }
+      if (busquedaPda.trim()) {
+        const q = busquedaPda.toLowerCase();
+        return (
+          p.texto.toLowerCase().includes(q) ||
+          p.codigo.toLowerCase().includes(q)
+        );
+      }
+      return true;
     });
-  }, [pdas, contenidos, form.camposFormativos]);
+  }, [pdas, contenidos, form.camposFormativos, busquedaPda]);
   const [paso, setPaso] = useState(1);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -715,9 +725,28 @@ export function WizardPlaneacion({
             </>
           )}
         </p>
+        <div className="flex items-center gap-2">
+          <Input
+            value={busquedaPda}
+            onChange={(e) => setBusquedaPda(e.target.value)}
+            placeholder="Buscar por palabra clave (ej. derechos, narración, plantas, números)..."
+            className="text-sm"
+          />
+          {busquedaPda && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setBusquedaPda('')}
+              className="text-xs"
+            >
+              Limpiar
+            </Button>
+          )}
+        </div>
         {pdasVisibles.length === 0 && (
           <p className="text-sm text-muted-foreground">
-            No hay PDA para este grado con los campos seleccionados. Revisa el paso anterior.
+            No hay PDA que coincidan con la búsqueda o con los campos seleccionados.
           </p>
         )}
         {pdasVisibles.map((p) => {
