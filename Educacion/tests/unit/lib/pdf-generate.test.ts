@@ -144,6 +144,44 @@ describe('lib/pdf/generate.ts — D-FIN-5 renderer', () => {
       expect(html).toContain('Contacto con la realidad');
       expect(html).toContain('@page { size: 210mm auto');
     });
+    it('renderiza secciones de Taller Crítico, Rincones y ABJ cuando están presentes', () => {
+      const html = buildPlaneacionHtml({
+        ...fakePlaneacion,
+        taller_critico: {
+          reflexion_inicial: '¿De qué tratan los cuentos?',
+          produccion: 'Elaborar un títere',
+          socializacion: 'Presentar la obra al grupo',
+        },
+        rincones: [
+          {
+            nombre: 'Rincón de Lectura',
+            materiales: ['Libros ilustrados', 'Cojines'],
+            reglas: 'Tratar los libros con cuidado y hablar en voz baja',
+          },
+        ],
+        abj: {
+          inicio_juego: 'Explicación del juego del tesoro',
+          desarrollo_juego: 'Búsqueda por pistas numéricas',
+          cierre_reflexion: 'Plenaria sobre las pistas resueltas',
+        },
+      });
+      expect(html).toContain('Fases del Taller Crítico');
+      expect(html).toContain('Reflexión Inicial');
+      expect(html).toContain('¿De qué tratan los cuentos?');
+      expect(html).toContain('Producción');
+      expect(html).toContain('Socialización');
+
+      expect(html).toContain('Rincones de Aprendizaje');
+      expect(html).toContain('Rincón de Lectura');
+      expect(html).toContain('Libros ilustrados, Cojines');
+      expect(html).toContain('Tratar los libros con cuidado y hablar en voz baja');
+
+      expect(html).toContain('Fases de Aprendizaje Basado en Juego (ABJ)');
+      expect(html).toContain('Inicio del Juego');
+      expect(html).toContain('Explicación del juego del tesoro');
+      expect(html).toContain('Desarrollo del Juego');
+      expect(html).toContain('Cierre / Reflexión');
+    });
   });
 
   describe('renderPdfFromHtml — con renderer inyectado', () => {

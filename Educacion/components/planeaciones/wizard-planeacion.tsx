@@ -13,7 +13,7 @@
  */
 'use client';
 
-import { useMemo, useState, useTransition } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -181,6 +181,63 @@ export function WizardPlaneacion({
     from: Modalidad;
     to: Modalidad;
   } | null>(null);
+
+  const draftKey = `wizard_draft_${docenteId}_${grupoId}`;
+  const [borradorDetectado, setBorradorDetectado] = useState<FormState | null>(null);
+  const [borradorPaso, setBorradorPaso] = useState<number>(1);
+
+  // Al montar, verificar si existe un borrador guardado en localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(draftKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          const draftForm = parsed.form as FormState;
+          if (draftForm && (draftForm.nombre || draftForm.problemaContexto || draftForm.modalidad !== 'proyecto_comunitario')) {
+            setBorradorDetectado(draftForm);
+            if (typeof parsed.paso === 'number') {
+              setBorradorPaso(parsed.paso);
+            }
+          }
+        }
+      }
+    } catch {
+      // localStorage no disponible o JSON corrupto
+    }
+  }, [draftKey]);
+
+  // Autosave: guardar en localStorage al cambiar form o paso cuando hay algún dato cargado
+  useEffect(() => {
+    try {
+      const hasContent =
+        form.nombre.trim() !== '' ||
+        form.problemaContexto.trim() !== '' ||
+        form.modalidad !== 'proyecto_comunitario' ||
+        form.camposFormativos.length > 0;
+      if (hasContent) {
+        localStorage.setItem(draftKey, JSON.stringify({ form, paso }));
+      }
+    } catch {
+      // Ignorar errores de quota o restricciones de storage
+    }
+  }, [form, paso, draftKey]);
+
+  function restaurarBorrador() {
+    if (!borradorDetectado) return;
+    setForm(borradorDetectado);
+    setPaso(borradorPaso || 1);
+    setBorradorDetectado(null);
+  }
+
+  function descartarBorrador() {
+    try {
+      localStorage.removeItem(draftKey);
+    } catch {
+      // Ignorar
+    }
+    setBorradorDetectado(null);
+  }
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -409,6 +466,11 @@ export function WizardPlaneacion({
       if (!res.ok) {
         setError(res.error ?? 'Error desconocido');
         return;
+      }
+      try {
+        localStorage.removeItem(draftKey);
+      } catch {
+        // Ignorar
       }
       router.push(`/planeaciones/${res.id}?nueva=1`);
       router.refresh();
@@ -1080,6 +1142,40 @@ export function WizardPlaneacion({
         </div>
         <Progress value={progreso} />
       </div>
+
+      {borradorDetectado && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-900 shadow-sm">
+          <p className="font-semibold text-amber-950">
+            Borrador guardado disponible
+          </p>
+          <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-xs sm:text-sm">
+            <span>
+              Tienes un borrador no guardado: &ldquo;
+              <strong>{borradorDetectado.nombre || 'Sin título'}</strong>&rdquo;
+              {borradorPaso > 1 ? ` (en el paso ${borradorPaso})` : ''}. ¿Deseas restaurarlo?
+            </span>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="border-amber-300 text-amber-900 hover:bg-amber-100"
+                onClick={descartarBorrador}
+              >
+                Comenzar de nuevo
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                className="bg-amber-600 text-white hover:bg-amber-700"
+                onClick={restaurarBorrador}
+              >
+                Restaurar borrador
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">

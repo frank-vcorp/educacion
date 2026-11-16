@@ -78,6 +78,21 @@ export interface PlaneacionPdfData {
   grupo_etiqueta?: string | null;
   tema_centro?: string | null;
   preguntas_det?: string[];
+  taller_critico?: {
+    reflexion_inicial?: string | null;
+    produccion?: string | null;
+    socializacion?: string | null;
+  } | null;
+  rincones?: Array<{
+    nombre: string;
+    materiales?: string[] | string;
+    reglas?: string | null;
+  }> | null;
+  abj?: {
+    inicio_juego?: string | null;
+    desarrollo_juego?: string | null;
+    cierre_reflexion?: string | null;
+  } | null;
   campos_nombres?: Record<string, string>;
   pdas_texto?: Record<string, string>;
   pda_campo_codigo?: Record<string, string>;
@@ -222,6 +237,60 @@ function buildRutinariasHtml(planeacion: PlaneacionPdfData): string {
     ${rut.length > 0 ? `<p class="subtitulo">Rutinarias</p><ul>${rutList}</ul>` : ''}
     ${rec.length > 0 ? `<p class="subtitulo">Recurrentes</p><ul>${recList}</ul>` : ''}
   </section>`;
+}
+
+function buildModalidadHtml(planeacion: PlaneacionPdfData): string {
+  let html = '';
+
+  // 1. Taller Crítico
+  if (planeacion.taller_critico) {
+    const { reflexion_inicial, produccion, socializacion } = planeacion.taller_critico;
+    if (reflexion_inicial || produccion || socializacion) {
+      html += `<section class="bloque-seccion">
+        <h2>Fases del Taller Crítico</h2>
+        ${reflexion_inicial ? `<div class="fase-item"><p class="subtitulo">Reflexión Inicial</p><p class="act-texto">${escapeHtml(reflexion_inicial)}</p></div>` : ''}
+        ${produccion ? `<div class="fase-item"><p class="subtitulo">Producción</p><p class="act-texto">${escapeHtml(produccion)}</p></div>` : ''}
+        ${socializacion ? `<div class="fase-item"><p class="subtitulo">Socialización</p><p class="act-texto">${escapeHtml(socializacion)}</p></div>` : ''}
+      </section>`;
+    }
+  }
+
+  // 2. Rincones de Aprendizaje
+  if (planeacion.rincones && planeacion.rincones.length > 0) {
+    const rinconesHtml = planeacion.rincones
+      .map((r, idx) => {
+        const nombre = r.nombre || `Rincón ${idx + 1}`;
+        const mats = Array.isArray(r.materiales)
+          ? r.materiales.join(', ')
+          : (r.materiales ?? '');
+        return `<article class="actividad">
+          <p class="subtitulo" style="margin-top:0;"><strong>${escapeHtml(nombre)}</strong></p>
+          ${mats ? `<p class="act-recursos"><strong>Materiales:</strong> ${escapeHtml(mats)}</p>` : ''}
+          ${r.reglas ? `<p class="act-obs"><strong>Reglas:</strong> ${escapeHtml(r.reglas)}</p>` : ''}
+        </article>`;
+      })
+      .join('\n');
+
+    html += `<section class="bloque-seccion">
+      <h2>Rincones de Aprendizaje</h2>
+      ${rinconesHtml}
+    </section>`;
+  }
+
+  // 3. Aprendizaje Basado en Juego (ABJ)
+  if (planeacion.abj) {
+    const { inicio_juego, desarrollo_juego, cierre_reflexion } = planeacion.abj;
+    if (inicio_juego || desarrollo_juego || cierre_reflexion) {
+      html += `<section class="bloque-seccion">
+        <h2>Fases de Aprendizaje Basado en Juego (ABJ)</h2>
+        ${inicio_juego ? `<div class="fase-item"><p class="subtitulo">Inicio del Juego</p><p class="act-texto">${escapeHtml(inicio_juego)}</p></div>` : ''}
+        ${desarrollo_juego ? `<div class="fase-item"><p class="subtitulo">Desarrollo del Juego</p><p class="act-texto">${escapeHtml(desarrollo_juego)}</p></div>` : ''}
+        ${cierre_reflexion ? `<div class="fase-item"><p class="subtitulo">Cierre / Reflexión</p><p class="act-texto">${escapeHtml(cierre_reflexion)}</p></div>` : ''}
+      </section>`;
+    }
+  }
+
+  return html;
 }
 
 /**
@@ -369,6 +438,7 @@ export function buildPlaneacionHtml(planeacion: PlaneacionPdfData): string {
       <p>${ajustes}</p>
     </section>
 
+    ${buildModalidadHtml(planeacion)}
     ${buildRutinariasHtml(planeacion)}
     ${buildCalendarioHtml(planeacion)}
 

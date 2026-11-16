@@ -126,6 +126,57 @@ export async function fetchPlaneacionPdfPayload(
     preguntas_det: Array.isArray(preguntasRaw)
       ? preguntasRaw.filter((x): x is string => typeof x === 'string')
       : [],
+    taller_critico:
+      modalidad === 'taller_critico' ||
+      modalidadData.reflexion_inicial ||
+      modalidadData.produccion ||
+      modalidadData.socializacion
+        ? {
+            reflexion_inicial:
+              typeof modalidadData.reflexion_inicial === 'string'
+                ? modalidadData.reflexion_inicial
+                : null,
+            produccion:
+              typeof modalidadData.produccion === 'string'
+                ? modalidadData.produccion
+                : null,
+            socializacion:
+              typeof modalidadData.socializacion === 'string'
+                ? modalidadData.socializacion
+                : null,
+          }
+        : null,
+    rincones: Array.isArray(modalidadData.rincones)
+      ? (modalidadData.rincones as Array<Record<string, unknown>>).map((r) => ({
+          nombre: typeof r.nombre === 'string' ? r.nombre : '',
+          materiales: Array.isArray(r.materiales)
+            ? r.materiales.filter((m): m is string => typeof m === 'string')
+            : typeof r.materiales === 'string'
+              ? r.materiales
+              : '',
+          reglas: typeof r.reglas === 'string' ? r.reglas : null,
+        }))
+      : null,
+    abj:
+      modalidad === 'abj' ||
+      modalidadData.inicio_juego ||
+      modalidadData.desarrollo_juego ||
+      modalidadData.cierre_reflexion
+        ? {
+            inicio_juego:
+              typeof modalidadData.inicio_juego === 'string'
+                ? modalidadData.inicio_juego
+                : null,
+            desarrollo_juego:
+              typeof modalidadData.desarrollo_juego === 'string'
+                ? modalidadData.desarrollo_juego
+                : null,
+            cierre_reflexion:
+              typeof modalidadData.cierre_reflexion === 'string'
+                ? modalidadData.cierre_reflexion
+                : null,
+          }
+        : null,
     campos_nombres: Object.fromEntries(
       camposCatalogo
         .filter((c) => codigosCampos.includes(c.codigo))

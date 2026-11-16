@@ -64,8 +64,17 @@ const IRREDACTABLE_PATTERN = /\b[A-ZÁÉÍÓÚÑ]{3,}(?:\s+[A-ZÁÉÍÓÚÑ]{3,}
 /** Marcadores de plantilla NEM en MAYÚSCULAS ([FIGURA], [MATERIAL]). */
 const CATALOGO_MARCADOR_PATTERN = /\[[A-ZÁÉÍÓÚÑ_\s]{2,}\]/g;
 
+/**
+ * Frases y encabezados pedagógicos comunes en mayúsculas sostenidas que
+ * no constituyen PII y deben ser tolerados sin disparar falso positivo 500.
+ */
+const TITULOS_PEDAGOGICOS_PATTERN =
+  /\b(?:COLORÍN COLORANTE(?:\s+¿?QUÉ COLORES ENCONTRASTE\??)?|DERECHOS DE LOS NIÑOS|DERECHOS DE LAS NIÑAS|HONORES A LA BANDERA|NARRANDO HISTORIAS|CONOCIENDO Y DIFUNDIENDO NUESTROS DERECHOS|RINCONES DE APRENDIZAJE|TALLER CRÍTICO|TALLER CRITICO|APRENDIZAJE BASADO EN JUEGOS?)\b/gi;
+
 export function prepareTextForIrredactableCheck(text: string): string {
-  return text.replace(CATALOGO_MARCADOR_PATTERN, '[MARCADOR]');
+  let cleaned = text.replace(CATALOGO_MARCADOR_PATTERN, '[MARCADOR]');
+  cleaned = cleaned.replace(TITULOS_PEDAGOGICOS_PATTERN, '[TITULO_PEDAGOGICO]');
+  return cleaned;
 }
 
 export function detectIrredactablePII(text: string): boolean {

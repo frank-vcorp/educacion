@@ -190,4 +190,12 @@ describe('lib/ia/anonymizer — PII filter (P-PD8, P-PD9, D-FIN-13, AC-22)', () 
     const anon = anonymizeRequest({ texto: payload });
     expect(findIrredactableField({ texto: anon.texto })).toBeNull();
   });
+
+  it('detectIrredactablePII: false para títulos y frases pedagógicas en mayúsculas sostenidas', () => {
+    expect(detectIrredactablePII('COLORÍN COLORANTE ¿QUÉ COLORES ENCONTRASTE?')).toBe(false);
+    expect(detectIrredactablePII('DERECHOS DE LOS NIÑOS')).toBe(false);
+    expect(detectIrredactablePII('HONORES A LA BANDERA')).toBe(false);
+    expect(detectIrredactablePII('NARRANDO HISTORIAS')).toBe(false);
+    expect(detectIrredactablePII('CONOCIENDO Y DIFUNDIENDO NUESTROS DERECHOS')).toBe(false);
+  });
 });
