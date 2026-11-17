@@ -637,6 +637,20 @@ export function WizardPlaneacion({
             onChange={(e) => set('productoIntegrador', e.target.value)}
             placeholder="Ej. Carteles de los derechos, mural comunitario, recetario del aula"
           />
+          <div className="mt-1.5">
+            <SugerenciaCampoIaButton
+              campo="producto_integrador"
+              modalidad={form.modalidad}
+              alcanceTemporal={form.alcanceTemporal}
+              periodoInicio={form.periodoInicio}
+              periodoFin={form.periodoFin}
+              nombre={form.nombre}
+              problemaContexto={form.problemaContexto}
+              proposito={form.proposito}
+              valorActual={form.productoIntegrador}
+              onApply={(t) => set('productoIntegrador', t)}
+            />
+          </div>
         </div>
       </div>
     );

@@ -27,7 +27,7 @@ const MODALIDADES = [
 ] as const;
 
 const BodySchema = z.object({
-  campo: z.enum(['problema', 'proposito', 'ajustes_razonables']),
+  campo: z.enum(['problema', 'proposito', 'ajustes_razonables', 'producto_integrador']),
   modalidad: z.enum(MODALIDADES),
   nombre: z.string().max(300).optional().default(''),
   problema_contexto: z.string().max(1000).optional().default(''),
@@ -40,7 +40,10 @@ const BodySchema = z.object({
 
 const ENDPOINT = 'planeaciones_campo_contexto';
 
-const PROMPTS_POR_CAMPO: Record<'problema' | 'proposito' | 'ajustes_razonables', string> = {
+const PROMPTS_POR_CAMPO: Record<
+  'problema' | 'proposito' | 'ajustes_razonables' | 'producto_integrador',
+  string
+> = {
   problema: [
     'Eres una especialista pedagógica en Preescolar de México (Nueva Escuela Mexicana — NEM, Fase 2, SEP, niñas y niños de 3 a 5 años).',
     'Tu tarea: redactar ÚNICAMENTE una pregunta detonadora o planteamiento breve del problema del contexto para esta planeación NEM.',
@@ -65,6 +68,13 @@ const PROMPTS_POR_CAMPO: Record<'problema' | 'proposito' | 'ajustes_razonables',
     '- Responde SOLO con el texto final en prosa o lista breve separada por punto y coma. Sin encabezados, sin JSON, sin explicaciones.',
     '- Incluye apoyos visuales, consignas claras y múltiples formas de expresión acordes a niños de 3 a 5 años.',
   ].join('\n'),
+  producto_integrador: [
+    'Eres una especialista pedagógica en Preescolar de México (Nueva Escuela Mexicana — NEM, Fase 2, SEP, niñas y niños de 3 a 5 años).',
+    'Tu tarea: proponer ÚNICAMENTE el nombre y descripción muy breve (1 frase corta) de un producto central o integrador tangible y lúdico que los niños puedan crear y socializar al cierre.',
+    'REGLAS:',
+    '- Escribe exclusivamente en español latinoamericano (México).',
+    '- Responde SOLO con el texto final en una frase corta (ej. "Mural comunitario con papel reciclado y carteles hechos por los niños"). Sin encabezados, sin comillas, sin JSON.',
+  ].join('\n'),
 };
 
 const MODALIDAD_CONTEXTO: Record<(typeof MODALIDADES)[number], string> = {
@@ -82,10 +92,14 @@ const MODALIDAD_CONTEXTO: Record<(typeof MODALIDADES)[number], string> = {
     'Taller Crítico NEM (3 momentos: Reflexión inicial, Producción creativa, Socialización). Niñas y niños de 3 a 5 años dialogan sobre una situación cercana, crean algo con sus manos mediante el juego y lo comparten.',
 };
 
-const MAX_TOKENS_POR_CAMPO: Record<'problema' | 'proposito' | 'ajustes_razonables', number> = {
+const MAX_TOKENS_POR_CAMPO: Record<
+  'problema' | 'proposito' | 'ajustes_razonables' | 'producto_integrador',
+  number
+> = {
   problema: 4096,
   proposito: 4096,
   ajustes_razonables: 4096,
+  producto_integrador: 4096,
 };
 
 function limpiarCaracteresNoLatinos(texto: string): string {

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import type { Modalidad } from '@/components/planeaciones/wizard-modalidad-data';
 
 export interface SugerenciaCampoIaButtonProps {
-  campo: 'problema' | 'proposito' | 'ajustes_razonables';
+  campo: 'problema' | 'proposito' | 'ajustes_razonables' | 'producto_integrador';
   modalidad: Modalidad;
   alcanceTemporal?: string;
   periodoInicio?: string;
