@@ -47,10 +47,10 @@ export function LoginForm({ redirect }: LoginFormProps) {
 
   function handleMagicResend() {
     const formData = new FormData();
-    const email = (document.getElementById('email') as HTMLInputElement)?.value;
-    if (!email) {
-      setError('Ingresa tu correo para reenviar el enlace');
-      setField('email');
+    const email = (document.getElementById('identificador') as HTMLInputElement)?.value;
+    if (!email || !email.includes('@')) {
+      setError('Ingresa tu correo electrónico para reenviar el enlace mágico');
+      setField('identificador');
       return;
     }
     formData.set('email', email);
@@ -69,17 +69,17 @@ export function LoginForm({ redirect }: LoginFormProps) {
   return (
     <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
       <div>
-        <label htmlFor="email" className="text-sm font-medium">
-          Correo institucional
+        <label htmlFor="identificador" className="text-sm font-medium">
+          Número de WhatsApp o correo
         </label>
         <Input
-          id="email"
-          name="email"
-          type="email"
+          id="identificador"
+          name="identificador"
+          type="text"
           required
-          autoComplete="email"
+          autoComplete="username"
           className="mt-1"
-          placeholder="tu@escuela.edu.mx"
+          placeholder="55 1234 5678 o tu@escuela.edu.mx"
         />
       </div>
 

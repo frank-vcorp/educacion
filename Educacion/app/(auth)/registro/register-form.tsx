@@ -98,18 +98,22 @@ export function RegisterForm({
       </div>
 
       <div>
-        <label htmlFor="email" className="text-sm font-medium">
-          Correo institucional
+        <label htmlFor="whatsapp" className="text-sm font-medium">
+          Número de WhatsApp
         </label>
         <Input
-          id="email"
-          name="email"
-          type="email"
+          id="whatsapp"
+          name="whatsapp"
+          type="tel"
+          inputMode="tel"
           required
-          autoComplete="email"
+          autoComplete="tel"
           className="mt-1"
-          placeholder="tu@escuela.edu.mx"
+          placeholder="Ej. 55 1234 5678"
         />
+        <p className="mt-1 text-xs text-muted-foreground">
+          10 dígitos (México) o con lada internacional. Será tu usuario de acceso.
+        </p>
       </div>
 
       <div>
