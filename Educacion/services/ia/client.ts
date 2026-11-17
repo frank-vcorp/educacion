@@ -88,6 +88,25 @@ export async function iaChat(
   const controller = new AbortControllerImpl();
   const timer = setTimeoutImpl(() => controller.abort(), timeoutMs);
 
+  const isMiniMax =
+    (process.env.AI_PROVIDER ?? '').toUpperCase() === 'MINIMAX' ||
+    model.toLowerCase().includes('minimax');
+  const isMiniMaxFlash = model.toLowerCase().includes('m3.1-flash');
+
+  const requestBody: Record<string, unknown> = {
+    model,
+    messages,
+    temperature,
+    max_tokens: maxTokens,
+    stream: false,
+  };
+  if (isMiniMax) {
+    requestBody.reasoning_split = true;
+  }
+  if (isMiniMaxFlash) {
+    requestBody.reasoning_effort = 'low';
+  }
+
   try {
     const res = await fetchImpl(`${baseUrl}/chat/completions`, {
       method: 'POST',
@@ -95,13 +114,7 @@ export async function iaChat(
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({
-        model,
-        messages,
-        temperature,
-        max_tokens: maxTokens,
-        stream: false,
-      }),
+      body: JSON.stringify(requestBody),
       signal: controller.signal,
     });
 
