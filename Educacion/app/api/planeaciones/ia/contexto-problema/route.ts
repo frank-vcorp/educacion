@@ -32,6 +32,7 @@ import { NIVEL_EDUCATIVO_MVP } from '@/lib/nivel-educativo/scope';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const maxDuration = 30;
 
 const MODALIDADES = [
   'proyecto_comunitario',
@@ -156,13 +157,19 @@ export async function POST(request: Request) {
       { role: 'system', content: SYSTEM_PROMPT_F0 },
       { role: 'user', content: userMsg },
     ],
-    { temperature: 0.4, maxTokens: 700 },
+    { temperature: 0.4, maxTokens: 1600 },
   );
 
   // 7) Parse respuesta.
   let parsedF0: ReturnType<typeof parseRespuestaF0> = null;
   if (result.origen !== 'fallback_vacio') {
     parsedF0 = parseRespuestaF0(result.text);
+    if (!parsedF0) {
+      console.warn('[F0] parseRespuestaF0 returned null', {
+        textLen: result.text.length,
+        latencyMs: result.latencyMs,
+      });
+    }
   }
 
   // 8) audit_log POST (1 fila por request que alcanza procesamiento).

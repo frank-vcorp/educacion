@@ -15,7 +15,7 @@
 import type { IaChatMessage, IaChatOptions, IaChatResult } from './types';
 import { sanitizeIaProse } from './sanitize-prose';
 
-const DEFAULT_TIMEOUT_MS = 8000;
+const DEFAULT_TIMEOUT_MS = 25000;
 
 export interface IaClientConfig {
   /** Override de `fetch` (test). Default: `globalThis.fetch`. */
@@ -63,13 +63,21 @@ export async function iaChat(
   const start = Date.now();
 
   if (!isIaConfigured()) {
+    console.warn('[iaChat] fallback_vacio: missing AI_API_KEY');
     return { text: '', origen: 'fallback_vacio', latencyMs: 0 };
   }
 
-  const baseUrl = (process.env.AI_BASE_URL ?? '').replace(/\/+$/, '');
-  const model = process.env.AI_MODEL ?? '';
-  const apiKey = process.env.AI_API_KEY ?? '';
+  const baseUrl = (process.env.AI_BASE_URL ?? '')
+    .trim()
+    .replace(/\/+$/, '')
+    .replace(/\/chat\/completions$/, '');
+  const model = (process.env.AI_MODEL ?? '').trim();
+  const apiKey = (process.env.AI_API_KEY ?? '').trim();
   if (!baseUrl || !model) {
+    console.warn('[iaChat] fallback_vacio: missing env', {
+      hasBaseUrl: Boolean(baseUrl),
+      hasModel: Boolean(model),
+    });
     return { text: '', origen: 'fallback_vacio', latencyMs: Date.now() - start };
   }
 
@@ -98,7 +106,14 @@ export async function iaChat(
     });
 
     if (!res.ok) {
-      return { text: '', origen: 'fallback_vacio', latencyMs: Date.now() - start };
+      const latencyMs = Date.now() - start;
+      console.warn('[iaChat] fallback_vacio: http_error', {
+        status: res.status,
+        provider: process.env.AI_PROVIDER ?? 'unknown',
+        model,
+        latencyMs,
+      });
+      return { text: '', origen: 'fallback_vacio', latencyMs };
     }
 
     const json = (await res.json()) as {
@@ -113,8 +128,17 @@ export async function iaChat(
       provider: process.env.AI_PROVIDER,
       model,
     };
-  } catch {
-    return { text: '', origen: 'fallback_vacio', latencyMs: Date.now() - start };
+  } catch (err) {
+    const latencyMs = Date.now() - start;
+    const reason = err instanceof Error ? err.name : 'unknown_error';
+    console.warn('[iaChat] fallback_vacio: exception', {
+      reason,
+      provider: process.env.AI_PROVIDER ?? 'unknown',
+      model,
+      timeoutMs,
+      latencyMs,
+    });
+    return { text: '', origen: 'fallback_vacio', latencyMs };
   } finally {
     clearTimeoutImpl(timer);
   }

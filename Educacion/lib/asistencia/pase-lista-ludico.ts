@@ -23,6 +23,7 @@ export interface DinamicaPaseLista {
   ejemplo: string;
   icono: string;
   duracionMinutos?: number;
+  origen?: 'catalogo' | 'ia';
 }
 
 export type EstadoAsistencia = 'presente' | 'ausente' | 'retardo';
@@ -74,6 +75,36 @@ export const CATALOGO_DINAMICAS_PASE_LISTA: DinamicaPaseLista[] = [
     icono: '🤖',
     duracionMinutos: 3,
   },
+  {
+    id: 'leng-04',
+    campo: 'lenguajes',
+    campoNombre: 'Lenguajes',
+    titulo: 'Palabra mágica del cuento',
+    consigna: 'Responden ¡Presente! diciendo una palabra bonita o mágica que les gustaría escuchar en un cuento (estrella, nube, dragón, abrazo).',
+    ejemplo: 'Ejemplo: "¡Presente! Mi palabra mágica es arcoíris."',
+    icono: '📖',
+    duracionMinutos: 3,
+  },
+  {
+    id: 'leng-05',
+    campo: 'lenguajes',
+    campoNombre: 'Lenguajes',
+    titulo: 'Saludo en otra lengua o señas',
+    consigna: 'Al escuchar su nombre, saludan usando la seña de "hola" en LSM o una palabra en lengua indígena/extranjera acordada en grupo.',
+    ejemplo: 'Ejemplo: "¡Presente! Ximena dice hola con su mano y sonríe."',
+    icono: '🤟',
+    duracionMinutos: 3,
+  },
+  {
+    id: 'leng-06',
+    campo: 'lenguajes',
+    campoNombre: 'Lenguajes',
+    titulo: 'Sonido de mi transporte favorito',
+    consigna: 'Dicen ¡Presente! e imitan el sonido de un transporte (tren, avión, bicicleta, barco) al moverse en su lugar.',
+    ejemplo: 'Ejemplo: "¡Presente! ¡Chucu-chucu-chú como un tren!"',
+    icono: '🚂',
+    duracionMinutos: 3,
+  },
 
   // Saberes y Pensamiento Científico
   {
@@ -106,6 +137,36 @@ export const CATALOGO_DINAMICAS_PASE_LISTA: DinamicaPaseLista[] = [
     icono: '🔢',
     duracionMinutos: 2,
   },
+  {
+    id: 'sab-04',
+    campo: 'saberes_pensamiento_cientifico',
+    campoNombre: 'Saberes y Pensamiento Científico',
+    titulo: 'Figura geométrica escondida',
+    consigna: 'Al responder ¡Presente!, señalan un objeto del salón que tenga forma de círculo, cuadrado o triángulo.',
+    ejemplo: 'Ejemplo: "¡Presente! El reloj tiene forma de círculo."',
+    icono: '🔺',
+    duracionMinutos: 3,
+  },
+  {
+    id: 'sab-05',
+    campo: 'saberes_pensamiento_cientifico',
+    campoNombre: 'Saberes y Pensamiento Científico',
+    titulo: '¿Cómo está el clima hoy?',
+    consigna: 'Observan por la ventana y responden ¡Presente! diciendo una pista del clima (soleado, fresco, con nubes, viento).',
+    ejemplo: 'Ejemplo: "¡Presente! Hoy siento viento fresco y veo nubes blancas."',
+    icono: '🌤️',
+    duracionMinutos: 3,
+  },
+  {
+    id: 'sab-06',
+    campo: 'saberes_pensamiento_cientifico',
+    campoNombre: 'Saberes y Pensamiento Científico',
+    titulo: 'Saltos contados',
+    consigna: 'Dicen ¡Presente! dando el número de saltitos cortos que indique el dado o la tarjeta del día (1 al 5).',
+    ejemplo: 'Ejemplo: "¡Presente! 1, 2, 3 saltos de ranita."',
+    icono: '🐸',
+    duracionMinutos: 3,
+  },
 
   // Ética, Naturaleza y Sociedades
   {
@@ -128,6 +189,46 @@ export const CATALOGO_DINAMICAS_PASE_LISTA: DinamicaPaseLista[] = [
     icono: '🏡',
     duracionMinutos: 3,
   },
+  {
+    id: 'et-03',
+    campo: 'etica_naturaleza_sociedades',
+    campoNombre: 'Ética, Naturaleza y Sociedades',
+    titulo: 'Cuidadores del agua',
+    consigna: 'Comparten una idea sencilla para cuidar el agua en casa o en el jardín de niños al decir ¡Presente!.',
+    ejemplo: 'Ejemplo: "¡Presente! Cierro la llave mientras me enjabono las manos."',
+    icono: '💧',
+    duracionMinutos: 3,
+  },
+  {
+    id: 'et-04',
+    campo: 'etica_naturaleza_sociedades',
+    campoNombre: 'Ética, Naturaleza y Sociedades',
+    titulo: 'Acuerdo de convivencia',
+    consigna: 'Mencionan un acuerdo del salón que quieren practicar hoy (escuchar con atención, pedir por favor, esperar turno).',
+    ejemplo: 'Ejemplo: "¡Presente! Hoy voy a esperar mi turno para hablar."',
+    icono: '🤝',
+    duracionMinutos: 3,
+  },
+  {
+    id: 'et-05',
+    campo: 'etica_naturaleza_sociedades',
+    campoNombre: 'Ética, Naturaleza y Sociedades',
+    titulo: 'Mi lugar favorito de la comunidad',
+    consigna: 'Nombran un lugar que disfrutan visitar con su familia (el parque, el mercado, la plaza, la biblioteca).',
+    ejemplo: 'Ejemplo: "¡Presente! Me gusta ir al parque de los árboles grandes."',
+    icono: '🌳',
+    duracionMinutos: 3,
+  },
+  {
+    id: 'et-06',
+    campo: 'etica_naturaleza_sociedades',
+    campoNombre: 'Ética, Naturaleza y Sociedades',
+    titulo: '¿Qué traje para reciclar o reusar?',
+    consigna: 'Mencionan un objeto que en casa separan o reúsan para cuidar el planeta (botellas, cartón, cáscaras para composta).',
+    ejemplo: 'Ejemplo: "¡Presente! En mi casa juntamos las tapas de plástico."',
+    icono: '♻️',
+    duracionMinutos: 3,
+  },
 
   // De lo Humano y lo Comunitario
   {
@@ -148,6 +249,46 @@ export const CATALOGO_DINAMICAS_PASE_LISTA: DinamicaPaseLista[] = [
     consigna: 'Cada alumno comparte qué superpoder amable traerá hoy al aula (compartir, escuchar, abrazar, limpiar o prestar crayolas).',
     ejemplo: 'Ejemplo: "¡Presente! Mi superpoder de hoy es ayudar a recoger los juguetes."',
     icono: '⭐',
+    duracionMinutos: 3,
+  },
+  {
+    id: 'hum-03',
+    campo: 'de_lo_humano_comunitario',
+    campoNombre: 'De lo Humano y lo Comunitario',
+    titulo: 'Desayuno con energía',
+    consigna: 'Dicen ¡Presente! mencionando algo saludable que desayunaron o tomaron antes de llegar al preescolar.',
+    ejemplo: 'Ejemplo: "¡Presente! Hoy desayuné huevo con tortilla y agua."',
+    icono: '🥣',
+    duracionMinutos: 3,
+  },
+  {
+    id: 'hum-04',
+    campo: 'de_lo_humano_comunitario',
+    campoNombre: 'De lo Humano y lo Comunitario',
+    titulo: 'Estiramiento de animalito',
+    consigna: 'Al escuchar su nombre, dicen ¡Presente! haciendo un estiramiento suave (como gato, jirafa o mariposa).',
+    ejemplo: 'Ejemplo: "¡Presente! Me estiro alto como una jirafa."',
+    icono: '🦒',
+    duracionMinutos: 3,
+  },
+  {
+    id: 'hum-05',
+    campo: 'de_lo_humano_comunitario',
+    campoNombre: 'De lo Humano y lo Comunitario',
+    titulo: 'Agradecimiento de la mañana',
+    consigna: 'Comparten algo pequeño por lo que dan gracias hoy (su familia, sus amigos, el sol, venir a jugar).',
+    ejemplo: 'Ejemplo: "¡Presente! Doy gracias porque mi mamá me trajo de la mano."',
+    icono: '💛',
+    duracionMinutos: 3,
+  },
+  {
+    id: 'hum-06',
+    campo: 'de_lo_humano_comunitario',
+    campoNombre: 'De lo Humano y lo Comunitario',
+    titulo: 'Saludo de choque creativo',
+    consigna: 'Al responder ¡Presente!, eligen un saludo sin contacto o suave para su compañero de al lado (chocar codos, saludo de puño suave o reverencia).',
+    ejemplo: 'Ejemplo: "¡Presente!" (choca suavemente los codos con su vecino).',
+    icono: '🤜',
     duracionMinutos: 3,
   },
 ];

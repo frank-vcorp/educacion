@@ -37,6 +37,7 @@ import {
   Copy,
   Check,
   ClipboardList,
+  Loader2,
 } from 'lucide-react';
 
 export interface PaseListaLudicoModalProps {
@@ -70,6 +71,9 @@ export function PaseListaLudicoModal({
   );
   const [copiado, setCopiado] = useState(false);
   const [agregadoBitacora, setAgregadoBitacora] = useState(false);
+  const [generandoIa, setGenerandoIa] = useState(false);
+  const [iaAviso, setIaAviso] = useState<string | null>(null);
+  const [titulosIaVistos, setTitulosIaVistos] = useState<string[]>([]);
 
   // Si la lista de alumnos externa cambia y los registros están vacíos, sincronizar
   React.useEffect(() => {
@@ -79,6 +83,7 @@ export function PaseListaLudicoModal({
   }, [alumnos, registros.length]);
 
   const handleRotarDinamica = () => {
+    setIaAviso(null);
     const filtro = campoFiltro === 'todos' ? undefined : campoFiltro;
     const listaFiltrada = filtro
       ? CATALOGO_DINAMICAS_PASE_LISTA.filter((d) => d.campo === filtro)
@@ -90,9 +95,53 @@ export function PaseListaLudicoModal({
   };
 
   const handleCambiarFiltroCampo = (nuevoCampo: CampoFormativoId | 'todos') => {
+    setIaAviso(null);
     setCampoFiltro(nuevoCampo);
     const filtro = nuevoCampo === 'todos' ? undefined : nuevoCampo;
     setDinamicaActual(obtenerSugerenciaDinamica(filtro));
+  };
+
+  const handleGenerarConIa = async () => {
+    if (generandoIa) return;
+    setGenerandoIa(true);
+    setIaAviso(null);
+    try {
+      const res = await fetch('/api/asistencia/ia/dinamica', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          campo: campoFiltro,
+          excluirTitulos: [dinamicaActual.titulo, ...titulosIaVistos].slice(-10),
+        }),
+      });
+      if (!res.ok) {
+        const errBody = (await res.json().catch(() => null)) as {
+          error?: { message?: string };
+        } | null;
+        setIaAviso(
+          errBody?.error?.message ?? 'No se pudo contactar a la IA; usando catálogo.',
+        );
+        handleRotarDinamica();
+        return;
+      }
+      const data = (await res.json()) as {
+        dinamica?: DinamicaPaseLista;
+        origen?: 'ia' | 'catalogo';
+      };
+      if (data.dinamica) {
+        setDinamicaActual(data.dinamica);
+        if (data.origen === 'ia') {
+          setTitulosIaVistos((prev) => [...prev.slice(-9), data.dinamica!.titulo]);
+        } else {
+          setIaAviso('IA no disponible en este momento; se sugirió una del catálogo.');
+        }
+      }
+    } catch {
+      setIaAviso('Error de red con IA; se sugirió una del catálogo.');
+      handleRotarDinamica();
+    } finally {
+      setGenerandoIa(false);
+    }
   };
 
   const handleSetEstado = (alumnoId: string, nuevoEstado: EstadoAsistencia) => {
@@ -181,26 +230,57 @@ export function PaseListaLudicoModal({
                 {dinamicaActual.icono}
               </span>
               <div>
-                <span className="text-[11px] font-bold tracking-wide uppercase text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
-                  {dinamicaActual.campoNombre}
-                </span>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-[11px] font-bold tracking-wide uppercase text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
+                    {dinamicaActual.campoNombre}
+                  </span>
+                  {dinamicaActual.origen === 'ia' && (
+                    <span className="text-[10px] font-semibold text-purple-800 bg-purple-100 px-2 py-0.5 rounded-full">
+                      ✨ Generada con IA
+                    </span>
+                  )}
+                </div>
                 <h3 className="text-base font-bold text-gray-900 leading-snug mt-0.5">
                   {dinamicaActual.titulo}
                 </h3>
               </div>
             </div>
 
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleRotarDinamica}
-              className="h-8 text-xs flex items-center gap-1.5 bg-white border-emerald-300 hover:bg-emerald-50 text-emerald-800 font-medium"
-            >
-              <Shuffle className="w-3.5 h-3.5" />
-              <span>Sugerir otra dinámica</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleRotarDinamica}
+                disabled={generandoIa}
+                className="h-8 text-xs flex items-center gap-1.5 bg-white border-emerald-300 hover:bg-emerald-50 text-emerald-800 font-medium"
+              >
+                <Shuffle className="w-3.5 h-3.5" />
+                <span>Sugerir otra dinámica</span>
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleGenerarConIa}
+                disabled={generandoIa}
+                className="h-8 text-xs flex items-center gap-1.5 bg-white border-purple-300 hover:bg-purple-50 text-purple-800 font-medium"
+              >
+                {generandoIa ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="w-3.5 h-3.5" />
+                )}
+                <span>{generandoIa ? 'Creando...' : 'Crear con IA'}</span>
+              </Button>
+            </div>
           </div>
+
+          {iaAviso && (
+            <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-2.5 py-1.5">
+              {iaAviso}
+            </p>
+          )}
 
           <div className="bg-white/80 p-3 rounded-lg border border-emerald-100/80 text-xs text-gray-800 space-y-1.5">
             <p>
