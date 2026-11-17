@@ -16,7 +16,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-export function UserMenu({ user }: { user: User }) {
+export function UserMenu({
+  user,
+  perfilHref = '/perfil',
+  ajustesHref = '/ajustes',
+}: {
+  user: User;
+  perfilHref?: string;
+  ajustesHref?: string;
+}) {
   const router = useRouter();
 
   async function handleLogout() {
@@ -41,10 +49,10 @@ export function UserMenu({ user }: { user: User }) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/perfil">Mi perfil</Link>
+          <Link href={perfilHref}>Mi perfil</Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href="/ajustes">Ajustes</Link>
+          <Link href={ajustesHref}>Ajustes</Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={handleLogout} className="text-destructive">

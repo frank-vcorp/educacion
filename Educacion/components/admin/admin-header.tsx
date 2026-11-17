@@ -43,7 +43,11 @@ export function AdminHeader({ user, cct }: AdminHeaderProps) {
 
           {/* User profile */}
           <div className="flex items-center gap-2">
-            <UserMenu user={user} />
+            <UserMenu
+              user={user}
+              perfilHref="/admin/perfil"
+              ajustesHref="/admin/ajustes"
+            />
           </div>
         </div>
       </div>
