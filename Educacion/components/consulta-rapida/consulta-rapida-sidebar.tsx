@@ -16,8 +16,26 @@ const ITEMS: Array<{
   { href: '/recursos-aula', label: 'Recursos', icon: Package },
 ];
 
-export function ConsultaRapidaSidebar() {
+export function ConsultaRapidaSidebar({
+  onOpenBiblioteca,
+  onOpenRecursos,
+}: {
+  onOpenBiblioteca?: () => void;
+  onOpenRecursos?: () => void;
+} = {}) {
   const consulta = useConsultaRapidaOptional();
+
+  const handleClick = (href: ConsultaRapidaHref) => {
+    if (href === '/biblioteca' && onOpenBiblioteca) {
+      onOpenBiblioteca();
+      return;
+    }
+    if (href === '/recursos-aula' && onOpenRecursos) {
+      onOpenRecursos();
+      return;
+    }
+    consulta?.openConsulta(href);
+  };
 
   return (
     <div className="space-y-2" data-testid="consulta-rapida-sidebar">
@@ -36,7 +54,7 @@ export function ConsultaRapidaSidebar() {
             size="sm"
             className="h-9 w-full justify-start gap-2 text-xs"
             data-testid={`consulta-rapida-${href.slice(1)}`}
-            onClick={() => consulta?.openConsulta(href)}
+            onClick={() => handleClick(href)}
           >
             <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             {label}

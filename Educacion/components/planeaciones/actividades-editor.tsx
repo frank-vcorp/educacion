@@ -40,8 +40,28 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { SectionHelp } from '@/components/ui/section-help';
-import { GripVertical, Plus, Save, Loader2, Trash2, Search, PenLine } from 'lucide-react';
-import type { BloqueCatalogo } from '@/services/catalogo/catalogo';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  GripVertical,
+  Plus,
+  Save,
+  Loader2,
+  Trash2,
+  Search,
+  PenLine,
+  Sparkles,
+  ExternalLink,
+  Library,
+  Package,
+} from 'lucide-react';
+import type { BloqueCatalogo, ReferenciaConaliteg } from '@/services/catalogo/catalogo';
 import type { Sesion } from '@/services/planeaciones/sesion-actions';
 import {
   getBloques,
@@ -117,6 +137,14 @@ export interface RecursoInventarioItem {
   cantidad: number;
 }
 
+export interface ProyectoContextoEditor {
+  nombre: string;
+  problemaContexto: string;
+  proposito: string;
+  pdas: string[];
+  ejes: string[];
+}
+
 export interface ActividadesEditorProps {
   planeacionId: string;
   docenteId: string;
@@ -130,6 +158,8 @@ export interface ActividadesEditorProps {
   catalogoInicial: BloqueCatalogo[];
   recursosInventario: RecursoInventarioItem[];
   recursosAsignadosInicial: SesionRecursoAsignado[];
+  referenciasBiblioteca?: ReferenciaConaliteg[];
+  proyectoContexto?: ProyectoContextoEditor | null;
   /** Datos para hoja central (centro de interés / proyecto). */
   workbook?: WorkbookContexto | null;
 }
@@ -190,10 +220,16 @@ function CatalogoCard({
   item,
   onAgregar,
   disabled,
+  sugerido,
+  origenIa,
+  razon,
 }: {
   item: BloqueCatalogo;
   onAgregar: () => void;
   disabled?: boolean;
+  sugerido?: boolean;
+  origenIa?: boolean;
+  razon?: string;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `cat-${item.codigo}`,
@@ -204,9 +240,9 @@ function CatalogoCard({
     <div
       ref={setNodeRef}
       data-testid={`catalogo-item-${item.codigo}`}
-      className={`rounded-md border bg-background p-2 text-sm shadow-sm ${
-        isDragging ? 'ring-2 ring-nem-verde/40' : ''
-      }`}
+      className={`rounded-md border p-2 text-sm shadow-sm ${
+        sugerido ? 'border-nem-verde/40 bg-nem-verde/5' : 'bg-background'
+      } ${isDragging ? 'ring-2 ring-nem-verde/40' : ''}`}
       data-dnd-draggable
     >
       <div className="flex items-start gap-2">
@@ -220,11 +256,22 @@ function CatalogoCard({
           <GripVertical className="h-4 w-4" />
         </button>
         <div className="min-w-0 flex-1">
-          <p className="font-medium leading-snug">{item.nombre}</p>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <p className="font-medium leading-snug">{item.nombre}</p>
+            {sugerido && (
+              <Badge variant="verde" className="gap-0.5 text-[10px]">
+                <Sparkles className="h-2.5 w-2.5" />
+                {origenIa ? 'Sugerida por IA' : 'Sugerida'}
+              </Badge>
+            )}
+          </div>
           {item.descripcion && (
             <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
               {item.descripcion}
             </p>
+          )}
+          {razon && (
+            <p className="mt-1 text-[11px] leading-snug text-nem-verde">{razon}</p>
           )}
           <div className="mt-1 flex flex-wrap gap-1">
             <Badge variant="outline" className="text-[10px]">
@@ -255,10 +302,14 @@ function RecursoInventarioCard({
   item,
   onAgregar,
   disabled,
+  sugerido,
+  usoSugerido,
 }: {
   item: RecursoInventarioItem;
   onAgregar: () => void;
   disabled?: boolean;
+  sugerido?: boolean;
+  usoSugerido?: string;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `rec-${item.id}`,
@@ -269,7 +320,9 @@ function RecursoInventarioCard({
     <div
       ref={setNodeRef}
       data-testid={`recurso-item-${item.id}`}
-      className={`rounded-md border bg-background p-2 text-sm ${isDragging ? 'ring-2 ring-nem-verde/40' : ''}`}
+      className={`rounded-md border p-2 text-sm ${
+        sugerido ? 'border-nem-verde/40 bg-nem-verde/5' : 'bg-background'
+      } ${isDragging ? 'ring-2 ring-nem-verde/40' : ''}`}
       data-dnd-draggable
     >
       <div className="flex items-start gap-2">
@@ -283,10 +336,24 @@ function RecursoInventarioCard({
           <GripVertical className="h-4 w-4" />
         </button>
         <div className="min-w-0 flex-1">
-          <p className="font-medium leading-snug">
-            {emojiCategoriaRecurso(item.categoria)} {item.nombre}
-          </p>
-          <p className="text-xs text-muted-foreground">{item.uso}</p>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <p className="font-medium leading-snug">
+              {emojiCategoriaRecurso(item.categoria)} {item.nombre}
+            </p>
+            {sugerido && (
+              <Badge variant="verde" className="gap-0.5 text-[10px]">
+                <Sparkles className="h-2.5 w-2.5" />
+                Sugerido
+              </Badge>
+            )}
+          </div>
+          {usoSugerido ? (
+            <p className="mt-0.5 text-xs text-nem-verde">
+              Uso sugerido: {usoSugerido}
+            </p>
+          ) : (
+            item.uso && <p className="text-xs text-muted-foreground">{item.uso}</p>
+          )}
           <Button
             type="button"
             size="sm"
@@ -798,6 +865,8 @@ export function ActividadesEditor({
   catalogoInicial,
   recursosInventario,
   recursosAsignadosInicial,
+  referenciasBiblioteca = [],
+  proyectoContexto = null,
   workbook = null,
 }: ActividadesEditorProps) {
   const esWorkbook = usaWorkbookLayout(modalidad) && workbook != null;
@@ -813,6 +882,24 @@ export function ActividadesEditor({
   const [recursosAsignados, setRecursosAsignados] = useState(recursosAsignadosInicial);
   const [panelIzquierdo, setPanelIzquierdo] = useState<'catalogo' | 'inventario'>('catalogo');
   const [busqueda, setBusqueda] = useState('');
+  const [mostrarTodoCatalogo, setMostrarTodoCatalogo] = useState(false);
+  const [bibliotecaOpen, setBibliotecaOpen] = useState(false);
+  const [recursosModalOpen, setRecursosModalOpen] = useState(false);
+  const [iaEditorState, setIaEditorState] = useState<{
+    loading: boolean;
+    origen: 'ia' | 'afinidad' | null;
+    actividades: Array<{ codigo: string; razon?: string }>;
+    actividadesAfinidad: string[];
+    libros: Array<{ id: number; razon?: string }>;
+    recursos: Array<{ id: string; uso_sugerido?: string }>;
+  }>({
+    loading: false,
+    origen: null,
+    actividades: [],
+    actividadesAfinidad: [],
+    libros: [],
+    recursos: [],
+  });
   const [sesionSeleccionada, setSesionSeleccionada] = useState(sesionesIniciales[0]?.id ?? '');
   const [modalSesionId, setModalSesionId] = useState<string | null>(null);
   const [bloqueEditandoId, setBloqueEditandoId] = useState<string | null>(null);
@@ -848,7 +935,19 @@ export function ActividadesEditor({
     [workbook],
   );
 
-  const catalogoFiltrado = useMemo(() => {
+  const catalogoBase = useMemo(() => {
+    if (mostrarTodoCatalogo) {
+      const q = busqueda.trim().toLowerCase();
+      const base = q
+        ? catalogoInicial.filter(
+            (b) =>
+              b.nombre.toLowerCase().includes(q) ||
+              (b.descripcion ?? '').toLowerCase().includes(q) ||
+              b.codigo.toLowerCase().includes(q),
+          )
+        : catalogoInicial;
+      return ordenarBloquesPorContexto(base, contextoCatalogo);
+    }
     const filtrados = filtrarBloquesCatalogo(catalogoInicial, {
       modalidad,
       camposFormativos,
@@ -858,6 +957,7 @@ export function ActividadesEditor({
     });
     return ordenarBloquesPorContexto(filtrados, contextoCatalogo);
   }, [
+    mostrarTodoCatalogo,
     catalogoInicial,
     camposFormativos,
     modalidad,
@@ -867,19 +967,156 @@ export function ActividadesEditor({
     contextoCatalogo,
   ]);
 
-  const catalogoSugeridas = useMemo(
-    () =>
-      catalogoFiltrado.filter(
-        (b) => puntuarBloqueCatalogo(b, contextoCatalogo) > 0,
-      ),
-    [catalogoFiltrado, contextoCatalogo],
+  const analizarEditorConIa = useCallback(async () => {
+    const nombreProyecto = proyectoContexto?.nombre ?? workbook?.nombre ?? '';
+    const problemaProyecto = proyectoContexto?.problemaContexto ?? workbook?.problemaContexto ?? '';
+    const propositoProyecto = proyectoContexto?.proposito ?? workbook?.proposito ?? '';
+    if (!nombreProyecto && !problemaProyecto && !propositoProyecto) return;
+
+    setIaEditorState((prev) => ({ ...prev, loading: true }));
+    try {
+      const res = await fetch('/api/planeaciones/ia/sugerir-recursos-editor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          modalidad,
+          grado: gradoPreescolar,
+          nombre: nombreProyecto,
+          problema_contexto: problemaProyecto,
+          proposito: propositoProyecto,
+          campos: camposFormativos,
+          pdas:
+            workbook?.pdas.map((p) => `${p.codigo}: ${p.texto}`) ??
+            proyectoContexto?.pdas ??
+            [],
+          ejes:
+            workbook?.ejes.map((e) => e.nombre) ??
+            proyectoContexto?.ejes ??
+            [],
+          actividades_candidatas: catalogoInicial.slice(0, 45).map((b) => ({
+            codigo: b.codigo,
+            nombre: b.nombre,
+            descripcion: b.descripcion ?? '',
+            tipo: b.tipo,
+          })),
+          libros_candidatos: referenciasBiblioteca.slice(0, 25).map((l) => ({
+            id: l.id,
+            titulo_libro: l.titulo_libro,
+            campo: l.campo,
+            grado: l.grado,
+          })),
+          recursos_candidatos: recursosInventario.slice(0, 45).map((r) => ({
+            id: r.id,
+            nombre: r.nombre,
+            categoria: r.categoria,
+            uso: r.uso,
+          })),
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      const data = json?.data;
+      if (res.ok && data?.origen === 'ia') {
+        setIaEditorState({
+          loading: false,
+          origen: 'ia',
+          actividades: Array.isArray(data.actividades) ? data.actividades : [],
+          actividadesAfinidad: Array.isArray(data.actividades_afinidad)
+            ? data.actividades_afinidad
+            : [],
+          libros: Array.isArray(data.libros) ? data.libros : [],
+          recursos: Array.isArray(data.recursos) ? data.recursos : [],
+        });
+      } else {
+        setIaEditorState((prev) => ({ ...prev, loading: false, origen: 'afinidad' }));
+      }
+    } catch {
+      setIaEditorState((prev) => ({ ...prev, loading: false, origen: 'afinidad' }));
+    }
+  }, [
+    proyectoContexto,
+    workbook,
+    modalidad,
+    gradoPreescolar,
+    camposFormativos,
+    catalogoInicial,
+    referenciasBiblioteca,
+    recursosInventario,
+  ]);
+
+  useEffect(() => {
+    void analizarEditorConIa();
+  }, [analizarEditorConIa]);
+
+  const iaActividadesMap = useMemo(
+    () => new Map(iaEditorState.actividades.map((a) => [a.codigo, a.razon])),
+    [iaEditorState.actividades],
   );
 
+  const iaActividadesRankMap = useMemo(() => {
+    const map = new Map<string, number>();
+    iaEditorState.actividadesAfinidad.forEach((c, idx) => map.set(c, idx));
+    return map;
+  }, [iaEditorState.actividadesAfinidad]);
+
+  const catalogoFiltrado = catalogoBase;
+
+  const catalogoSugeridas = useMemo(() => {
+    if (iaActividadesMap.size > 0) {
+      const porCodigo = new Map(catalogoBase.map((b) => [b.codigo, b]));
+      const lista: BloqueCatalogo[] = [];
+      for (const a of iaEditorState.actividades) {
+        const b = porCodigo.get(a.codigo);
+        if (b) lista.push(b);
+      }
+      if (lista.length > 0) return lista;
+    }
+    return catalogoBase.filter((b) => puntuarBloqueCatalogo(b, contextoCatalogo) > 0);
+  }, [iaActividadesMap, iaEditorState.actividades, catalogoBase, contextoCatalogo]);
+
   const catalogoResto = useMemo(() => {
-    if (catalogoSugeridas.length === 0) return catalogoFiltrado;
     const sugeridasSet = new Set(catalogoSugeridas.map((b) => b.codigo));
-    return catalogoFiltrado.filter((b) => !sugeridasSet.has(b.codigo));
-  }, [catalogoFiltrado, catalogoSugeridas]);
+    const rest =
+      catalogoSugeridas.length === 0
+        ? catalogoBase
+        : catalogoBase.filter((b) => !sugeridasSet.has(b.codigo));
+    if (iaActividadesRankMap.size === 0) return rest;
+    return [...rest].sort((a, b) => {
+      const rA = iaActividadesRankMap.get(a.codigo);
+      const rB = iaActividadesRankMap.get(b.codigo);
+      if (rA !== undefined && rB !== undefined) return rA - rB;
+      if (rA !== undefined) return -1;
+      if (rB !== undefined) return 1;
+      return 0;
+    });
+  }, [catalogoBase, catalogoSugeridas, iaActividadesRankMap]);
+
+  const librosSugeridos = useMemo(() => {
+    if (iaEditorState.libros.length > 0) {
+      const porId = new Map(referenciasBiblioteca.map((r) => [r.id, r]));
+      return iaEditorState.libros
+        .map((l) => {
+          const ref = porId.get(l.id);
+          return ref ? { ref, razon: l.razon } : null;
+        })
+        .filter((x): x is { ref: ReferenciaConaliteg; razon: string | undefined } => x !== null);
+    }
+    // Fallback determinista: libros del mismo grado o campos
+    return referenciasBiblioteca
+      .filter((r) => r.grado.includes(gradoPreescolar.replace('°', '')) || camposFormativos.some((c) => r.campo.toLowerCase().includes(c.split('_')[0] ?? '')))
+      .slice(0, 4)
+      .map((ref) => ({ ref, razon: undefined }));
+  }, [iaEditorState.libros, referenciasBiblioteca, gradoPreescolar, camposFormativos]);
+
+  const recursosOrdenados = useMemo(() => {
+    const iaMap = new Map(iaEditorState.recursos.map((r) => [r.id, r.uso_sugerido]));
+    const sugeridos = recursosInventario
+      .filter((r) => iaMap.has(r.id))
+      .map((item) => ({ item, sugerido: true, usoSugerido: iaMap.get(item.id) }));
+    const otros = recursosInventario
+      .filter((r) => !iaMap.has(r.id))
+      .map((item) => ({ item, sugerido: false, usoSugerido: undefined }));
+    return [...sugeridos, ...otros];
+  }, [recursosInventario, iaEditorState.recursos]);
 
   const etiquetaFiltro = useMemo(
     () =>
@@ -1184,12 +1421,19 @@ export function ActividadesEditor({
   const sesionModal = sesiones.find((s) => s.id === modalSesionId) ?? null;
   const sesionIdCatalogo = modalSesionId ?? sesionSeleccionada;
 
-  const renderCatalogoLista = (items: BloqueCatalogo[], sesionId: string) =>
+  const renderCatalogoLista = (
+    items: BloqueCatalogo[],
+    sesionId: string,
+    opts?: { esSugerida?: boolean },
+  ) =>
     items.map((item) => (
       <CatalogoCard
         key={item.codigo}
         item={item}
         disabled={pending || !sesionId}
+        sugerido={opts?.esSugerida}
+        origenIa={opts?.esSugerida && iaActividadesMap.has(item.codigo)}
+        razon={opts?.esSugerida ? iaActividadesMap.get(item.codigo) : undefined}
         onAgregar={() => agregarDesdeCatalogo(item.codigo, sesionId)}
       />
     ));
@@ -1243,6 +1487,33 @@ export function ActividadesEditor({
           </p>
         </>
       )}
+      <div className="flex items-center justify-between gap-1 text-[11px]">
+        <button
+          type="button"
+          onClick={() => setMostrarTodoCatalogo((v) => !v)}
+          className="text-nem-verde underline hover:opacity-80"
+        >
+          {mostrarTodoCatalogo
+            ? 'Ver solo filtradas'
+            : `Ver todo (${catalogoInicial.length})`}
+        </button>
+        {iaEditorState.loading ? (
+          <span className="flex items-center gap-1 text-muted-foreground">
+            <Loader2 className="h-3 w-3 animate-spin text-nem-verde" />
+            IA...
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={() => void analizarEditorConIa()}
+            className="flex items-center gap-1 text-muted-foreground hover:text-foreground"
+            title="Re-analizar sugerencias con IA"
+          >
+            <Sparkles className="h-3 w-3 text-nem-verde" />
+            Sugerir IA
+          </button>
+        )}
+      </div>
       <div className="relative">
         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
@@ -1277,15 +1548,16 @@ export function ActividadesEditor({
         >
           {catalogoSugeridas.length > 0 && !busqueda.trim() && (
             <div className="space-y-2">
-              <p className="text-[11px] font-semibold text-nem-verde">
-                Sugeridas para tu centro
+              <p className="flex items-center gap-1 text-[11px] font-semibold text-nem-verde">
+                <Sparkles className="h-3 w-3" />
+                Sugeridas para tu proyecto
               </p>
               {!compact && (
                 <p className="text-[10px] text-muted-foreground">
-                  Coinciden con tus PDA, campo y tema. Arrastra o pulsa Agregar.
+                  Coinciden con tu proyecto, PDA y campo. Arrastra o pulsa Agregar.
                 </p>
               )}
-              {renderCatalogoLista(catalogoSugeridas, sesionId)}
+              {renderCatalogoLista(catalogoSugeridas, sesionId, { esSugerida: true })}
             </div>
           )}
           {catalogoResto.length > 0 && (
@@ -1346,10 +1618,12 @@ export function ActividadesEditor({
         </p>
       ) : (
         <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
-          {recursosInventario.map((item) => (
+          {recursosOrdenados.map(({ item, sugerido, usoSugerido }) => (
             <RecursoInventarioCard
               key={item.id}
               item={item}
+              sugerido={sugerido}
+              usoSugerido={usoSugerido}
               disabled={pending || !sesionSeleccionada}
               onAgregar={() => assignRecurso(sesionSeleccionada, item.id)}
             />
@@ -1674,6 +1948,163 @@ export function ActividadesEditor({
             ) : null}
           </DragOverlay>
         </DndContext>
+
+        <Dialog open={bibliotecaOpen} onOpenChange={setBibliotecaOpen}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-base">
+                <Library className="h-4 w-4 text-nem-verde" />
+                Textos y libros sugeridos para tu proyecto
+              </DialogTitle>
+              <DialogDescription className="text-xs">
+                Referencias oficiales de CONALITEG seleccionadas por afinidad con tu planeación.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="max-h-[55vh] space-y-2.5 overflow-y-auto pr-1">
+              {iaEditorState.loading && librosSugeridos.length === 0 ? (
+                <div className="flex items-center gap-2 py-6 text-xs text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin text-nem-verde" />
+                  Buscando textos y libros afines con IA...
+                </div>
+              ) : librosSugeridos.length === 0 ? (
+                <p className="py-4 text-xs text-muted-foreground">
+                  No se encontraron sugerencias específicas aún. Puedes explorar la biblioteca completa.
+                </p>
+              ) : (
+                librosSugeridos.map(({ ref, razon }) => (
+                  <div
+                    key={ref.id}
+                    className="rounded-lg border border-nem-verde/30 bg-nem-verde/5 p-3 text-sm"
+                  >
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <p className="font-medium">{ref.titulo_libro}</p>
+                      <Badge variant="verde" className="gap-1 text-[10px]">
+                        <Sparkles className="h-2.5 w-2.5" />
+                        Sugerido
+                      </Badge>
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {ref.grado} · {ref.campo}
+                    </p>
+                    {razon && (
+                      <p className="mt-1.5 text-xs text-nem-verde">{razon}</p>
+                    )}
+                    <div className="mt-2">
+                      <a
+                        href={ref.url_publica}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs font-medium text-nem-verde underline"
+                      >
+                        Abrir libro en CONALITEG
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+            <DialogFooter className="flex-row items-center justify-between gap-2 sm:justify-between">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-xs text-muted-foreground"
+                onClick={() => {
+                  setBibliotecaOpen(false);
+                  consultaRapida?.openConsulta('/biblioteca');
+                }}
+              >
+                Ver biblioteca completa
+              </Button>
+              <Button type="button" size="sm" onClick={() => setBibliotecaOpen(false)}>
+                Cerrar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={recursosModalOpen} onOpenChange={setRecursosModalOpen}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-base">
+                <Package className="h-4 w-4 text-nem-verde" />
+                Recursos del aula
+              </DialogTitle>
+              <DialogDescription className="text-xs">
+                Todos tus materiales registrados; los sugeridos aparecen primero con su uso recomendado para el día ({diaSeleccionadoLabel}).
+              </DialogDescription>
+            </DialogHeader>
+            <div className="max-h-[55vh] space-y-2 overflow-y-auto pr-1">
+              {recursosOrdenados.length === 0 ? (
+                <p className="py-4 text-xs text-muted-foreground">
+                  Aún no tienes materiales registrados en tu aula.
+                </p>
+              ) : (
+                recursosOrdenados.map(({ item, sugerido, usoSugerido }) => (
+                  <div
+                    key={item.id}
+                    className={`rounded-lg border p-3 text-sm ${
+                      sugerido ? 'border-nem-verde/40 bg-nem-verde/5' : 'bg-background'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <p className="font-medium">
+                            {emojiCategoriaRecurso(item.categoria)} {item.nombre}
+                          </p>
+                          {sugerido && (
+                            <Badge variant="verde" className="gap-1 text-[10px]">
+                              <Sparkles className="h-2.5 w-2.5" />
+                              Sugerido
+                            </Badge>
+                          )}
+                        </div>
+                        {usoSugerido ? (
+                          <p className="mt-1 text-xs text-nem-verde">
+                            Actividad / uso sugerido: {usoSugerido}
+                          </p>
+                        ) : (
+                          item.uso && (
+                            <p className="mt-0.5 text-xs text-muted-foreground">{item.uso}</p>
+                          )
+                        )}
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={sugerido ? 'default' : 'outline'}
+                        disabled={pending || !sesionSeleccionada}
+                        onClick={() => assignRecurso(sesionSeleccionada, item.id)}
+                        className="shrink-0 text-xs"
+                      >
+                        Agregar al día
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+            <DialogFooter className="flex-row items-center justify-between gap-2 sm:justify-between">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-xs text-muted-foreground"
+                onClick={() => {
+                  setRecursosModalOpen(false);
+                  consultaRapida?.openConsulta('/recursos-aula');
+                }}
+              >
+                Administrar en Recursos del aula
+              </Button>
+              <Button type="button" size="sm" onClick={() => setRecursosModalOpen(false)}>
+                Cerrar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );

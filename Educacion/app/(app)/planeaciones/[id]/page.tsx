@@ -29,6 +29,7 @@ import {
   getCamposFormativos,
   getContenidos,
   getEjesArticuladores,
+  getReferenciasConaliteg,
 } from '@/services/catalogo/catalogo';
 import { buildPdaGradoMap } from '@/lib/nivel-educativo/filtros-inventario';
 import { GRADOS_PREESCOLAR } from '@/lib/nivel-educativo/scope';
@@ -85,6 +86,7 @@ export default async function PlaneacionDetallePage({
   const sesionesIniciales = sesionesRes.ok && sesionesRes.data ? sesionesRes.data : [];
   const catalogoInicial = isOwner ? await getBloquesCatalogo() : [];
   const pdasCatalogo = isOwner ? await getPDAs() : [];
+  const referenciasBiblioteca = isOwner ? await getReferenciasConaliteg() : [];
   const pdaGradoPorCodigo = buildPdaGradoMap(pdasCatalogo);
 
   let gradoPreescolar = GRADOS_PREESCOLAR[0];
@@ -336,6 +338,14 @@ export default async function PlaneacionDetallePage({
               catalogoInicial={catalogoInicial}
               recursosInventario={recursosInventario}
               recursosAsignadosInicial={recursosAsignadosInicial}
+              referenciasBiblioteca={referenciasBiblioteca}
+              proyectoContexto={{
+                nombre: p.nombre,
+                problemaContexto: p.problema_contexto ?? '',
+                proposito: p.proposito ?? '',
+                pdas: (p.pdas ?? []) as string[],
+                ejes: (p.ejes_articuladores ?? []) as string[],
+              }}
               workbook={workbook}
             />
           </section>
