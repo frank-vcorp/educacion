@@ -61,6 +61,7 @@ import {
 import { Sparkles, Loader2 } from 'lucide-react';
 import {
   clasificarYOrdenarPdas,
+  clasificarYOrdenarEjes,
   type SugerenciaIaPda,
 } from '@/lib/planeaciones/pda-afinidad';
 
@@ -340,6 +341,160 @@ export function WizardPlaneacion({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paso, steps, pdaContextKey, pdasPorCampos.length]);
 
+  const [iaEjeState, setIaEjeState] = useState<{
+    loading: boolean;
+    origen: 'ia' | 'afinidad' | null;
+    sugeridos: SugerenciaIaPda[];
+    afinidad: string[];
+    contextKey: string;
+  }>({
+    loading: false,
+    origen: null,
+    sugeridos: [],
+    afinidad: [],
+    contextKey: '',
+  });
+
+  const pdasSeleccionadosTextos = useMemo(() => {
+    const map = new Map(pdas.map((p) => [p.codigo, p.texto]));
+    return form.pdas
+      .map((codigo) => map.get(codigo))
+      .filter((t): t is string => Boolean(t));
+  }, [pdas, form.pdas]);
+
+  const ejeContextKey = useMemo(
+    () =>
+      JSON.stringify({
+        modalidad: form.modalidad,
+        nombre: form.nombre.trim(),
+        problemaContexto: form.problemaContexto.trim(),
+        proposito: form.proposito.trim(),
+        productoIntegrador: form.productoIntegrador.trim(),
+        pdas: [...form.pdas].sort(),
+      }),
+    [
+      form.modalidad,
+      form.nombre,
+      form.problemaContexto,
+      form.proposito,
+      form.productoIntegrador,
+      form.pdas,
+    ],
+  );
+
+  const ejesClasificados = useMemo(
+    () =>
+      clasificarYOrdenarEjes(
+        ejes,
+        {
+          nombre: form.nombre,
+          problemaContexto: form.problemaContexto,
+          proposito: form.proposito,
+          productoIntegrador: form.productoIntegrador,
+          pdasTextos: pdasSeleccionadosTextos,
+        },
+        iaEjeState.contextKey === ejeContextKey
+          ? {
+              iaSugeridos: iaEjeState.sugeridos,
+              iaAfinidadOrden: iaEjeState.afinidad,
+            }
+          : undefined,
+      ),
+    [
+      ejes,
+      form.nombre,
+      form.problemaContexto,
+      form.proposito,
+      form.productoIntegrador,
+      pdasSeleccionadosTextos,
+      iaEjeState,
+      ejeContextKey,
+    ],
+  );
+
+  async function analizarEjesConIa(force = false) {
+    if (ejes.length === 0) return;
+    if (!force && iaEjeState.contextKey === ejeContextKey && iaEjeState.origen === 'ia') {
+      return;
+    }
+
+    const tieneTexto = Boolean(
+      form.nombre.trim() ||
+        form.problemaContexto.trim() ||
+        form.proposito.trim() ||
+        form.productoIntegrador.trim() ||
+        pdasSeleccionadosTextos.length > 0,
+    );
+    if (!tieneTexto) return;
+
+    const keySolicitada = ejeContextKey;
+    setIaEjeState((prev) => ({ ...prev, loading: true }));
+
+    try {
+      const res = await fetch('/api/planeaciones/ia/sugerir-ejes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          modalidad: form.modalidad,
+          nombre: form.nombre,
+          problema_contexto: form.problemaContexto,
+          proposito: form.proposito,
+          producto_integrador: form.productoIntegrador,
+          pdas_textos: pdasSeleccionadosTextos.slice(0, 15),
+          candidatos: ejes.map((e) => ({
+            codigo: e.codigo,
+            nombre: e.nombre,
+            descripcion: e.descripcion,
+          })),
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      const data = json?.data;
+      if (res.ok && data?.origen === 'ia' && Array.isArray(data.sugeridos)) {
+        setIaEjeState({
+          loading: false,
+          origen: 'ia',
+          sugeridos: data.sugeridos,
+          afinidad: Array.isArray(data.afinidad) ? data.afinidad : [],
+          contextKey: keySolicitada,
+        });
+      } else {
+        setIaEjeState({
+          loading: false,
+          origen: 'afinidad',
+          sugeridos: [],
+          afinidad: [],
+          contextKey: keySolicitada,
+        });
+      }
+    } catch {
+      setIaEjeState({
+        loading: false,
+        origen: 'afinidad',
+        sugeridos: [],
+        afinidad: [],
+        contextKey: keySolicitada,
+      });
+    }
+  }
+
+  useEffect(() => {
+    const pasoActual = steps[paso - 1];
+    if (pasoActual !== 'Ejes') return;
+    if (iaEjeState.loading) return;
+    if (iaEjeState.contextKey === ejeContextKey) return;
+    const tieneTexto = Boolean(
+      form.nombre.trim() ||
+        form.problemaContexto.trim() ||
+        form.proposito.trim() ||
+        form.productoIntegrador.trim() ||
+        pdasSeleccionadosTextos.length > 0,
+    );
+    if (!tieneTexto || ejes.length === 0) return;
+    void analizarEjesConIa();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paso, steps, ejeContextKey, ejes.length]);
+
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [cambioModalidad, setCambioModalidad] = useState<{
@@ -586,11 +741,17 @@ export function WizardPlaneacion({
     }
     setError(null);
     setPaso((p) => Math.min(steps.length, p + 1));
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   function anterior() {
     setError(null);
     setPaso((p) => Math.max(1, p - 1));
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   function guardar() {
@@ -1523,10 +1684,18 @@ export function WizardPlaneacion({
         <CardContent className="space-y-4">{renderPaso()}</CardContent>
       </Card>
 
-      <div className="flex justify-between">
+      <div className="sticky bottom-3 z-30 flex items-center justify-between gap-3 rounded-xl border bg-background/95 px-4 py-3 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/85">
         <Button variant="outline" onClick={anterior} disabled={paso === 1 || pending}>
           Atrás
         </Button>
+        <span className="hidden text-xs text-muted-foreground sm:inline">
+          Paso {paso} de {steps.length} · {stepName}
+          {stepName === 'PDA' && form.pdas.length > 0
+            ? ` (${form.pdas.length} seleccionados)`
+            : stepName === 'Ejes' && form.ejesArticuladores.length > 0
+              ? ` (${form.ejesArticuladores.length} seleccionados)`
+              : ''}
+        </span>
         {paso < steps.length ? (
           <Button onClick={siguiente} disabled={pending}>
             Siguiente

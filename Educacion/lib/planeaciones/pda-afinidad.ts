@@ -1,10 +1,11 @@
-import type { Contenido, PDA } from '@/services/catalogo/catalogo';
+import type { Contenido, EjeArticulador, PDA } from '@/services/catalogo/catalogo';
 
 export interface ContextoPdaAfinidad {
   nombre?: string;
   problemaContexto?: string;
   proposito?: string;
   productoIntegrador?: string;
+  pdasTextos?: string[];
 }
 
 export interface SugerenciaIaPda {
@@ -249,3 +250,149 @@ export function clasificarYOrdenarPdas(
     tieneContexto,
   };
 }
+
+export interface EjeClasificado {
+  eje: EjeArticulador;
+  score: number;
+  origen: 'ia' | 'afinidad';
+  razon?: string;
+}
+
+export interface ResultadoClasificacionEjes {
+  sugeridos: EjeClasificado[];
+  restantes: EjeClasificado[];
+  tieneContexto: boolean;
+}
+
+export function clasificarYOrdenarEjes(
+  ejes: EjeArticulador[],
+  contexto: ContextoPdaAfinidad,
+  opts?: {
+    iaSugeridos?: SugerenciaIaPda[];
+    iaAfinidadOrden?: string[];
+    maxSugeridosDeterministas?: number;
+  },
+): ResultadoClasificacionEjes {
+  const textoContexto = [
+    contexto.nombre ?? '',
+    contexto.problemaContexto ?? '',
+    contexto.proposito ?? '',
+    contexto.productoIntegrador ?? '',
+    ...(contexto.pdasTextos ?? []),
+  ]
+    .join(' ')
+    .trim();
+
+  const tieneContexto = textoContexto.length > 0;
+  const tokensDirectos = new Set(
+    normalizarTextoEspanol(textoContexto)
+      .split(' ')
+      .filter((t) => t.length >= 3 && !STOPWORDS_ES.has(t)),
+  );
+  const tokensContexto = extraerTokensRelevantes(textoContexto);
+
+  const scorePorCodigo = new Map<string, number>();
+  const ordenOriginal = new Map<string, number>();
+
+  ejes.forEach((e, idx) => {
+    ordenOriginal.set(e.codigo, idx);
+    if (tokensContexto.length === 0) {
+      scorePorCodigo.set(e.codigo, 0);
+      return;
+    }
+    const nombreNorm = normalizarTextoEspanol(e.nombre);
+    const descNorm = normalizarTextoEspanol(e.descripcion);
+    const palabrasNombre = new Set(nombreNorm.split(' ').filter((w) => w.length >= 3));
+    const palabrasDesc = new Set(descNorm.split(' ').filter((w) => w.length >= 3));
+
+    let score = 0;
+    for (const token of tokensContexto) {
+      const pesoBase = tokensDirectos.has(token) ? 3 : 1;
+      if (palabrasNombre.has(token)) score += pesoBase * 2;
+      else if (token.length >= 4 && nombreNorm.includes(token)) score += pesoBase * 1.5;
+
+      if (palabrasDesc.has(token)) score += pesoBase;
+      else if (token.length >= 4 && descNorm.includes(token)) score += pesoBase * 0.5;
+    }
+    scorePorCodigo.set(e.codigo, Math.round(score * 10) / 10);
+  });
+
+  const iaSugeridosMap = new Map<string, SugerenciaIaPda>();
+  for (const s of opts?.iaSugeridos ?? []) {
+    if (!iaSugeridosMap.has(s.codigo)) {
+      iaSugeridosMap.set(s.codigo, s);
+    }
+  }
+
+  const iaRankMap = new Map<string, number>();
+  (opts?.iaAfinidadOrden ?? []).forEach((codigo, idx) => {
+    if (!iaRankMap.has(codigo)) {
+      iaRankMap.set(codigo, idx);
+    }
+  });
+
+  const sugeridos: EjeClasificado[] = [];
+  const sugeridosSet = new Set<string>();
+
+  if (iaSugeridosMap.size > 0) {
+    const ejePorCodigo = new Map(ejes.map((e) => [e.codigo, e]));
+    for (const [codigo, info] of iaSugeridosMap.entries()) {
+      const eje = ejePorCodigo.get(codigo);
+      if (eje) {
+        sugeridos.push({
+          eje,
+          score: scorePorCodigo.get(codigo) ?? 0,
+          origen: 'ia',
+          razon: info.razon,
+        });
+        sugeridosSet.add(codigo);
+      }
+    }
+  } else if (tieneContexto) {
+    const maxSug = opts?.maxSugeridosDeterministas ?? 2;
+    const candidatos = ejes
+      .filter((e) => (scorePorCodigo.get(e.codigo) ?? 0) > 0)
+      .sort((a, b) => {
+        const diff = (scorePorCodigo.get(b.codigo) ?? 0) - (scorePorCodigo.get(a.codigo) ?? 0);
+        if (diff !== 0) return diff;
+        return (ordenOriginal.get(a.codigo) ?? 0) - (ordenOriginal.get(b.codigo) ?? 0);
+      })
+      .slice(0, maxSug);
+
+    for (const eje of candidatos) {
+      sugeridos.push({
+        eje,
+        score: scorePorCodigo.get(eje.codigo) ?? 0,
+        origen: 'afinidad',
+      });
+      sugeridosSet.add(eje.codigo);
+    }
+  }
+
+  const restantes: EjeClasificado[] = ejes
+    .filter((e) => !sugeridosSet.has(e.codigo))
+    .map((eje) => ({
+      eje,
+      score: scorePorCodigo.get(eje.codigo) ?? 0,
+      origen: 'afinidad' as const,
+    }))
+    .sort((a, b) => {
+      const rankA = iaRankMap.get(a.eje.codigo);
+      const rankB = iaRankMap.get(b.eje.codigo);
+      if (rankA !== undefined && rankB !== undefined) return rankA - rankB;
+      if (rankA !== undefined) return -1;
+      if (rankB !== undefined) return 1;
+
+      const diffScore = b.score - a.score;
+      if (diffScore !== 0) return diffScore;
+
+      return (ordenOriginal.get(a.eje.codigo) ?? 0) - (ordenOriginal.get(b.eje.codigo) ?? 0);
+    });
+
+  return {
+    sugeridos,
+    restantes,
+    tieneContexto,
+  };
+}
+
