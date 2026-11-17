@@ -12,7 +12,10 @@
  */
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { getServerSession } from '@/lib/auth/session';
+import { verifyUrlFirmada } from '@/lib/auth/url-firmada';
+import { isSuperuserEmail } from '@/lib/auth/superuser';
 import {
   buildPlaneacionHtml,
   renderPdfFromHtml,
@@ -28,16 +31,41 @@ interface RouteParams {
   params: { id: string };
 }
 
-export async function GET(_req: Request, { params }: RouteParams) {
+export async function GET(req: Request, { params }: RouteParams) {
+  const url = new URL(req.url);
+  const token = url.searchParams.get('t');
+  const incluirSeguimiento =
+    url.searchParams.get('seguimiento') === '1' ||
+    url.searchParams.get('seguimiento') === 'true';
+
+  const tokenPayload = token ? await verifyUrlFirmada(token) : null;
   const session = await getServerSession();
-  if (!session) {
+
+  if (!session && !tokenPayload) {
     return NextResponse.json(
       { error: 'NEM_AUTH_UNAUTHORIZED' },
       { status: 401 },
     );
   }
 
-  const supabase = await createClient();
+  // Si viene token firmado válido (vista pública de director sin login), usamos admin client
+  // después de validar que la entrega corresponde a esta planeación.
+  const supabase = tokenPayload ? createAdminClient() : await createClient();
+
+  if (tokenPayload) {
+    const { data: entrega } = await supabase
+      .from('entrega')
+      .select('id, planeacion_id')
+      .eq('id', tokenPayload.entrega_id)
+      .maybeSingle();
+    if (!entrega || entrega.planeacion_id !== params.id) {
+      return NextResponse.json(
+        { error: 'NEM_AUTH_RLS_VIOLATION' },
+        { status: 403 },
+      );
+    }
+  }
+
   const loaded = await fetchPlaneacionPdfPayload(supabase, params.id);
   if (!loaded) {
     return NextResponse.json(
@@ -45,14 +73,22 @@ export async function GET(_req: Request, { params }: RouteParams) {
       { status: 404 },
     );
   }
-  if (loaded.docenteId !== session.docenteId) {
-    return NextResponse.json(
-      { error: 'NEM_AUTH_RLS_VIOLATION' },
-      { status: 403 },
-    );
+
+  if (!tokenPayload) {
+    const isOwner = loaded.docenteId === session?.docenteId;
+    const isSameCctDirector =
+      Boolean(session?.cct) && session?.cct === loaded.data.cct;
+    const isSuperuser = isSuperuserEmail(session?.user?.email);
+
+    if (!isOwner && !isSameCctDirector && !isSuperuser) {
+      return NextResponse.json(
+        { error: 'NEM_AUTH_RLS_VIOLATION' },
+        { status: 403 },
+      );
+    }
   }
 
-  const html = buildPlaneacionHtml(loaded.data);
+  const html = buildPlaneacionHtml(loaded.data, { incluirSeguimiento });
 
   try {
     const { pdf, sha256, size } = await renderPdfFromHtml(html);

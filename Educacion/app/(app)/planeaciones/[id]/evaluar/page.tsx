@@ -3,6 +3,9 @@
  * SPEC_TEC_02 §5.3.9.
  */
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
+import { ArrowLeft, Printer } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { getServerSession } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 import { listEvaluaciones } from '@/services/evaluacion/evaluacion-actions';
@@ -36,13 +39,34 @@ export default async function EvaluarPage({ params }: { params: { id: string } }
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-6">
-      <header className="mb-4">
-        <h1 className="text-2xl font-semibold text-nem-verde">
-          Evaluar: {planeacion.nombre}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Arrastra a cada alumna/alumno al nivel de logro. Se guarda automáticamente.
-        </p>
+      <header className="mb-4 flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-nem-verde">
+            Evaluar: {planeacion.nombre}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Arrastra o toca el color (🟢 🟡 🟠 🔴) de cada alumna/alumno. Se guarda automáticamente.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button asChild variant="outline" size="sm">
+            <a
+              href={`/api/planeaciones/${planeacion.id}/generar-pdf?seguimiento=1`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5"
+            >
+              <Printer className="h-4 w-4" />
+              <span>Expediente con Bitácora (PDF)</span>
+            </a>
+          </Button>
+          <Button asChild variant="ghost" size="sm">
+            <Link href={`/planeaciones/${planeacion.id}`} className="flex items-center gap-1.5">
+              <ArrowLeft className="h-4 w-4" />
+              <span>Volver a la planeación</span>
+            </Link>
+          </Button>
+        </div>
       </header>
 
       <RubricaSemaforoBoard

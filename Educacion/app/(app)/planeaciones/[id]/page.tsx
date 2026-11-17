@@ -194,8 +194,8 @@ export default async function PlaneacionDetallePage({
       {isOwner && esNueva && (
         <PlaneacionNuevaBanner modalidad={modalidad} planeacionId={p.id} />
       )}
-      <header className="mb-6">
-        <div className="flex items-start justify-between">
+      <header className="mb-4">
+        <div className="flex items-start justify-between gap-2">
           <div>
             <h1 className="text-2xl font-semibold text-nem-verde">{p.nombre}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -205,6 +205,52 @@ export default async function PlaneacionDetallePage({
             </p>
           </div>
           <Badge variant="secondary">{p.estado}</Badge>
+        </div>
+
+        {/* Barra de acciones rápida en la parte superior para evitar scroll largo */}
+        <div className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border bg-card/80 p-2.5 shadow-sm">
+          {isOwner && (
+            <>
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/planeaciones/${p.id}/bitacora`} className="flex items-center gap-1.5">
+                  <BookOpen className="w-4 h-4 text-nem-verde" />
+                  <span>Bitácora Diaria</span>
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/planeaciones/${p.id}/evaluar`}>Evaluar</Link>
+              </Button>
+              <RecadoMaterialesModal
+                planeacionNombre={p.nombre}
+                materiales={recursosInventario.map((r) => r.nombre)}
+                alumnos={alumnosGrupo}
+              />
+              <Button asChild variant="outline" size="sm">
+                <a
+                  href={`/api/planeaciones/${p.id}/generar-pdf`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>Descargar Planeación (PDF)</span>
+                </a>
+              </Button>
+              <Button asChild size="sm">
+                <Link href={`/planeaciones/${p.id}/entregar`}>Entregar al director</Link>
+              </Button>
+              <DuplicarPlaneacionDialog
+                planeacionId={p.id}
+                docenteId={session.docenteId!}
+                cct={p.cct}
+                grupoActualId={p.grupo_id}
+                planeacionNombre={p.nombre}
+              />
+            </>
+          )}
+          <Button asChild variant="ghost" size="sm" className="ml-auto">
+            <Link href="/planeaciones">← Mis planeaciones</Link>
+          </Button>
         </div>
       </header>
 
@@ -323,7 +369,7 @@ export default async function PlaneacionDetallePage({
                 className="flex items-center gap-1.5"
               >
                 <Printer className="w-4 h-4" />
-                <span>Expediente Imprimible</span>
+                <span>Descargar Planeación (PDF)</span>
               </a>
             </Button>
             <Button asChild>

@@ -203,3 +203,51 @@ export async function emitirVoBoDirector(input: z.infer<typeof EmitirVoBoSchema>
   revalidatePath('/director');
   return { ok: true, estado: nuevoEstado };
 }
+
+const ResponderConTokenSchema = z.object({
+  entregaId: z.string().uuid(),
+  token: z.string().min(10),
+  accion: z.enum(['vobo', 'comentar']),
+  comentario: z.string().max(1000).optional(),
+});
+
+export async function responderEntregaConToken(
+  input: z.infer<typeof ResponderConTokenSchema>,
+) {
+  const parsed = ResponderConTokenSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: 'Datos inválidos' };
+  }
+
+  const { verifyUrlFirmada } = await import('@/lib/auth/url-firmada');
+  const payload = await verifyUrlFirmada(parsed.data.token);
+  if (!payload || payload.entrega_id !== parsed.data.entregaId) {
+    return { ok: false, error: 'Enlace expirado o inválido' };
+  }
+
+  const nuevoEstado = parsed.data.accion === 'vobo' ? 'recibida' : 'con_comentarios';
+  const updatePayload: Record<string, unknown> = {
+    estado: nuevoEstado,
+    updated_at: new Date().toISOString(),
+  };
+  if (parsed.data.accion === 'vobo') {
+    updatePayload.fecha_recibida = new Date().toISOString();
+  }
+  if (parsed.data.comentario !== undefined) {
+    updatePayload.comentario_director = parsed.data.comentario.trim();
+  }
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from('entrega')
+    .update(updatePayload)
+    .eq('id', parsed.data.entregaId);
+
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+
+  revalidatePath('/director');
+  revalidatePath(`/v/${parsed.data.entregaId}`);
+  return { ok: true, estado: nuevoEstado };
+}

@@ -95,13 +95,13 @@ export default async function BitacoraPage({
         <div className="flex items-center gap-2">
           <Button asChild variant="outline" size="sm">
             <a
-              href={`/api/planeaciones/${planeacion.id}/generar-pdf`}
+              href={`/api/planeaciones/${planeacion.id}/generar-pdf?seguimiento=1`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5"
             >
               <Printer className="w-4 h-4" />
-              <span>Expediente Imprimible</span>
+              <span>Expediente con Bitácora (PDF)</span>
             </a>
           </Button>
           <Button asChild variant="ghost" size="sm">

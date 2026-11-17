@@ -202,16 +202,41 @@ export default async function DashboardPage() {
             {planeaciones.slice(0, 5).map((p) => (
               <li key={p.id}>
                 <Card>
-                  <CardContent className="flex items-center justify-between p-4">
-                    <div>
-                      <p className="font-medium">{p.nombre}</p>
-                      <p className="text-xs text-muted-foreground">
+                  <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Link href={`/planeaciones/${p.id}`} className="font-medium hover:text-nem-verde hover:underline truncate">
+                          {p.nombre}
+                        </Link>
+                        <Badge variant={p.estado === 'recibida' || p.estado === 'aprobada' ? 'verde' : 'secondary'}>
+                          {p.estado === 'entregada'
+                            ? 'Entregada'
+                            : p.estado === 'recibida' || p.estado === 'aprobada'
+                              ? 'Con Vo.Bo.'
+                              : p.estado.charAt(0).toUpperCase() + p.estado.slice(1)}
+                        </Badge>
+                      </div>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
                         {p.periodo_inicio} → {p.periodo_fin}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary">{p.estado}</Badge>
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <Button asChild size="sm" variant="outline">
+                        <Link href={`/planeaciones/${p.id}/bitacora`}>Bitácora</Link>
+                      </Button>
+                      <Button asChild size="sm" variant="outline">
+                        <Link href={`/planeaciones/${p.id}/evaluar`}>Evaluar</Link>
+                      </Button>
+                      <Button asChild size="sm" variant="outline">
+                        <a
+                          href={`/api/planeaciones/${p.id}/generar-pdf`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          PDF
+                        </a>
+                      </Button>
+                      <Button asChild size="sm">
                         <Link href={`/planeaciones/${p.id}`}>Abrir</Link>
                       </Button>
                     </div>
