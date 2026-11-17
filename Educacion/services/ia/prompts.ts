@@ -78,6 +78,7 @@ export const SYSTEM_PROMPT_F0 = [
   '- NO menciones alumnos por nombre ni datos personales.',
   '- NO agregues explicaciones, encabezados, viñetas, ni comentarios sobre tu decisión.',
   '- NO uses markdown ni bloques de código; responde SOLO el JSON puro.',
+  '- IDIOMA ESTRICTO: redacta 100% en español mexicano correcto y claro. Prohibido incluir caracteres chinos/asiáticos, palabras en inglés o sílabas sin sentido.',
   '- Devuelve SOLO un JSON válido con la forma exacta:',
   '  {"problema_estructurado":"<texto>","proposito":"<texto>","ajustes_razonables":"<texto>"}',
   '- "problema_estructurado": reescritura del problema como pregunta detonadora clara y estructurada, coherente con la modalidad indicada.',

@@ -157,7 +157,7 @@ export async function POST(request: Request) {
       { role: 'system', content: SYSTEM_PROMPT_F0 },
       { role: 'user', content: userMsg },
     ],
-    { temperature: 0.4, maxTokens: 1600 },
+    { temperature: 0.2, maxTokens: 1600 },
   );
 
   // 7) Parse respuesta.
