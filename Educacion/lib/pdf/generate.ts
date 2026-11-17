@@ -188,13 +188,33 @@ function buildPdaTableRows(planeacion: PlaneacionPdfData): string {
   if (pdas.length === 0) {
     return '<tr><td colspan="2">—</td></tr>';
   }
+  const primerCampoCodigo = planeacion.campos_formativos?.[0];
+  const primerCampoNombre = primerCampoCodigo
+    ? planeacion.campos_nombres?.[primerCampoCodigo] ?? primerCampoCodigo
+    : '—';
+
   return pdas
     .map((codigo) => {
       const texto = planeacion.pdas_texto?.[codigo] ?? codigo;
       const campoCodigo = planeacion.pda_campo_codigo?.[codigo];
-      const campoNombre =
-        (campoCodigo && planeacion.campos_nombres?.[campoCodigo]) ||
-        '—';
+      let campoNombre =
+        (campoCodigo && planeacion.campos_nombres?.[campoCodigo]) || null;
+
+      // Fallback inteligente si pda_campo_codigo no está definido directamente
+      if (!campoNombre) {
+        if (codigo.includes('LEN') || /lenguaje/i.test(texto)) {
+          campoNombre = planeacion.campos_nombres?.['LENGUAJES'] ?? 'Lenguajes';
+        } else if (codigo.includes('SAB') || /naturaleza|ciencia|objeto|matem/i.test(texto)) {
+          campoNombre = planeacion.campos_nombres?.['SABERES_PENSAMIENTO_CIENTIFICO'] ?? 'Saberes y Pensamiento Científico';
+        } else if (codigo.includes('ETI') || /derecho|comunidad|convivencia/i.test(texto)) {
+          campoNombre = planeacion.campos_nombres?.['ETICA_NATURALEZA_SOCIEDADES'] ?? 'Ética, Naturaleza y Sociedades';
+        } else if (codigo.includes('HUM') || /emocion|cuerpo|juego/i.test(texto)) {
+          campoNombre = planeacion.campos_nombres?.['DE_LO_HUMANO_Y_LO_COMUNITARIO'] ?? 'De lo Humano y lo Comunitario';
+        } else {
+          campoNombre = primerCampoNombre;
+        }
+      }
+
       return `<tr>
         <td>${escapeHtml(campoNombre)}</td>
         <td>${escapeHtml(texto)}</td>
