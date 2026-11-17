@@ -108,6 +108,18 @@ export function sanitizeIaProse(raw: string | undefined | null): string {
   text = text.replace(REASONING_BLOCK, '').trim();
   text = text.replace(/\n\s*---+\s*\n[\s\S]*$/, '').trim();
 
+  // Si el modelo filtró autocrítica en inglés ("... Let's formulate one sentence: <texto final> 206 chars... Fine.")
+  const formulateMatch = text.match(
+    /(?:Let's formulate(?: one sentence)?|Final(?: answer)?|Revised|Better all Spanish)\s*:\s*([\s\S]+)$/i,
+  );
+  if (formulateMatch?.[1]) {
+    text = formulateMatch[1].trim();
+  }
+  text = text
+    .replace(/\s+\d{2,4}\s*chars?\.[\s\S]*$/i, '')
+    .replace(/\s+(?:Fine|Okay|Done|Good)\.\s*$/i, '')
+    .trim();
+
   const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
   while (lines.length > 1) {
     const first = lines[0];
