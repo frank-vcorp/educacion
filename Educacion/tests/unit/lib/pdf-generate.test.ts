@@ -138,7 +138,7 @@ describe('lib/pdf/generate.ts — D-FIN-5 renderer', () => {
         ],
         momento_labels: { contacto: 'Contacto con la realidad' },
       });
-      expect(html).toContain('Calendario de actividades');
+      expect(html).toContain('Calendario semanal de actividades');
       expect(html).toContain('Lunes 10 feb');
       expect(html).toContain('Tintura con café');
       expect(html).toContain('Contacto con la realidad');

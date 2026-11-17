@@ -47,71 +47,71 @@ const plan1 = {
       numero: 1,
       etiqueta: 'Lunes 10 de Febrero — Contacto con la realidad',
       bloques: [
-        { momento: 'inicio', contenido: 'Honores a la bandera y clase de música.', recursos: 'Patio cívico' },
-        { momento: 'desarrollo', contenido: 'Se le presenta a los NN diferentes alimentos (frutas, verduras) y elementos de la naturaleza para explorar colores.', recursos: 'Frutas, flores, hojas verdes' }
+        { momento: 'inicio', resumen: 'Honores', contenido: 'Honores a la bandera y clase de música.', recursos: 'Patio cívico' },
+        { momento: 'desarrollo', resumen: 'Contacto con alimentos', contenido: 'Se le presenta a los NN diferentes alimentos (frutas, verduras) y elementos de la naturaleza para explorar colores.', recursos: 'Frutas, flores, hojas verdes' }
       ]
     },
     {
       numero: 2,
       etiqueta: 'Martes 11 de Febrero — Actividades recurrentes',
       bloques: [
-        { momento: 'desarrollo', contenido: 'Actividades de conteo y clasificación por color. Clase de educación física.', recursos: 'Material de ensamble, aros' }
+        { momento: 'desarrollo', resumen: 'Conteo, E.F. y clasificación por color', contenido: 'Actividades de conteo y clasificación por color. Clase de educación física.', recursos: 'Material de ensamble, aros' }
       ]
     },
     {
       numero: 3,
       etiqueta: 'Miércoles 12 de Febrero — Contacto con la naturaleza',
       bloques: [
-        { momento: 'desarrollo', contenido: 'Traen de casa elementos de la naturaleza; exploramos, olemos, clasificamos y observamos sus características.', recursos: 'Hojas secas, flores, ramas recolectadas' }
+        { momento: 'desarrollo', resumen: 'Elementos de la naturaleza y observación', contenido: 'Traen de casa elementos de la naturaleza; exploramos, olemos, clasificamos y observamos sus características.', recursos: 'Hojas secas, flores, ramas recolectadas' }
       ]
     },
     {
       numero: 4,
       etiqueta: 'Jueves 13 de Febrero — Identificación e integración',
       bloques: [
-        { momento: 'desarrollo', contenido: 'Realizamos mezcla de tierra con agua para pintar sobre una cartulina.', recursos: 'Tierra, agua, recipientes plásticos, cartulinas' }
+        { momento: 'desarrollo', resumen: 'Mezcla tierra y agua sobre cartulina', contenido: 'Realizamos mezcla de tierra con agua para pintar sobre una cartulina.', recursos: 'Tierra, agua, recipientes plásticos, cartulinas' }
       ]
     },
     {
       numero: 5,
       etiqueta: 'Viernes 14 de Febrero — Actividad social y del amor y la amistad',
       bloques: [
-        { momento: 'cierre', contenido: 'Actividad del día del amor y la amistad. Compartir las primeras pinturas elaboradas.', recursos: 'Tarjetas de papel, pinturas naturales' }
+        { momento: 'cierre', resumen: 'Amistad y muestra de pinturas', contenido: 'Actividad del día del amor y la amistad. Compartir las primeras pinturas elaboradas.', recursos: 'Tarjetas de papel, pinturas naturales' }
       ]
     },
     {
       numero: 6,
       etiqueta: 'Lunes 17 de Febrero — Fase 3: Poner en práctica',
       bloques: [
-        { momento: 'desarrollo', contenido: 'Honores. Obtención de tintura con café soluble. Tarea: traer betabel rallado de casa.', recursos: 'Café soluble, agua tibia, pinceles' }
+        { momento: 'desarrollo', resumen: 'Tintura de café · traer betabel', contenido: 'Honores. Obtención de tintura con café soluble. Tarea: traer betabel rallado de casa.', recursos: 'Café soluble, agua tibia, pinceles' }
       ]
     },
     {
       numero: 7,
       etiqueta: 'Martes 18 de Febrero — Extracción de pigmentos',
       bloques: [
-        { momento: 'desarrollo', contenido: 'Poner a secar el betabel. Obtener la tintura del betabel hervido y guardarla en frascos. Tarea: sello con papa y tallos verdes.', recursos: 'Betabel hervido, frascos con tapa' }
+        { momento: 'desarrollo', resumen: 'Betabel hervido · guardar en frasco', contenido: 'Poner a secar el betabel. Obtener la tintura del betabel hervido y guardarla en frascos. Tarea: sello con papa y tallos verdes.', recursos: 'Betabel hervido, frascos con tapa' }
       ]
     },
     {
       numero: 8,
       etiqueta: 'Miércoles 19 de Febrero — Sellos de papa y tintura verde',
       bloques: [
-        { momento: 'desarrollo', contenido: 'Realizar dibujo libre con sellos de papa. Pintar tela con alimentos verdes (espinaca, acelga). Tarea: traer hojas de eucalipto, boldo y col morada.', recursos: 'Papas cortadas, hojas verdes, tela blanca' }
+        { momento: 'desarrollo', resumen: 'Sellos de papa · tela verde', contenido: 'Realizar dibujo libre con sellos de papa. Pintar tela con alimentos verdes (espinaca, acelga). Tarea: traer hojas de eucalipto, boldo y col morada.', recursos: 'Papas cortadas, hojas verdes, tela blanca' }
       ]
     },
     {
       numero: 9,
       etiqueta: 'Jueves 20 de Febrero — Tintura con col morada y eucalipto',
       bloques: [
-        { momento: 'desarrollo', contenido: 'Realizar tintura vegetal con col morada, boldo y eucalipto. Observar el cambio de tonalidades. Tarea: llevar hojas de lechuga.', recursos: 'Col morada, hojas de lechuga, goteros' }
+        { momento: 'desarrollo', resumen: 'Col morada · goteros', contenido: 'Realizar tintura vegetal con col morada, boldo y eucalipto. Observar el cambio de tonalidades. Tarea: llevar hojas de lechuga.', recursos: 'Col morada, hojas de lechuga, goteros' }
       ]
     },
     {
       numero: 10,
       etiqueta: 'Viernes 21 de Febrero — Molienda en molcajete y cierre de fase',
       bloques: [
-        { momento: 'cierre', contenido: 'En un molcajete los NN van a moler hojas de lechuga y betabel. Con los pétalos de buganvilia pintamos el dibujo final de la bandera.', recursos: 'Molcajete, flores de buganvilia, cartulinas' }
+        { momento: 'cierre', resumen: 'Molcajete y dibujo final', contenido: 'En un molcajete los NN van a moler hojas de lechuga y betabel. Con los pétalos de buganvilia pintamos el dibujo final de la bandera.', recursos: 'Molcajete, flores de buganvilia, cartulinas' }
       ]
     }
   ],
@@ -133,8 +133,8 @@ const plan1 = {
 const plan2 = {
   id: 'plan-historias',
   nombre: 'NARRANDO HISTORIAS',
-  periodo_inicio: '2025-05-06',
-  periodo_fin: '2025-05-23',
+  periodo_inicio: '2024-05-06',
+  periodo_fin: '2024-05-24',
   cct: '22DJN0059R',
   grupo_etiqueta: '2° "A"',
   modalidad_label: 'Taller Crítico',
@@ -220,7 +220,7 @@ const plan2 = {
   ],
   bitacoras: [
     {
-      fecha: '2025-05-06',
+      fecha: '2024-05-06',
       sesion_numero: 1,
       participacion_grupo: 5,
       dificultades: 'Los niños se entusiasmaron al ojear los libros de la biblioteca; varios identificaron personajes conocidos.'
@@ -251,9 +251,9 @@ async function run() {
     const outPath = `/home/antigravity/pdfs_generados/${item.filename}`;
     await page.pdf({
       path: outPath,
-      format: 'A4',
+      format: 'Letter',
       printBackground: true,
-      margin: { top: '12mm', bottom: '12mm', left: '12mm', right: '12mm' }
+      margin: { top: '10mm', bottom: '12mm', left: '10mm', right: '10mm' }
     });
     
     fs.copyFileSync(outPath, `/home/antigravity/frank-vcorp/educacion/Educacion/public/descargas/${item.filename}`);

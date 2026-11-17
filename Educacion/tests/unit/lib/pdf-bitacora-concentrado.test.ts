@@ -37,7 +37,7 @@ describe('PDF con Bitácora y Concentrado de Alumnos', () => {
       ],
     };
 
-    const html = buildPlaneacionHtml(dataConBitacora);
+    const html = buildPlaneacionHtml(dataConBitacora, { incluirSeguimiento: true });
     expect(html).toContain('Bitácora y reflexiones post-clase');
     expect(html).toContain('2026-10-02 (Sesión 1)');
     expect(html).toContain('Excelente');
@@ -63,7 +63,7 @@ describe('PDF con Bitácora y Concentrado de Alumnos', () => {
       ],
     };
 
-    const html = buildPlaneacionHtml(dataConAlumnos);
+    const html = buildPlaneacionHtml(dataConAlumnos, { incluirSeguimiento: true });
     expect(html).toContain('Concentrado de valoración formativa por alumno');
     expect(html).toContain('Sofía Morales');
     expect(html).toContain('🟢 Logrado sin apoyo');
@@ -71,6 +71,17 @@ describe('PDF con Bitácora y Concentrado de Alumnos', () => {
     expect(html).toContain('Mateo Hernández');
     expect(html).toContain('🟡 Con apoyo');
     expect(html).toContain('Requiere guía para clasificar hojas por tamaño.');
+  });
+
+  it('NO incluye bitácora ni concentrado en la planeación para revisión (default)', () => {
+    const html = buildPlaneacionHtml({
+      ...basePlaneacion,
+      bitacoras: [{ fecha: '2026-10-02', sesion_numero: 1, participacion_grupo: 5, dificultades: 'X' }],
+      alumnos_evaluaciones: [{ alumno_nombre: 'Sofía Morales', nivel: 1, observaciones: 'Y' }],
+    });
+    expect(html).not.toContain('Bitácora y reflexiones post-clase');
+    expect(html).not.toContain('Concentrado de valoración formativa por alumno');
+    expect(html).not.toContain('Sofía Morales');
   });
 
   it('incluye la cuadrícula de firmas oficiales de la docente y dirección escolar', () => {

@@ -52,12 +52,32 @@ export interface PlaneacionPdfBloque {
   momento?: string | null;
   observacion?: string | null;
   recursos?: string | null;
+  /**
+   * Viñeta corta para la celda del calendario semanal (ej. "Mezcla tierra y agua").
+   * Si no viene, se deriva de `contenido` (primera frase recortada).
+   */
+  resumen?: string | null;
 }
 
 export interface PlaneacionPdfSesion {
   numero: number;
   etiqueta: string;
   bloques: PlaneacionPdfBloque[];
+  /**
+   * Fecha ISO (`YYYY-MM-DD`) de la sesión. Si no viene, se calcula como el
+   * n-ésimo día hábil (lunes a viernes) a partir de `periodo_inicio`.
+   */
+  fecha?: string | null;
+}
+
+/** Opciones de la plantilla HTML. */
+export interface BuildPlaneacionHtmlOptions {
+  /**
+   * Incluir bitácora post-clase y concentrado de valoración por alumno.
+   * Default `false`: la planeación que se entrega a revisión es previa a la
+   * ejecución, así que no lleva registros de algo que aún no ocurre.
+   */
+  incluirSeguimiento?: boolean;
 }
 
 /** Datos de la planeación para la plantilla HTML (documento corrido). */
@@ -271,25 +291,211 @@ function buildPdaTableRows(planeacion: PlaneacionPdfData): string {
     .join('\n');
 }
 
-function buildCalendarioHtml(planeacion: PlaneacionPdfData): string {
-  const sesiones = planeacion.sesiones ?? [];
-  if (sesiones.length === 0) return '';
+const DIAS_SEMANA = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
+const MESES_CORTOS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+const MESES_LARGOS = [
+  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+];
+const DIA_MS = 86_400_000;
+/** Tope de semanas en la malla, por si llega un periodo absurdo. */
+const MAX_SEMANAS_CALENDARIO = 10;
 
-  const dias = sesiones
-    .map((s, idx) => {
-      const numSesion = s.numero || (idx + 1);
+/** `YYYY-MM-DD` → epoch ms UTC (medianoche). `null` si no es válida. */
+function parseIsoDia(iso: string | null | undefined): number | null {
+  if (!iso) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  if (!m) return null;
+  const t = Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  return Number.isNaN(t) ? null : t;
+}
+
+/** 0 = lunes … 6 = domingo. */
+function diaSemanaLunes0(t: number): number {
+  return (new Date(t).getUTCDay() + 6) % 7;
+}
+
+/** Avanza `n` días hábiles (lun–vie) desde `t` (si `t` cae en fin de semana, arranca el lunes). */
+function sumarDiasHabiles(t: number, n: number): number {
+  let cur = t;
+  while (diaSemanaLunes0(cur) > 4) cur += DIA_MS;
+  let restantes = n;
+  while (restantes > 0) {
+    cur += DIA_MS;
+    if (diaSemanaLunes0(cur) <= 4) restantes--;
+  }
+  return cur;
+}
+
+/** Ancla HTML estable de una sesión (destino de los links del calendario). */
+function anclaSesion(numero: number): string {
+  return `sesion-${numero}`;
+}
+
+/** Título corto de la sesión: lo que va después de "—" en la etiqueta. */
+function tituloCortoSesion(etiqueta: string): string {
+  const partes = etiqueta.split(/\s+[—–-]\s+/);
+  return (partes.length > 1 ? partes.slice(1).join(' — ') : etiqueta).trim();
+}
+
+/** Viñeta corta para la celda: `resumen` explícito o primera frase recortada. */
+function resumenBloque(b: PlaneacionPdfBloque): string {
+  if (b.resumen && b.resumen.trim()) return b.resumen.trim();
+  const primera = ((b.contenido || '').split(/(?<=[.;:])\s/)[0] ?? '').replace(/[.;:]$/, '').trim();
+  if (primera.length <= 42) return primera;
+  const corte = primera.slice(0, 42);
+  const ultimoEspacio = corte.lastIndexOf(' ');
+  return `${corte.slice(0, ultimoEspacio > 20 ? ultimoEspacio : 42)}…`;
+}
+
+function claseMomento(momentoKey: string | null | undefined, momentoLabel: string): string {
+  const norm = (momentoKey || momentoLabel || '').toLowerCase();
+  if (/inicio|apertura/.test(norm)) return 'inicio';
+  if (/desarrollo|taller|practica|práctica/.test(norm)) return 'desarrollo';
+  if (/cierre|socializa|evalu/.test(norm)) return 'cierre';
+  return 'default';
+}
+
+interface SesionFechada {
+  sesion: PlaneacionPdfSesion;
+  numero: number;
+  t: number | null;
+}
+
+/**
+ * Asigna fecha a cada sesión: `sesion.fecha` si es válida; si no, el n-ésimo
+ * día hábil desde `periodo_inicio` según el orden de la sesión.
+ */
+function fecharSesiones(planeacion: PlaneacionPdfData): SesionFechada[] {
+  const inicio = parseIsoDia(planeacion.periodo_inicio);
+  return (planeacion.sesiones ?? []).map((s, idx) => {
+    const explicita = parseIsoDia(s.fecha);
+    return {
+      sesion: s,
+      numero: s.numero || idx + 1,
+      t: explicita ?? (inicio != null ? sumarDiasHabiles(inicio, idx) : null),
+    };
+  });
+}
+
+/**
+ * Malla semanal lunes–viernes (formato "Tabla de calendario" del aula).
+ * Cada celda con sesión es un link interno al detalle de esa sesión.
+ */
+function buildCalendarioSemanalHtml(planeacion: PlaneacionPdfData, fechadas: SesionFechada[]): string {
+  const conFecha = fechadas.filter((f) => f.t != null) as Array<SesionFechada & { t: number }>;
+  if (conFecha.length === 0) return '';
+
+  const porDia = new Map<number, Array<SesionFechada & { t: number }>>();
+  for (const f of conFecha) {
+    const list = porDia.get(f.t) ?? [];
+    list.push(f);
+    porDia.set(f.t, list);
+  }
+
+  const ts = conFecha.map((f) => f.t);
+  const inicioPeriodo = parseIsoDia(planeacion.periodo_inicio);
+  const finPeriodo = parseIsoDia(planeacion.periodo_fin);
+  const primero = Math.min(...ts, ...(inicioPeriodo != null ? [inicioPeriodo] : []));
+  const ultimo = Math.max(...ts, ...(finPeriodo != null ? [finPeriodo] : []));
+  const lunesInicial = primero - diaSemanaLunes0(primero) * DIA_MS;
+
+  const filas: string[] = [];
+  for (let w = 0; w < MAX_SEMANAS_CALENDARIO; w++) {
+    const lunes = lunesInicial + w * 7 * DIA_MS;
+    if (lunes > ultimo) break;
+    const celdas = DIAS_SEMANA.map((_, d) => {
+      const t = lunes + d * DIA_MS;
+      const fecha = new Date(t);
+      const etiquetaFecha = `${fecha.getUTCDate()} ${MESES_CORTOS[fecha.getUTCMonth()]}`;
+      const fueraDePeriodo =
+        (inicioPeriodo != null && t < inicioPeriodo) || (finPeriodo != null && t > finPeriodo);
+      const sesionesDia = porDia.get(t) ?? [];
+
+      if (sesionesDia.length === 0) {
+        return `<td class="cal-cell cal-cell-vacia${fueraDePeriodo ? ' cal-cell-fuera' : ''}">
+          <div class="cal-fecha">${etiquetaFecha}</div>
+          ${fueraDePeriodo ? '' : '<div class="cal-sin-sesion">Sin sesión</div>'}
+        </td>`;
+      }
+
+      const contenido = sesionesDia
+        .map((f) => {
+          const vinetas = f.sesion.bloques
+            .map((b) => {
+              const momento = labelMomento(b.momento, planeacion.momento_labels);
+              return `<li class="cal-vineta cal-vineta-${claseMomento(b.momento, momento)}">${escapeHtml(resumenBloque(b))}</li>`;
+            })
+            .join('');
+          return `<a class="cal-link" href="#${anclaSesion(f.numero)}">
+            <span class="cal-sesion-num">S${f.numero}</span>
+            <span class="cal-titulo">${escapeHtml(tituloCortoSesion(f.sesion.etiqueta))}</span>
+            ${vinetas ? `<ul class="cal-vinetas">${vinetas}</ul>` : ''}
+            <span class="cal-ver">Ver especificación ›</span>
+          </a>`;
+        })
+        .join('');
+
+      return `<td class="cal-cell">
+        <div class="cal-fecha">${etiquetaFecha}</div>
+        ${contenido}
+      </td>`;
+    }).join('');
+
+    filas.push(`<tr>${celdas}</tr>`);
+  }
+
+  const mesInicio = new Date(primero);
+  const mesFin = new Date(ultimo);
+  const rotuloMeses =
+    mesInicio.getUTCMonth() === mesFin.getUTCMonth() && mesInicio.getUTCFullYear() === mesFin.getUTCFullYear()
+      ? `${MESES_LARGOS[mesInicio.getUTCMonth()]} ${mesInicio.getUTCFullYear()}`
+      : `${MESES_LARGOS[mesInicio.getUTCMonth()]} – ${MESES_LARGOS[mesFin.getUTCMonth()]} ${mesFin.getUTCFullYear()}`;
+
+  return `<section class="bloque-seccion calendario-seccion" id="calendario">
+    <div class="seccion-header">
+      <div class="seccion-icon-bar"></div>
+      <h2>Calendario semanal de actividades</h2>
+      <span class="cal-rotulo-mes">${escapeHtml(rotuloMeses)}</span>
+    </div>
+    <p class="cal-instruccion">Cada día enlaza a la especificación completa de la sesión (momentos, actividad, recursos y observaciones).</p>
+    <table class="cal-semanal">
+      <thead><tr>${DIAS_SEMANA.map((d) => `<th>${d}</th>`).join('')}</tr></thead>
+      <tbody>${filas.join('')}</tbody>
+    </table>
+    <div class="cal-leyenda">
+      <span class="cal-leyenda-item cal-vineta-inicio">Inicio</span>
+      <span class="cal-leyenda-item cal-vineta-desarrollo">Desarrollo</span>
+      <span class="cal-leyenda-item cal-vineta-cierre">Cierre</span>
+    </div>
+  </section>`;
+}
+
+/** La etiqueta ya trae el día ("Lunes 10 de Febrero — …"): no repetir la fecha. */
+const ETIQUETA_CON_DIA = /^(lunes|martes|mi[eé]rcoles|jueves|viernes)\b/i;
+
+/** Fecha larga para el encabezado del detalle: "Lunes 10 de febrero de 2025". */
+function fechaLargaDia(t: number): string {
+  const d = new Date(t);
+  const dow = diaSemanaLunes0(t);
+  const nombreDia = dow <= 4 ? DIAS_SEMANA[dow] : dow === 5 ? 'Sábado' : 'Domingo';
+  return `${nombreDia} ${d.getUTCDate()} de ${MESES_LARGOS[d.getUTCMonth()]} de ${d.getUTCFullYear()}`;
+}
+
+/** Especificación detallada por sesión (destino de los links del calendario). */
+function buildEspecificacionSesionesHtml(planeacion: PlaneacionPdfData, fechadas: SesionFechada[]): string {
+  if (fechadas.length === 0) return '';
+  const hayCalendario = fechadas.some((f) => f.t != null);
+
+  const dias = fechadas
+    .map(({ sesion: s, numero, t }) => {
       const bloquesHtml =
         s.bloques.length === 0
           ? '<p class="muted-box">Sin actividades registradas para esta jornada.</p>'
           : s.bloques
               .map((b) => {
                 const momento = labelMomento(b.momento, planeacion.momento_labels);
-                const momentoNorm = (b.momento || momento || '').toLowerCase();
-                let momentoClass = 'momento-pill-default';
-                if (/inicio|apertura/i.test(momentoNorm)) momentoClass = 'momento-pill-inicio';
-                else if (/desarrollo|taller|practica/i.test(momentoNorm)) momentoClass = 'momento-pill-desarrollo';
-                else if (/cierre|socializa|evalu/i.test(momentoNorm)) momentoClass = 'momento-pill-cierre';
-
+                const momentoClass = `momento-pill-${claseMomento(b.momento, momento)}`;
                 return `<article class="actividad-card">
                   <div class="act-header">
                     ${momento ? `<span class="momento-pill ${momentoClass}">
@@ -309,11 +515,13 @@ function buildCalendarioHtml(planeacion: PlaneacionPdfData): string {
               })
               .join('\n');
 
-      return `<div class="jornada-card">
+      return `<div class="jornada-card" id="${anclaSesion(numero)}">
         <div class="jornada-header">
-          <div class="jornada-num-badge">Sesión ${numSesion}</div>
+          <div class="jornada-num-badge">Sesión ${numero}</div>
           <div class="jornada-title">${escapeHtml(s.etiqueta)}</div>
+          ${hayCalendario ? '<a class="jornada-volver" href="#calendario">↑ Calendario</a>' : ''}
         </div>
+        ${t != null && !ETIQUETA_CON_DIA.test(s.etiqueta) ? `<div class="jornada-fecha">${fechaLargaDia(t)}</div>` : ''}
         <div class="jornada-body">
           ${bloquesHtml}
         </div>
@@ -321,15 +529,22 @@ function buildCalendarioHtml(planeacion: PlaneacionPdfData): string {
     })
     .join('\n');
 
-  return `<section class="bloque-seccion print-avoid-break">
+  return `<section class="bloque-seccion">
     <div class="seccion-header">
       <div class="seccion-icon-bar"></div>
-      <h2>Calendario de actividades</h2>
+      <h2>Especificación de actividades por sesión</h2>
     </div>
     <div class="jornadas-grid">
       ${dias}
     </div>
   </section>`;
+}
+
+function buildCalendarioHtml(planeacion: PlaneacionPdfData): string {
+  const fechadas = fecharSesiones(planeacion);
+  if (fechadas.length === 0) return '';
+  return `${buildCalendarioSemanalHtml(planeacion, fechadas)}
+    ${buildEspecificacionSesionesHtml(planeacion, fechadas)}`;
 }
 
 function buildRutinariasHtml(planeacion: PlaneacionPdfData): string {
@@ -550,7 +765,11 @@ function buildModalidadHtml(planeacion: PlaneacionPdfData): string {
  * Plantilla HTML: documento oficial institucional de la Nueva Escuela Mexicana (NEM).
  * Maquetado con soporte Letter (@page Letter / 215.9mm x 279.4mm) y reglas de impresión limpia.
  */
-export function buildPlaneacionHtml(planeacion: PlaneacionPdfData): string {
+export function buildPlaneacionHtml(
+  planeacion: PlaneacionPdfData,
+  options: BuildPlaneacionHtmlOptions = {},
+): string {
+  const incluirSeguimiento = options.incluirSeguimiento === true;
   const ajustes = escapeHtml(planeacion.ajustes_razonables) || '—';
   const ejes = (planeacion.ejes_articuladores ?? [])
     .map((c) => escapeHtml(planeacion.ejes_nombres?.[c] ?? c))
@@ -986,6 +1205,163 @@ export function buildPlaneacionHtml(planeacion: PlaneacionPdfData): string {
       font-size: 8.5pt;
       margin: 2px 0;
     }
+    .jornada-volver {
+      margin-left: auto;
+      font-size: 7.5pt;
+      font-weight: 600;
+      color: #047857;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .jornada-fecha {
+      padding: 4px 10px 0;
+      font-size: 7.8pt;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    /* CALENDARIO SEMANAL LUNES–VIERNES */
+    .calendario-seccion { break-before: page; page-break-before: always; }
+    .cal-rotulo-mes {
+      margin-left: auto;
+      font-size: 8pt;
+      font-weight: 700;
+      color: #047857;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .cal-instruccion {
+      margin: 0 0 6px;
+      font-size: 7.8pt;
+      color: #64748b;
+    }
+    table.cal-semanal {
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: separate;
+      border-spacing: 0;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    table.cal-semanal th {
+      background: #064e3b;
+      color: #ffffff;
+      font-size: 7.8pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 6px 4px;
+      text-align: center;
+    }
+    table.cal-semanal tr { page-break-inside: avoid; break-inside: avoid; }
+    .cal-cell {
+      vertical-align: top;
+      padding: 5px 5px 6px;
+      border-top: 1px solid #e2e8f0;
+      border-left: 1px solid #e2e8f0;
+      height: 30mm;
+      background: #ffffff;
+    }
+    .cal-cell:first-child { border-left: none; }
+    .cal-cell-vacia { background: #f8fafc; }
+    .cal-cell-fuera { background: #f1f5f9; }
+    .cal-cell-fuera .cal-fecha { color: #cbd5e1; }
+    .cal-fecha {
+      font-size: 10pt;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.1;
+      margin-bottom: 3px;
+    }
+    .cal-sin-sesion {
+      font-size: 7pt;
+      color: #94a3b8;
+      font-style: italic;
+    }
+    a.cal-link {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      border-radius: 4px;
+      padding: 3px 4px 4px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+    }
+    a.cal-link + a.cal-link { margin-top: 4px; }
+    .cal-sesion-num {
+      display: inline-block;
+      background: #047857;
+      color: #ffffff;
+      font-size: 6.5pt;
+      font-weight: 700;
+      padding: 0 4px;
+      border-radius: 3px;
+      margin-right: 3px;
+      vertical-align: 1px;
+    }
+    .cal-titulo {
+      font-size: 7.4pt;
+      font-weight: 700;
+      color: #064e3b;
+      line-height: 1.25;
+    }
+    ul.cal-vinetas {
+      list-style: none;
+      margin: 3px 0 0;
+      padding: 0;
+    }
+    li.cal-vineta {
+      position: relative;
+      padding-left: 8px;
+      font-size: 7.2pt;
+      line-height: 1.3;
+      color: #1e293b;
+      margin-bottom: 1px;
+    }
+    li.cal-vineta::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.5em;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #64748b;
+    }
+    .cal-vineta-inicio::before { background: #1d4ed8 !important; }
+    .cal-vineta-desarrollo::before { background: #047857 !important; }
+    .cal-vineta-cierre::before { background: #be185d !important; }
+    .cal-ver {
+      display: block;
+      margin-top: 3px;
+      font-size: 6.6pt;
+      font-weight: 700;
+      color: #047857;
+      text-align: right;
+    }
+    .cal-leyenda {
+      display: flex;
+      gap: 12px;
+      margin-top: 5px;
+      font-size: 7pt;
+      color: #64748b;
+    }
+    .cal-leyenda-item {
+      position: relative;
+      padding-left: 9px;
+    }
+    .cal-leyenda-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.45em;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+    }
 
     /* RUTINAS Y CHIPS */
     .rutinas-container {
@@ -1280,11 +1656,9 @@ export function buildPlaneacionHtml(planeacion: PlaneacionPdfData): string {
     <!-- CALENDARIO DÍA A DÍA -->
     ${buildCalendarioHtml(planeacion)}
 
-    <!-- BITÁCORAS DIARIAS -->
-    ${buildBitacorasHtml(planeacion)}
-
-    <!-- CONCENTRADO FORMATIVO DE ALUMNOS -->
-    ${buildConcentradoAlumnosHtml(planeacion)}
+    <!-- SEGUIMIENTO POST-CLASE: sólo en expediente posterior a la ejecución -->
+    ${incluirSeguimiento ? buildBitacorasHtml(planeacion) : ''}
+    ${incluirSeguimiento ? buildConcentradoAlumnosHtml(planeacion) : ''}
 
     <!-- FIRMAS OFICIALES CON ESPACIO DE SELLO -->
     <div class="firmas-grid">
