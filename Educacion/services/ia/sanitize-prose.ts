@@ -19,12 +19,12 @@ const ENGLISH_META_LINE =
 const THINK_OPEN = '<' + 'think' + '>';
 const THINK_CLOSE = '</' + 'think' + '>';
 
-const THINKING_CLOSE_TAGS = ['</think>', '</thinking>', THINK_CLOSE] as const;
+const THINKING_CLOSE_REGEX =
+  /<\/(?:[a-z0-9_-]+:)?(?:redacted_thinking|thinking|think)\s*>/gi;
 
 const THINKING_TAG_BLOCKS = [
-  /<(?:redacted_thinking|thinking|think)[^>]*>[\s\S]*?<\/(?:redacted_thinking|thinking|think)>\s*/gi,
+  /<(?:[a-z0-9_-]+:)?(?:redacted_thinking|thinking|think)[^>]*>[\s\S]*?<\/(?:[a-z0-9_-]+:)?(?:redacted_thinking|thinking|think)>\s*/gi,
   /<redacted_thinking[^>]*>[\s\S]*?<\/thinking>\s*/gi,
-  new RegExp(`${THINK_OPEN}[\\s\\S]*?${THINK_CLOSE}\\s*`, 'gi'),
 ] as const;
 
 function decodeHtmlEntities(text: string): string {
@@ -36,19 +36,16 @@ function decodeHtmlEntities(text: string): string {
     .replace(/&#39;/g, "'");
 }
 
-/** Toma el segmento después del último cierre de bloque de razonamiento. */
+/** Toma el segmento después del último cierre de bloque de razonamiento (incl. </mm:think>). */
 function extractAfterThinkingClose(text: string): string {
-  let lastIdx = -1;
-  let closeLen = 0;
-  for (const close of THINKING_CLOSE_TAGS) {
-    const idx = text.lastIndexOf(close);
-    if (idx > lastIdx) {
-      lastIdx = idx;
-      closeLen = close.length;
-    }
+  let lastEnd = -1;
+  THINKING_CLOSE_REGEX.lastIndex = 0;
+  let m: RegExpExecArray | null;
+  while ((m = THINKING_CLOSE_REGEX.exec(text)) !== null) {
+    lastEnd = m.index + m[0].length;
   }
-  if (lastIdx >= 0) {
-    return text.slice(lastIdx + closeLen).trim();
+  if (lastEnd >= 0) {
+    return text.slice(lastEnd).trim();
   }
   return text;
 }
@@ -56,7 +53,7 @@ function extractAfterThinkingClose(text: string): string {
 /** Si hay apertura sin cierre, intenta encontrar dónde empieza la prosa en español. */
 function extractSpanishAnswerAfterOpenTag(text: string): string {
   const open = text.match(
-    new RegExp(`<(?:redacted_thinking|thinking|think)[^>]*>|${THINK_OPEN}\\s*`, 'i'),
+    /<(?:[a-z0-9_-]+:)?(?:redacted_thinking|thinking|think)[^>]*>\s*/i,
   );
   if (!open || open.index === undefined) return text;
 

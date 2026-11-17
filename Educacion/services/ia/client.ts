@@ -102,6 +102,7 @@ export async function iaChat(
   };
   if (isMiniMax) {
     requestBody.reasoning_split = true;
+    requestBody.max_completion_tokens = Math.max(maxTokens, 2000);
   }
   if (isMiniMaxFlash) {
     requestBody.reasoning_effort = 'low';
