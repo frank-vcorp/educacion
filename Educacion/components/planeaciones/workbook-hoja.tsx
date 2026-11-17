@@ -161,12 +161,57 @@ export function WorkbookHoja({ ctx }: { ctx: WorkbookContexto }) {
           </table>
         </div>
 
-        {ctx.ajustesRazonables && (
-          <div className="rounded-md border border-amber-200/60 bg-amber-50/50 px-3 py-2 dark:bg-amber-950/20">
+        {(ctx.formasTrabajo?.length || ctx.espacios?.length) ? (
+          <dl className="grid gap-3 text-sm sm:grid-cols-2">
+            {ctx.formasTrabajo && ctx.formasTrabajo.length > 0 && (
+              <div>
+                <dt className="text-xs font-medium uppercase text-muted-foreground">
+                  Formas de trabajo
+                </dt>
+                <dd className="mt-1 flex flex-wrap gap-1">
+                  {ctx.formasTrabajo.map((f) => (
+                    <Badge key={f} variant="secondary" className="text-[11px]">
+                      {f}
+                    </Badge>
+                  ))}
+                </dd>
+              </div>
+            )}
+            {ctx.espacios && ctx.espacios.length > 0 && (
+              <div>
+                <dt className="text-xs font-medium uppercase text-muted-foreground">
+                  Espacios
+                </dt>
+                <dd className="mt-1 flex flex-wrap gap-1">
+                  {ctx.espacios.map((e) => (
+                    <Badge key={e} variant="outline" className="text-[11px]">
+                      {e}
+                    </Badge>
+                  ))}
+                </dd>
+              </div>
+            )}
+          </dl>
+        ) : null}
+
+        {(ctx.ajustesRazonables || (ctx.bapPorAlumno && ctx.bapPorAlumno.length > 0)) && (
+          <div className="space-y-2 rounded-md border border-amber-200/60 bg-amber-50/50 px-3 py-2 dark:bg-amber-950/20">
             <p className="text-xs font-medium uppercase text-muted-foreground">
-              Estrategias / ajustes razonables
+              Estrategias / ajustes razonables (BAP)
             </p>
-            <p className="mt-1 whitespace-pre-wrap text-sm">{ctx.ajustesRazonables}</p>
+            {ctx.ajustesRazonables && (
+              <p className="whitespace-pre-wrap text-sm">{ctx.ajustesRazonables}</p>
+            )}
+            {ctx.bapPorAlumno && ctx.bapPorAlumno.length > 0 && (
+              <ul className="space-y-1 border-t border-amber-200/50 pt-1.5 text-xs">
+                {ctx.bapPorAlumno.map((b, idx) => (
+                  <li key={`${b.alumnoNombre}-${idx}`}>
+                    <span className="font-semibold">{b.alumnoNombre}</span>
+                    {b.barrera ? ` (${b.barrera})` : ''}: {b.estrategia}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
 

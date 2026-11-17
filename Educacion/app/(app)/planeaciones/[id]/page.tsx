@@ -159,6 +159,9 @@ export default async function PlaneacionDetallePage({
     const preguntasRaw = modalidadData.preguntas_det;
     const metadataFull = (p.metadata ?? {}) as {
       workbook?: import('@/lib/planeaciones/tipo-workbook').WorkbookMetadata;
+      formas_trabajo?: string[];
+      espacios?: string[];
+      bap_por_alumno?: import('@/lib/planeaciones/organizacion-bap').BapAlumnoItem[];
     };
     const wbConfig = resolverWorkbookConfig({
       modalidad,
@@ -186,6 +189,9 @@ export default async function PlaneacionDetallePage({
       cct: p.cct,
       pdaCampoCodigo,
       productoIntegrador: p.producto_integrador ?? null,
+      formasTrabajo: Array.isArray(metadataFull.formas_trabajo) ? metadataFull.formas_trabajo : [],
+      espacios: Array.isArray(metadataFull.espacios) ? metadataFull.espacios : [],
+      bapPorAlumno: Array.isArray(metadataFull.bap_por_alumno) ? metadataFull.bap_por_alumno : [],
     };
   }
 
@@ -346,6 +352,11 @@ export default async function PlaneacionDetallePage({
                 pdas: (p.pdas ?? []) as string[],
                 ejes: (p.ejes_articuladores ?? []) as string[],
               }}
+              alumnosGrupo={alumnosGrupo}
+              organizacionInicial={
+                (p.metadata as import('@/lib/planeaciones/organizacion-bap').PlaneacionOrganizacionMetadata | null) ??
+                undefined
+              }
               workbook={workbook}
             />
           </section>

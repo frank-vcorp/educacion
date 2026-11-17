@@ -22,6 +22,13 @@
  * en el `finally` para evitar procesos chromium huérfanos fuera de serverless.
  */
 import { createHash } from 'node:crypto';
+import {
+  esLunes,
+  esUltimoViernesDelMes,
+  obtenerEfemeride,
+  type DiaEventoConfig,
+} from '@/lib/planeaciones/calendario-escolar';
+import type { BapAlumnoItem } from '@/lib/planeaciones/organizacion-bap';
 
 /** Resultado de un renderizado PDF determinista. */
 export interface PdfRenderResult {
@@ -121,6 +128,10 @@ export interface PlaneacionPdfData {
   momento_labels?: Record<string, string>;
   rutinarias?: string[];
   recurrentes?: string[];
+  formas_trabajo?: string[];
+  espacios?: string[];
+  bap_por_alumno?: BapAlumnoItem[];
+  eventos_por_fecha?: Record<string, DiaEventoConfig>;
   sesiones?: PlaneacionPdfSesion[];
   /** Notas de bitácora diaria / diario de clase registradas */
   bitacoras?: Array<{
@@ -407,15 +418,31 @@ function buildCalendarioSemanalHtml(planeacion: PlaneacionPdfData, fechadas: Ses
     const celdas = DIAS_SEMANA.map((_, d) => {
       const t = lunes + d * DIA_MS;
       const fecha = new Date(t);
+      const fechaISO = fecha.toISOString().slice(0, 10);
       const etiquetaFecha = `${fecha.getUTCDate()} ${MESES_CORTOS[fecha.getUTCMonth()]}`;
       const fueraDePeriodo =
         (inicioPeriodo != null && t < inicioPeriodo) || (finPeriodo != null && t > finPeriodo);
       const sesionesDia = porDia.get(t) ?? [];
+      const cfgDia = planeacion.eventos_por_fecha?.[fechaISO];
+      const esCte = cfgDia?.sinClase ?? esUltimoViernesDelMes(fechaISO);
+      const mostrarHonores = esLunes(fechaISO) && !cfgDia?.ocultarHonores && !esCte;
+      const efemeride = obtenerEfemeride(fechaISO);
+
+      const eventosHtml = [
+        mostrarHonores ? '<div class="cal-ev cal-ev-honores">Honores a la bandera</div>' : '',
+        esCte
+          ? `<div class="cal-ev cal-ev-cte">${escapeHtml(cfgDia?.motivoSinClase || 'Consejo Técnico Escolar (CTE)')}</div>`
+          : '',
+        efemeride ? `<div class="cal-ev cal-ev-efem">${escapeHtml(efemeride.nombre)}</div>` : '',
+        cfgDia?.tareaCasa ? `<div class="cal-ev cal-ev-tarea">TAREA: ${escapeHtml(cfgDia.tareaCasa)}</div>` : '',
+      ]
+        .filter(Boolean)
+        .join('');
 
       if (sesionesDia.length === 0) {
         return `<td class="cal-cell cal-cell-vacia${fueraDePeriodo ? ' cal-cell-fuera' : ''}">
           <div class="cal-fecha">${etiquetaFecha}</div>
-          ${fueraDePeriodo ? '' : '<div class="cal-sin-sesion">Sin sesión</div>'}
+          ${fueraDePeriodo ? '' : eventosHtml || '<div class="cal-sin-sesion">Sin sesión</div>'}
         </td>`;
       }
 
@@ -438,6 +465,7 @@ function buildCalendarioSemanalHtml(planeacion: PlaneacionPdfData, fechadas: Ses
 
       return `<td class="cal-cell">
         <div class="cal-fecha">${etiquetaFecha}</div>
+        ${eventosHtml}
         ${contenido}
       </td>`;
     }).join('');
@@ -458,7 +486,7 @@ function buildCalendarioSemanalHtml(planeacion: PlaneacionPdfData, fechadas: Ses
       <h2>Calendario semanal de actividades</h2>
       <span class="cal-rotulo-mes">${escapeHtml(rotuloMeses)}</span>
     </div>
-    <p class="cal-instruccion">Cada día enlaza a la especificación completa de la sesión (momentos, actividad, recursos y observaciones).</p>
+    <p class="cal-instruccion">Cada día enlaza a la especificación completa de la sesión (momentos, actividad, recursos y criterios formativos).</p>
     <table class="cal-semanal">
       <thead><tr>${DIAS_SEMANA.map((d) => `<th>${d}</th>`).join('')}</tr></thead>
       <tbody>${filas.join('')}</tbody>
@@ -489,9 +517,24 @@ function buildEspecificacionSesionesHtml(planeacion: PlaneacionPdfData, fechadas
 
   const dias = fechadas
     .map(({ sesion: s, numero, t }) => {
+      const fechaISO = s.fecha ?? (t != null ? new Date(t).toISOString().slice(0, 10) : null);
+      const cfgDia = fechaISO ? planeacion.eventos_por_fecha?.[fechaISO] : undefined;
+      const esCte = fechaISO ? (cfgDia?.sinClase ?? esUltimoViernesDelMes(fechaISO)) : false;
+      const mostrarHonores = fechaISO ? (esLunes(fechaISO) && !cfgDia?.ocultarHonores && !esCte) : false;
+      const efemeride = fechaISO ? obtenerEfemeride(fechaISO) : null;
+
+      const metaDia = [
+        mostrarHonores ? '<span class="cal-ev cal-ev-honores" style="display:inline-block;margin-right:4px;">Honores a la bandera</span>' : '',
+        esCte ? `<span class="cal-ev cal-ev-cte" style="display:inline-block;margin-right:4px;">${escapeHtml(cfgDia?.motivoSinClase || 'Consejo Técnico Escolar (CTE)')}</span>` : '',
+        efemeride ? `<span class="cal-ev cal-ev-efem" style="display:inline-block;margin-right:4px;">${escapeHtml(efemeride.nombre)}</span>` : '',
+        cfgDia?.tareaCasa ? `<span class="cal-ev cal-ev-tarea" style="display:inline-block;">TAREA: ${escapeHtml(cfgDia.tareaCasa)}</span>` : '',
+      ]
+        .filter(Boolean)
+        .join('');
+
       const bloquesHtml =
         s.bloques.length === 0
-          ? '<p class="muted-box">Sin actividades registradas para esta jornada.</p>'
+          ? `<p class="muted-box">${esCte ? 'Día sin clase regular (CTE / Suspensión).' : 'Sin actividades registradas para esta jornada.'}</p>`
           : s.bloques
               .map((b) => {
                 const momento = labelMomento(b.momento, planeacion.momento_labels);
@@ -508,7 +551,7 @@ function buildEspecificacionSesionesHtml(planeacion: PlaneacionPdfData, fechadas
                     <span class="meta-value">${escapeHtml(b.recursos)}</span>
                   </div>` : ''}
                   ${b.observacion ? `<div class="act-meta-row act-obs">
-                    <span class="meta-label">Observación:</span>
+                    <span class="meta-label">¿Qué se observará?:</span>
                     <span class="meta-value">${escapeHtml(b.observacion)}</span>
                   </div>` : ''}
                 </article>`;
@@ -522,6 +565,7 @@ function buildEspecificacionSesionesHtml(planeacion: PlaneacionPdfData, fechadas
           ${hayCalendario ? '<a class="jornada-volver" href="#calendario">↑ Calendario</a>' : ''}
         </div>
         ${t != null && !ETIQUETA_CON_DIA.test(s.etiqueta) ? `<div class="jornada-fecha">${fechaLargaDia(t)}</div>` : ''}
+        ${metaDia ? `<div class="jornada-fecha" style="padding-bottom:4px;">${metaDia}</div>` : ''}
         <div class="jornada-body">
           ${bloquesHtml}
         </div>
@@ -1342,6 +1386,18 @@ export function buildPlaneacionHtml(
       color: #047857;
       text-align: right;
     }
+    .cal-ev {
+      font-size: 6.4pt;
+      font-weight: 600;
+      line-height: 1.25;
+      padding: 1.5px 4px;
+      border-radius: 3px;
+      margin-bottom: 2px;
+    }
+    .cal-ev-honores { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .cal-ev-cte { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+    .cal-ev-efem { background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; }
+    .cal-ev-tarea { background: #fdf2f8; color: #9d174d; border: 1px solid #fbcfe8; }
     .cal-leyenda {
       display: flex;
       gap: 12px;
@@ -1636,14 +1692,50 @@ export function buildPlaneacionHtml(
       </div>
     </section>
 
+    ${
+      (planeacion.formas_trabajo && planeacion.formas_trabajo.length > 0) ||
+      (planeacion.espacios && planeacion.espacios.length > 0)
+        ? `<section class="bloque-seccion print-avoid-break">
+            <div class="seccion-header">
+              <div class="seccion-icon-bar"></div>
+              <h2>Organización del grupo y espacios</h2>
+            </div>
+            <div class="prose-card" style="display:flex;flex-wrap:wrap;gap:16px;">
+              ${
+                planeacion.formas_trabajo && planeacion.formas_trabajo.length > 0
+                  ? `<div style="flex:1;min-width:180px;"><strong>Formas de trabajo:</strong> ${joinEscaped(planeacion.formas_trabajo)}</div>`
+                  : ''
+              }
+              ${
+                planeacion.espacios && planeacion.espacios.length > 0
+                  ? `<div style="flex:1;min-width:180px;"><strong>Espacios:</strong> ${joinEscaped(planeacion.espacios)}</div>`
+                  : ''
+              }
+            </div>
+          </section>`
+        : ''
+    }
+
     <!-- AJUSTES RAZONABLES (BAP) -->
     <section class="bloque-seccion print-avoid-break">
       <div class="seccion-header">
         <div class="seccion-icon-bar" style="background: #d97706;"></div>
-        <h2>Estrategias / ajustes razonables</h2>
+        <h2>Estrategias / ajustes razonables (BAP)</h2>
       </div>
       <div class="prose-card prose-card-amber">
-        ${ajustes}
+        <div>${ajustes}</div>
+        ${
+          planeacion.bap_por_alumno && planeacion.bap_por_alumno.length > 0
+            ? `<ul style="margin:8px 0 0;padding-left:16px;border-top:1px dashed #f59e0b;padding-top:8px;">
+                ${planeacion.bap_por_alumno
+                  .map(
+                    (b) =>
+                      `<li style="margin-bottom:4px;"><strong>${escapeHtml(b.alumnoNombre)}</strong>${b.barrera ? ` (${escapeHtml(b.barrera)})` : ''}: ${escapeHtml(b.estrategia)}</li>`,
+                  )
+                  .join('')}
+              </ul>`
+            : ''
+        }
       </div>
     </section>
 

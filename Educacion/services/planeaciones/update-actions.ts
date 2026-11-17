@@ -235,6 +235,98 @@ export async function updatePlaneacion(
   return { ok: true, id: planeacionId, camposActualizados };
 }
 
+const PatchMetadataSchema = z.object({
+  planeacionId: z.string().uuid(),
+  docenteId: z.string().uuid(),
+  patch: z.object({
+    formas_trabajo: z.array(z.string().min(1).max(80)).max(20).optional(),
+    espacios: z.array(z.string().min(1).max(80)).max(20).optional(),
+    bap_por_alumno: z
+      .array(
+        z.object({
+          alumnoId: z.string().optional(),
+          alumnoNombre: z.string().min(1).max(120),
+          barrera: z.string().max(120).optional(),
+          estrategia: z.string().min(1).max(1000),
+        }),
+      )
+      .max(60)
+      .optional(),
+    rutinas_grupo: z
+      .array(
+        z.object({
+          id: z.string().min(1).max(80),
+          titulo: z.string().min(1).max(120),
+          categoria: z.enum(['rutinaria', 'recurrente', 'especial']),
+          diasSemana: z.array(z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)])),
+        }),
+      )
+      .max(40)
+      .optional(),
+    eventos_por_fecha: z
+      .record(
+        z.string(),
+        z.object({
+          sinClase: z.boolean().optional(),
+          motivoSinClase: z.string().max(160).optional(),
+          ocultarHonores: z.boolean().optional(),
+          tareaCasa: z.string().max(400).optional(),
+        }),
+      )
+      .optional(),
+  }),
+});
+
+export async function patchPlaneacionMetadata(
+  input: z.infer<typeof PatchMetadataSchema>,
+): Promise<{ ok: boolean; error?: string }> {
+  const parsed = PatchMetadataSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? 'Metadata inválida',
+    };
+  }
+
+  const { planeacionId, docenteId, patch } = parsed.data;
+  const supabase = await createClient();
+
+  const { data: planeacion, error: errRead } = await supabase
+    .from('planeacion')
+    .select('id, docente_id, estado, metadata')
+    .eq('id', planeacionId)
+    .maybeSingle();
+
+  if (errRead) return { ok: false, error: errRead.message };
+  if (!planeacion) return { ok: false, error: 'Planeación no encontrada' };
+  if (planeacion.docente_id !== docenteId) {
+    return { ok: false, error: 'La planeación no pertenece al docente' };
+  }
+  if (planeacion.estado === 'archivada') {
+    return { ok: false, error: 'La planeación está archivada' };
+  }
+
+  const currentMeta =
+    planeacion.metadata && typeof planeacion.metadata === 'object'
+      ? (planeacion.metadata as Record<string, unknown>)
+      : {};
+
+  const nextMeta = {
+    ...currentMeta,
+    ...patch,
+  };
+
+  const { error: errUpd } = await supabase
+    .from('planeacion')
+    .update({ metadata: nextMeta })
+    .eq('id', planeacionId);
+
+  if (errUpd) return { ok: false, error: errUpd.message };
+
+  revalidatePath(`/planeaciones/${planeacionId}`);
+  return { ok: true };
+}
+
 // La trazabilidad PATCH (post-IA) la maneja `auditPostIA` importada desde
 // `@/lib/ia/audit-post` (helper único reusable por los 3 routes IA y por
 // ambos server actions). `hashShort` vive en ese mismo helper; este archivo

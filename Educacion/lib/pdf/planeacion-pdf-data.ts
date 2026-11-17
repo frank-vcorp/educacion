@@ -17,6 +17,11 @@ import {
   RUTINARIAS_PREESCOLAR,
   RECURRENTES_EJEMPLO,
 } from '@/lib/planeaciones/rutinarias-preescolar';
+import { fechaDesdeEtiquetaSesion } from '@/lib/planeaciones/calendario-periodo';
+import {
+  formatearRutinaConDias,
+  type PlaneacionOrganizacionMetadata,
+} from '@/lib/planeaciones/organizacion-bap';
 import type { PlaneacionPdfData } from '@/lib/pdf/generate';
 
 export async function fetchPlaneacionPdfPayload(
@@ -117,9 +122,12 @@ export async function fetchPlaneacionPdfPayload(
     bloquesPorSesion.set(b.sesion_id, list);
   }
 
+  const orgMeta = (planeacion.metadata ?? {}) as PlaneacionOrganizacionMetadata;
+
   const sesiones = (sesionesRes.data ?? []).map((s) => ({
     numero: s.numero,
     etiqueta: s.ajustes_sesion ?? `Sesión ${s.numero}`,
+    fecha: fechaDesdeEtiquetaSesion(s.ajustes_sesion),
     bloques: (bloquesPorSesion.get(s.id) ?? []).map((b) => ({
       contenido: b.contenido_textual ?? '',
       momento: b.momento ?? null,
@@ -127,6 +135,20 @@ export async function fetchPlaneacionPdfPayload(
       recursos: formatRecursos(b.recursos_requeridos),
     })),
   }));
+
+  const rutinasGrupo = Array.isArray(orgMeta.rutinas_grupo) ? orgMeta.rutinas_grupo : [];
+  const rutinariasPdf =
+    rutinasGrupo.length > 0
+      ? rutinasGrupo
+          .filter((r) => r.categoria === 'rutinaria')
+          .map(formatearRutinaConDias)
+      : [...RUTINARIAS_PREESCOLAR];
+  const recurrentesPdf =
+    rutinasGrupo.length > 0
+      ? rutinasGrupo
+          .filter((r) => r.categoria !== 'rutinaria')
+          .map(formatearRutinaConDias)
+      : [...RECURRENTES_EJEMPLO];
 
   const preguntasRaw = modalidadData.preguntas_det;
 
@@ -152,6 +174,13 @@ export async function fetchPlaneacionPdfPayload(
     preguntas_det: Array.isArray(preguntasRaw)
       ? preguntasRaw.filter((x): x is string => typeof x === 'string')
       : [],
+    formas_trabajo: Array.isArray(orgMeta.formas_trabajo) ? orgMeta.formas_trabajo : [],
+    espacios: Array.isArray(orgMeta.espacios) ? orgMeta.espacios : [],
+    bap_por_alumno: Array.isArray(orgMeta.bap_por_alumno) ? orgMeta.bap_por_alumno : [],
+    eventos_por_fecha:
+      orgMeta.eventos_por_fecha && typeof orgMeta.eventos_por_fecha === 'object'
+        ? orgMeta.eventos_por_fecha
+        : {},
     taller_critico:
       modalidad === 'taller_critico' ||
       modalidadData.reflexion_inicial ||
@@ -216,8 +245,8 @@ export async function fetchPlaneacionPdfPayload(
       ejesCatalogo.filter((e) => codigosEjes.includes(e.codigo)).map((e) => [e.codigo, e.nombre]),
     ),
     momento_labels: momentoLabels,
-    rutinarias: [...RUTINARIAS_PREESCOLAR],
-    recurrentes: [...RECURRENTES_EJEMPLO],
+    rutinarias: rutinariasPdf,
+    recurrentes: recurrentesPdf,
     sesiones,
     bitacoras: (bitacorasRes.data ?? []).map((b) => {
       const ses = (sesionesRes.data ?? []).find((s) => s.id === b.sesion_id);

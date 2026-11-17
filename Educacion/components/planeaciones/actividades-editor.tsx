@@ -73,7 +73,10 @@ import {
   patchBloqueCampos,
   type Bloque,
 } from '@/services/planeaciones/bloque-actions';
-import { updateBloque } from '@/services/planeaciones/update-actions';
+import {
+  updateBloque,
+  patchPlaneacionMetadata,
+} from '@/services/planeaciones/update-actions';
 import { IASugerenciaPanel } from '@/components/ia/ia-sugerencia-panel';
 import {
   getMensajeSinActividades,
@@ -113,6 +116,11 @@ import { WorkbookHoja } from '@/components/planeaciones/workbook-hoja';
 import { WorkbookCalendario } from '@/components/planeaciones/workbook-calendario';
 import { DiaActividadModal } from '@/components/planeaciones/dia-actividad-modal';
 import { RutinariasPanel } from '@/components/planeaciones/rutinarias-panel';
+import { OrganizacionBapPanel } from '@/components/planeaciones/organizacion-bap-panel';
+import type {
+  BapAlumnoItem,
+  PlaneacionOrganizacionMetadata,
+} from '@/lib/planeaciones/organizacion-bap';
 import { ConsultaRapidaSidebar } from '@/components/consulta-rapida/consulta-rapida-sidebar';
 import { useConsultaRapidaOptional } from '@/components/consulta-rapida/consulta-rapida-context';
 import {
@@ -166,6 +174,8 @@ export interface ActividadesEditorProps {
   recursosAsignadosInicial: SesionRecursoAsignado[];
   referenciasBiblioteca?: ReferenciaConaliteg[];
   proyectoContexto?: ProyectoContextoEditor | null;
+  alumnosGrupo?: Array<{ id: string; nombre: string }>;
+  organizacionInicial?: PlaneacionOrganizacionMetadata;
   /** Datos para hoja central (centro de interés / proyecto). */
   workbook?: WorkbookContexto | null;
 }
@@ -908,6 +918,8 @@ export function ActividadesEditor({
   recursosAsignadosInicial,
   referenciasBiblioteca = [],
   proyectoContexto = null,
+  alumnosGrupo = [],
+  organizacionInicial,
   workbook = null,
 }: ActividadesEditorProps) {
   const esWorkbook = usaWorkbookLayout(modalidad) && workbook != null;
@@ -951,27 +963,96 @@ export function ActividadesEditor({
   const [adding, setAdding] = useState(false);
   const [errorNuevo, setErrorNuevo] = useState<string | null>(null);
 
+  const [formasTrabajo, setFormasTrabajo] = useState<string[]>(
+    Array.isArray(organizacionInicial?.formas_trabajo)
+      ? organizacionInicial.formas_trabajo
+      : [],
+  );
+  const [espacios, setEspacios] = useState<string[]>(
+    Array.isArray(organizacionInicial?.espacios)
+      ? organizacionInicial.espacios
+      : [],
+  );
+  const [bapPorAlumno, setBapPorAlumno] = useState<BapAlumnoItem[]>(
+    Array.isArray(organizacionInicial?.bap_por_alumno)
+      ? organizacionInicial.bap_por_alumno
+      : [],
+  );
+
   const rutinasStorageKey = `nem_rutinas_grupo_${docenteId}_${gradoPreescolar}`;
   const eventosStorageKey = `nem_eventos_planeacion_${planeacionId}`;
-  const [rutinasGrupo, setRutinasGrupo] = useState<RutinaGrupoItem[]>([]);
-  const [eventosPorFecha, setEventosPorFecha] = useState<Record<string, DiaEventoConfig>>({});
+  const [rutinasGrupo, setRutinasGrupo] = useState<RutinaGrupoItem[]>(
+    Array.isArray(organizacionInicial?.rutinas_grupo)
+      ? organizacionInicial.rutinas_grupo
+      : [],
+  );
+  const [eventosPorFecha, setEventosPorFecha] = useState<Record<string, DiaEventoConfig>>(
+    organizacionInicial?.eventos_por_fecha &&
+      typeof organizacionInicial.eventos_por_fecha === 'object'
+      ? organizacionInicial.eventos_por_fecha
+      : {},
+  );
+  const eventosSyncTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     try {
-      const rRaw = localStorage.getItem(rutinasStorageKey);
-      if (rRaw) {
-        const parsed = JSON.parse(rRaw);
-        if (Array.isArray(parsed)) setRutinasGrupo(parsed);
+      if (!organizacionInicial?.rutinas_grupo?.length) {
+        const rRaw = localStorage.getItem(rutinasStorageKey);
+        if (rRaw) {
+          const parsed = JSON.parse(rRaw);
+          if (Array.isArray(parsed)) setRutinasGrupo(parsed);
+        }
       }
-      const eRaw = localStorage.getItem(eventosStorageKey);
-      if (eRaw) {
-        const parsed = JSON.parse(eRaw);
-        if (parsed && typeof parsed === 'object') setEventosPorFecha(parsed);
+      if (
+        !organizacionInicial?.eventos_por_fecha ||
+        Object.keys(organizacionInicial.eventos_por_fecha).length === 0
+      ) {
+        const eRaw = localStorage.getItem(eventosStorageKey);
+        if (eRaw) {
+          const parsed = JSON.parse(eRaw);
+          if (parsed && typeof parsed === 'object') setEventosPorFecha(parsed);
+        }
       }
     } catch {
       // ignore localStorage errors
     }
-  }, [rutinasStorageKey, eventosStorageKey]);
+  }, [rutinasStorageKey, eventosStorageKey, organizacionInicial]);
+
+  const actualizarFormasTrabajo = useCallback(
+    (next: string[]) => {
+      setFormasTrabajo(next);
+      void patchPlaneacionMetadata({
+        planeacionId,
+        docenteId,
+        patch: { formas_trabajo: next },
+      });
+    },
+    [planeacionId, docenteId],
+  );
+
+  const actualizarEspacios = useCallback(
+    (next: string[]) => {
+      setEspacios(next);
+      void patchPlaneacionMetadata({
+        planeacionId,
+        docenteId,
+        patch: { espacios: next },
+      });
+    },
+    [planeacionId, docenteId],
+  );
+
+  const actualizarBapPorAlumno = useCallback(
+    (next: BapAlumnoItem[]) => {
+      setBapPorAlumno(next);
+      void patchPlaneacionMetadata({
+        planeacionId,
+        docenteId,
+        patch: { bap_por_alumno: next },
+      });
+    },
+    [planeacionId, docenteId],
+  );
 
   const actualizarRutinasGrupo = useCallback(
     (next: RutinaGrupoItem[]) => {
@@ -981,8 +1062,13 @@ export function ActividadesEditor({
       } catch {
         // ignore
       }
+      void patchPlaneacionMetadata({
+        planeacionId,
+        docenteId,
+        patch: { rutinas_grupo: next },
+      });
     },
-    [rutinasStorageKey],
+    [rutinasStorageKey, planeacionId, docenteId],
   );
 
   const actualizarEventoDia = useCallback(
@@ -997,10 +1083,20 @@ export function ActividadesEditor({
         } catch {
           // ignore
         }
+        if (eventosSyncTimerRef.current) {
+          window.clearTimeout(eventosSyncTimerRef.current);
+        }
+        eventosSyncTimerRef.current = window.setTimeout(() => {
+          void patchPlaneacionMetadata({
+            planeacionId,
+            docenteId,
+            patch: { eventos_por_fecha: next },
+          });
+        }, 450);
         return next;
       });
     },
-    [eventosStorageKey],
+    [eventosStorageKey, planeacionId, docenteId],
   );
   const [activeDrag, setActiveDrag] = useState<{
     tipo: 'catalogo' | 'bloque' | 'recurso';
@@ -1991,7 +2087,14 @@ export function ActividadesEditor({
 
             <div className="min-w-0 space-y-4">
               {esWorkbook && workbook && (
-                <WorkbookHoja ctx={workbook} />
+                <WorkbookHoja
+                  ctx={{
+                    ...workbook,
+                    formasTrabajo,
+                    espacios,
+                    bapPorAlumno,
+                  }}
+                />
               )}
               {panelSesiones}
             </div>
@@ -2011,10 +2114,21 @@ export function ActividadesEditor({
           </div>
 
           {esWorkbook && (
-            <RutinariasPanel
-              rutinas={rutinasGrupo}
-              onChangeRutinas={actualizarRutinasGrupo}
-            />
+            <>
+              <RutinariasPanel
+                rutinas={rutinasGrupo}
+                onChangeRutinas={actualizarRutinasGrupo}
+              />
+              <OrganizacionBapPanel
+                formasTrabajo={formasTrabajo}
+                espacios={espacios}
+                bapPorAlumno={bapPorAlumno}
+                alumnos={alumnosGrupo}
+                onChangeFormasTrabajo={actualizarFormasTrabajo}
+                onChangeEspacios={actualizarEspacios}
+                onChangeBapPorAlumno={actualizarBapPorAlumno}
+              />
+            </>
           )}
 
           {esWorkbook && sesionModal && (() => {

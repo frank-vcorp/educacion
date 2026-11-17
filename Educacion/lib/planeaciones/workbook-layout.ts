@@ -32,4 +32,12 @@ export interface WorkbookContexto {
   /** PDA codigo → campo formativo codigo */
   pdaCampoCodigo?: Record<string, string>;
   productoIntegrador?: string | null;
+  formasTrabajo?: string[];
+  espacios?: string[];
+  bapPorAlumno?: Array<{
+    alumnoId?: string;
+    alumnoNombre: string;
+    barrera?: string;
+    estrategia: string;
+  }>;
 }
