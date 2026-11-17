@@ -25,7 +25,7 @@ export const SYSTEM_PROMPT_F1 = [
   '- NO incluyas razonamiento interno ni tags <thinking>.',
   '- IDIOMA OBLIGATORIO: comunícate exclusivamente en español latinoamericano (México). Prohibido usar palabras en inglés, caracteres chinos/asiáticos o fragmentos sin sentido.',
   '- Responde SOLO con el texto adaptado en prosa.',
-  '- Longitud máxima: 700 caracteres.',
+  '- Sé breve, claro y conciso.',
 ].join('\n');
 
 export const SYSTEM_PROMPT_F2 = [
@@ -39,7 +39,7 @@ export const SYSTEM_PROMPT_F2 = [
   '- NO incluyas razonamiento interno ni tags <thinking>.',
   '- IDIOMA OBLIGATORIO: comunícate exclusivamente en español latinoamericano (México). Prohibido usar palabras en inglés, caracteres chinos/asiáticos o fragmentos sin sentido.',
   '- Responde SOLO con el texto resultante en prosa.',
-  '- Longitud máxima: 1000 caracteres.',
+  '- Sé breve, claro y conciso.',
 ].join('\n');
 
 export const SYSTEM_PROMPT_F3 = [
@@ -59,17 +59,6 @@ export const SYSTEM_PROMPT_F3 = [
 /**
  * F0 — Paso inicial del wizard (Contexto/Problema).
  * SPEC_TEC_10 §4.2 — IMPL-20260820-06.
- *
- * Invariantes auditables:
- *  - Recibe modalidad + problema contexto (borrador) + propósito/ajustes
- *    parciales (opcionales, pueden ir vacíos) + nivel (opcional).
- *  - Devuelve SOLO JSON con la forma exacta especificada.
- *  - NO inventa PDA; NO menciona alumnos ni datos personales.
- *  - NO agrega explicaciones, encabezados, viñetas ni markdown.
- *  - Longitud máxima por campo:
- *      problema_estructurado ≤ 500,
- *      proposito ≤ 500,
- *      ajustes_razonables ≤ 700.
  */
 export const SYSTEM_PROMPT_F0 = [
   'Eres una especialista pedagógica en Educación Preescolar de México (Nueva Escuela Mexicana — NEM, Fase 2, SEP, niñas y niños de 3 a 5 años).',
@@ -90,7 +79,7 @@ export const SYSTEM_PROMPT_F0 = [
   '- "problema_estructurado": reescritura del problema como pregunta detonadora clara, cercana a niños de preescolar y coherente con la modalidad NEM indicada.',
   '- "proposito": propósito pedagógico breve de la planeación NEM, coherente con el problema y la modalidad.',
   '- "ajustes_razonables": estrategias concretas de inclusión y accesibilidad (DUA) para el aula de preescolar, coherentes con la modalidad.',
-  '- Longitudes máximas: problema_estructurado ≤ 500 caracteres, proposito ≤ 500, ajustes_razonables ≤ 700.',
+  '- Sé breve, claro y conciso en cada campo.',
   '- Responde SOLO con el JSON. Sin texto antes ni después.',
 ].join('\n');
 

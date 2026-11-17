@@ -83,9 +83,9 @@ const MODALIDAD_CONTEXTO: Record<(typeof MODALIDADES)[number], string> = {
 };
 
 const MAX_TOKENS_POR_CAMPO: Record<'problema' | 'proposito' | 'ajustes_razonables', number> = {
-  problema: 600,
-  proposito: 700,
-  ajustes_razonables: 900,
+  problema: 4096,
+  proposito: 4096,
+  ajustes_razonables: 4096,
 };
 
 function limpiarCaracteresNoLatinos(texto: string): string {

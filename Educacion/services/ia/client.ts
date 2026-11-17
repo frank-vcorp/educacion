@@ -96,13 +96,14 @@ export async function iaChat(
   const requestBody: Record<string, unknown> = {
     model,
     messages,
-    temperature,
-    max_tokens: maxTokens,
     stream: false,
   };
   if (isMiniMax) {
     requestBody.reasoning_split = true;
-    requestBody.max_completion_tokens = Math.max(maxTokens, 2000);
+    requestBody.max_completion_tokens = Math.max(maxTokens, 4096);
+  } else {
+    requestBody.temperature = temperature;
+    requestBody.max_tokens = maxTokens;
   }
   if (isMiniMaxFlash) {
     requestBody.reasoning_effort = 'medium';
