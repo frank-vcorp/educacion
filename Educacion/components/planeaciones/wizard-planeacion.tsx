@@ -58,6 +58,11 @@ import {
   modalidadRequiereAlcanceTemporal,
   validarFechasContraAlcance,
 } from '@/lib/planeaciones/tipo-workbook';
+import { Sparkles, Loader2 } from 'lucide-react';
+import {
+  clasificarYOrdenarPdas,
+  type SugerenciaIaPda,
+} from '@/lib/planeaciones/pda-afinidad';
 
 interface Props {
   docenteId: string;
@@ -156,25 +161,185 @@ export function WizardPlaneacion({
   const router = useRouter();
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const steps = useMemo(() => buildSteps(form.modalidad), [form.modalidad]);
+  const [paso, setPaso] = useState(1);
   const [busquedaPda, setBusquedaPda] = useState('');
-  const pdasVisibles = useMemo(() => {
+  const [iaPdaState, setIaPdaState] = useState<{
+    loading: boolean;
+    origen: 'ia' | 'afinidad' | null;
+    sugeridos: SugerenciaIaPda[];
+    afinidad: string[];
+    contextKey: string;
+  }>({
+    loading: false,
+    origen: null,
+    sugeridos: [],
+    afinidad: [],
+    contextKey: '',
+  });
+
+  const pdasPorCampos = useMemo(() => {
     const campoPorContenido = new Map(contenidos.map((c) => [c.codigo, c.campo_codigo]));
     return pdas.filter((p) => {
       if (form.camposFormativos.length > 0) {
         const campo = campoPorContenido.get(p.contenido_codigo);
         if (!campo || !form.camposFormativos.includes(campo)) return false;
       }
-      if (busquedaPda.trim()) {
-        const q = busquedaPda.toLowerCase();
-        return (
-          p.texto.toLowerCase().includes(q) ||
-          p.codigo.toLowerCase().includes(q)
-        );
-      }
       return true;
     });
-  }, [pdas, contenidos, form.camposFormativos, busquedaPda]);
-  const [paso, setPaso] = useState(1);
+  }, [pdas, contenidos, form.camposFormativos]);
+
+  const pdaContextKey = useMemo(
+    () =>
+      JSON.stringify({
+        modalidad: form.modalidad,
+        nombre: form.nombre.trim(),
+        problemaContexto: form.problemaContexto.trim(),
+        proposito: form.proposito.trim(),
+        productoIntegrador: form.productoIntegrador.trim(),
+        campos: [...form.camposFormativos].sort(),
+      }),
+    [
+      form.modalidad,
+      form.nombre,
+      form.problemaContexto,
+      form.proposito,
+      form.productoIntegrador,
+      form.camposFormativos,
+    ],
+  );
+
+  const pdasClasificados = useMemo(() => {
+    const base = clasificarYOrdenarPdas(
+      pdasPorCampos,
+      contenidos,
+      {
+        nombre: form.nombre,
+        problemaContexto: form.problemaContexto,
+        proposito: form.proposito,
+        productoIntegrador: form.productoIntegrador,
+      },
+      iaPdaState.contextKey === pdaContextKey
+        ? {
+            iaSugeridos: iaPdaState.sugeridos,
+            iaAfinidadOrden: iaPdaState.afinidad,
+          }
+        : undefined,
+    );
+
+    if (!busquedaPda.trim()) return base;
+    const q = busquedaPda.toLowerCase();
+    const match = (p: PDA) =>
+      p.texto.toLowerCase().includes(q) || p.codigo.toLowerCase().includes(q);
+    return {
+      ...base,
+      sugeridos: base.sugeridos.filter((item) => match(item.pda)),
+      restantes: base.restantes.filter((item) => match(item.pda)),
+    };
+  }, [
+    pdasPorCampos,
+    contenidos,
+    form.nombre,
+    form.problemaContexto,
+    form.proposito,
+    form.productoIntegrador,
+    iaPdaState,
+    pdaContextKey,
+    busquedaPda,
+  ]);
+
+  async function analizarPdasConIa(force = false) {
+    if (pdasPorCampos.length === 0) return;
+    if (!force && iaPdaState.contextKey === pdaContextKey && iaPdaState.origen === 'ia') {
+      return;
+    }
+
+    const tieneTexto = Boolean(
+      form.nombre.trim() ||
+        form.problemaContexto.trim() ||
+        form.proposito.trim() ||
+        form.productoIntegrador.trim(),
+    );
+    if (!tieneTexto) return;
+
+    const contenidoPorCodigo = new Map(contenidos.map((c) => [c.codigo, c.texto]));
+    // Pre-ordenar por afinidad determinista para enviar hasta 80 mejores candidatos a la IA
+    const preOrdenados = clasificarYOrdenarPdas(pdasPorCampos, contenidos, {
+      nombre: form.nombre,
+      problemaContexto: form.problemaContexto,
+      proposito: form.proposito,
+      productoIntegrador: form.productoIntegrador,
+    });
+    const candidatos = [...preOrdenados.sugeridos, ...preOrdenados.restantes]
+      .slice(0, 80)
+      .map((item) => ({
+        codigo: item.pda.codigo,
+        texto: item.pda.texto,
+        contenido: contenidoPorCodigo.get(item.pda.contenido_codigo) ?? '',
+      }));
+
+    const keySolicitada = pdaContextKey;
+    setIaPdaState((prev) => ({ ...prev, loading: true }));
+
+    try {
+      const res = await fetch('/api/planeaciones/ia/sugerir-pdas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          modalidad: form.modalidad,
+          nombre: form.nombre,
+          problema_contexto: form.problemaContexto,
+          proposito: form.proposito,
+          producto_integrador: form.productoIntegrador,
+          grado: gradoPreescolar,
+          candidatos,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      const data = json?.data;
+      if (res.ok && data?.origen === 'ia' && Array.isArray(data.sugeridos)) {
+        setIaPdaState({
+          loading: false,
+          origen: 'ia',
+          sugeridos: data.sugeridos,
+          afinidad: Array.isArray(data.afinidad) ? data.afinidad : [],
+          contextKey: keySolicitada,
+        });
+      } else {
+        setIaPdaState({
+          loading: false,
+          origen: 'afinidad',
+          sugeridos: [],
+          afinidad: [],
+          contextKey: keySolicitada,
+        });
+      }
+    } catch {
+      setIaPdaState({
+        loading: false,
+        origen: 'afinidad',
+        sugeridos: [],
+        afinidad: [],
+        contextKey: keySolicitada,
+      });
+    }
+  }
+
+  useEffect(() => {
+    const pasoActual = steps[paso - 1];
+    if (pasoActual !== 'PDA') return;
+    if (iaPdaState.loading) return;
+    if (iaPdaState.contextKey === pdaContextKey) return;
+    const tieneTexto = Boolean(
+      form.nombre.trim() ||
+        form.problemaContexto.trim() ||
+        form.proposito.trim() ||
+        form.productoIntegrador.trim(),
+    );
+    if (!tieneTexto || pdasPorCampos.length === 0) return;
+    void analizarPdasConIa();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paso, steps, pdaContextKey, pdasPorCampos.length]);
+
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [cambioModalidad, setCambioModalidad] = useState<{
@@ -845,6 +1010,67 @@ export function WizardPlaneacion({
   }
 
   function renderPDAs() {
+    const { sugeridos, restantes, tieneContexto } = pdasClasificados;
+    const totalVisibles = sugeridos.length + restantes.length;
+    const todosSugeridosSeleccionados =
+      sugeridos.length > 0 && sugeridos.every((s) => form.pdas.includes(s.pda.codigo));
+
+    const toggleTodosSugeridos = () => {
+      const codigosSugeridos = sugeridos.map((s) => s.pda.codigo);
+      if (todosSugeridosSeleccionados) {
+        setForm((prev) => ({
+          ...prev,
+          pdas: prev.pdas.filter((c) => !codigosSugeridos.includes(c)),
+        }));
+      } else {
+        setForm((prev) => ({
+          ...prev,
+          pdas: Array.from(new Set([...prev.pdas, ...codigosSugeridos])),
+        }));
+      }
+    };
+
+    const renderPdaCard = (
+      p: PDA,
+      extra?: { sugerido?: boolean; origen?: 'ia' | 'afinidad'; razon?: string },
+    ) => {
+      const selected = form.pdas.includes(p.codigo);
+      return (
+        <button
+          type="button"
+          key={p.codigo}
+          onClick={() => togglePDA(p.codigo)}
+          className={`flex w-full items-start gap-3 rounded-lg border p-3 text-left transition-colors ${
+            selected
+              ? 'border-nem-verde bg-nem-verde/5'
+              : extra?.sugerido
+                ? 'border-nem-verde/30 bg-background hover:bg-nem-verde/5'
+                : 'hover:bg-muted'
+          }`}
+        >
+          <Checkbox checked={selected} aria-label={p.codigo} />
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="font-medium">{p.codigo}</p>
+              {extra?.sugerido && (
+                <Badge variant="verde" className="gap-1 text-[10px]">
+                  <Sparkles className="h-3 w-3" />
+                  {extra.origen === 'ia' ? 'Sugerido por IA' : 'Sugerido'}
+                </Badge>
+              )}
+              <Badge variant="outline" className="text-[10px]">
+                Grado {p.grado}
+              </Badge>
+            </div>
+            <p className="mt-0.5 text-sm">{p.texto}</p>
+            {extra?.razon && (
+              <p className="mt-1 text-xs text-nem-verde">{extra.razon}</p>
+            )}
+          </div>
+        </button>
+      );
+    };
+
     return (
       <div className="space-y-3">
         <p className="flex items-center justify-between rounded-md border border-nem-verde/20 bg-nem-verde/5 px-3 py-2 text-xs text-muted-foreground">
@@ -858,10 +1084,49 @@ export function WizardPlaneacion({
               </>
             )}
           </span>
-          <Badge variant={form.pdas.length > 0 ? "verde" : "outline"} className="text-xs">
+          <Badge variant={form.pdas.length > 0 ? 'verde' : 'outline'} className="text-xs">
             {form.pdas.length} {form.pdas.length === 1 ? 'PDA seleccionado' : 'PDAs seleccionados'}
           </Badge>
         </p>
+
+        {tieneContexto && (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/40 px-3 py-2 text-xs">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              {iaPdaState.loading ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-nem-verde" />
+                  Analizando con IA los PDA más afines a tu proyecto...
+                </>
+              ) : iaPdaState.origen === 'ia' && iaPdaState.contextKey === pdaContextKey ? (
+                <>
+                  <Sparkles className="h-3.5 w-3.5 text-nem-verde" />
+                  Sugerencias IA listas · los demás PDA están ordenados por afinidad.
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-3.5 w-3.5 text-nem-verde" />
+                  Ordenados por afinidad con tu proyecto.
+                </>
+              )}
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={iaPdaState.loading || pdasPorCampos.length === 0}
+              onClick={() => void analizarPdasConIa(true)}
+              className="h-7 gap-1 text-xs"
+            >
+              {iaPdaState.loading ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Sparkles className="h-3 w-3 text-nem-verde" />
+              )}
+              {iaPdaState.origen === 'ia' ? 'Re-analizar con IA' : 'Sugerir con IA'}
+            </Button>
+          </div>
+        )}
+
         <div className="flex items-center gap-2">
           <Input
             value={busquedaPda}
@@ -881,33 +1146,54 @@ export function WizardPlaneacion({
             </Button>
           )}
         </div>
-        {pdasVisibles.length === 0 && (
+
+        {totalVisibles === 0 && (
           <p className="text-sm text-muted-foreground">
             No hay PDA que coincidan con la búsqueda o con los campos seleccionados.
           </p>
         )}
-        {pdasVisibles.map((p) => {
-          const selected = form.pdas.includes(p.codigo);
-          return (
-            <button
-              type="button"
-              key={p.codigo}
-              onClick={() => togglePDA(p.codigo)}
-              className={`flex w-full items-start gap-3 rounded-lg border p-3 text-left ${
-                selected ? 'border-nem-verde bg-nem-verde/5' : 'hover:bg-muted'
-              }`}
-            >
-              <Checkbox checked={selected} aria-label={p.codigo} />
-              <div>
-                <p className="font-medium">{p.codigo}</p>
-                <p className="text-sm">{p.texto}</p>
-                <Badge variant="outline" className="mt-1 text-[10px]">
-                  Grado {p.grado}
-                </Badge>
-              </div>
-            </button>
-          );
-        })}
+
+        {sugeridos.length > 0 && (
+          <div className="space-y-2 rounded-lg border border-nem-verde/30 bg-nem-verde/5 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="flex items-center gap-1.5 text-xs font-semibold text-nem-verde">
+                <Sparkles className="h-3.5 w-3.5" />
+                Sugeridos para tu planeación ({sugeridos.length})
+              </p>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={toggleTodosSugeridos}
+                className="h-7 text-xs text-nem-verde hover:bg-nem-verde/10"
+              >
+                {todosSugeridosSeleccionados ? 'Quitar sugeridos' : 'Seleccionar sugeridos'}
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {sugeridos.map((item) =>
+                renderPdaCard(item.pda, {
+                  sugerido: true,
+                  origen: item.origen,
+                  razon: item.razon,
+                }),
+              )}
+            </div>
+          </div>
+        )}
+
+        {restantes.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-muted-foreground">
+              {sugeridos.length > 0
+                ? `Otros PDA disponibles (${restantes.length}, ordenados por afinidad)`
+                : `PDA disponibles (${restantes.length})`}
+            </p>
+            <div className="space-y-2">
+              {restantes.map((item) => renderPdaCard(item.pda))}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
