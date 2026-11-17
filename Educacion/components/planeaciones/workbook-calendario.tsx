@@ -6,6 +6,14 @@ import { Plus } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { fechaDesdeEtiquetaSesion, parseISODate } from '@/lib/planeaciones/calendario-periodo';
+import {
+  diaSemanaHabil,
+  esLunes,
+  esUltimoViernesDelMes,
+  obtenerEfemeride,
+  type DiaEventoConfig,
+  type RutinaGrupoItem,
+} from '@/lib/planeaciones/calendario-escolar';
 import { etiquetaSesion } from '@/lib/planeaciones/modalidad-ui';
 import type { SemanaCalendario } from '@/lib/planeaciones/calendario-periodo';
 import type { Bloque } from '@/services/planeaciones/bloque-actions';
@@ -45,6 +53,8 @@ function WorkbookDiaCelda({
   seleccionado,
   destacado,
   interaccionDnD,
+  rutinasGrupo = [],
+  eventoDia,
   onAbrir,
   onAgregar,
   renderBloque,
@@ -56,6 +66,8 @@ function WorkbookDiaCelda({
   destacado?: boolean;
   /** false cuando el modal de este día está abierto (evita ids DnD duplicados). */
   interaccionDnD: boolean;
+  rutinasGrupo?: RutinaGrupoItem[];
+  eventoDia?: DiaEventoConfig;
   onAbrir: () => void;
   onAgregar: () => void;
   renderBloque: (bloque: Bloque) => ReactNode;
@@ -67,19 +79,34 @@ function WorkbookDiaCelda({
   });
   const ids = bloques.map((b) => `blk-${b.id}`);
   const etiqueta = etiquetaSesion(sesion);
+  const fechaISO = fechaDesdeEtiquetaSesion(sesion.ajustes_sesion);
+  const esCteAuto = fechaISO ? esUltimoViernesDelMes(fechaISO) : false;
+  const sinClase = eventoDia?.sinClase ?? esCteAuto;
+  const motivoSinClase =
+    eventoDia?.motivoSinClase?.trim() || (esCteAuto ? 'Consejo Técnico Escolar' : 'Sin clase');
+  const mostrarHonores =
+    Boolean(fechaISO && esLunes(fechaISO)) && !sinClase && !eventoDia?.ocultarHonores;
+  const efemeride = fechaISO ? obtenerEfemeride(fechaISO) : null;
+  const dow = fechaISO ? diaSemanaHabil(fechaISO) : null;
+  const rutinasDelDia =
+    dow && !sinClase
+      ? rutinasGrupo.filter((r) => r.diasSemana.includes(dow))
+      : [];
 
   return (
     <div
       ref={setNodeRef}
       data-testid={`workbook-dia-${sesion.id}`}
       className={`flex min-h-[140px] flex-col rounded-lg border-2 border-dashed p-2 transition-colors ${
-        isOver
-          ? 'border-nem-verde bg-nem-verde/10'
-          : destacado
-            ? 'border-nem-verde bg-nem-verde/15 ring-2 ring-nem-verde/40'
-            : seleccionado
-              ? 'border-nem-verde/50 bg-nem-verde/5'
-              : 'border-muted-foreground/20 bg-background'
+        sinClase
+          ? 'border-rose-300 bg-rose-50/60'
+          : isOver
+            ? 'border-nem-verde bg-nem-verde/10'
+            : destacado
+              ? 'border-nem-verde bg-nem-verde/15 ring-2 ring-nem-verde/40'
+              : seleccionado
+                ? 'border-nem-verde/50 bg-nem-verde/5'
+                : 'border-muted-foreground/20 bg-background'
       }`}
     >
       <button
@@ -91,10 +118,48 @@ function WorkbookDiaCelda({
         {etiqueta}
       </button>
 
+      {(sinClase || mostrarHonores || efemeride || rutinasDelDia.length > 0) && (
+        <div className="mb-1.5 flex flex-wrap gap-1">
+          {sinClase && (
+            <span className="rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-semibold text-rose-800">
+              {motivoSinClase}
+            </span>
+          )}
+          {mostrarHonores && (
+            <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-800">
+              Honores a la bandera
+            </span>
+          )}
+          {efemeride && (
+            <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-900">
+              {efemeride.nombre}
+            </span>
+          )}
+          {rutinasDelDia.map((r) => (
+            <span
+              key={r.id}
+              className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                r.categoria === 'especial'
+                  ? 'bg-sky-100 text-sky-800'
+                  : r.categoria === 'recurrente'
+                    ? 'bg-lime-100 text-lime-800'
+                    : 'bg-slate-100 text-slate-700'
+              }`}
+            >
+              {r.titulo}
+            </span>
+          ))}
+        </div>
+      )}
+
       <div className="min-h-0 flex-1 space-y-1">
-        {bloques.length === 0 ? (
+        {sinClase && bloques.length === 0 ? (
+          <p className="text-[10px] leading-snug text-rose-700">
+            Día marcado sin actividades regulares.
+          </p>
+        ) : bloques.length === 0 ? (
           <p className="text-[10px] leading-snug text-muted-foreground">
-            Sin actividades. Arrastra aquí o pulsa Agregar.
+            Sin actividades. Arrastra aquí o pulsa Configurar.
           </p>
         ) : interaccionDnD ? (
           <SortableContext items={ids} strategy={verticalListSortingStrategy}>
@@ -129,6 +194,12 @@ function WorkbookDiaCelda({
         )}
       </div>
 
+      {eventoDia?.tareaCasa?.trim() && (
+        <p className="mt-1 rounded bg-violet-50 px-1.5 py-0.5 text-[10px] italic text-violet-900">
+          <strong>TAREA:</strong> {eventoDia.tareaCasa.trim()}
+        </p>
+      )}
+
       {recursos.length > 0 && (
         <p className="mt-1 text-[10px] text-muted-foreground">
           {recursos.length} material{recursos.length === 1 ? '' : 'es'}
@@ -144,7 +215,7 @@ function WorkbookDiaCelda({
         data-testid={`workbook-dia-agregar-${sesion.id}`}
       >
         <Plus className="mr-1 h-3 w-3" />
-        Agregar
+        Editar día
       </Button>
     </div>
   );
@@ -158,6 +229,8 @@ export function WorkbookCalendario({
   sesionSeleccionada,
   sesionDestacadaId,
   modalSesionId,
+  rutinasGrupo = [],
+  eventosPorFecha = {},
   onAbrirDia,
   onAgregarDia,
   renderBloqueCompacto,
@@ -169,9 +242,11 @@ export function WorkbookCalendario({
   sesionSeleccionada: string;
   sesionDestacadaId?: string | null;
   modalSesionId: string | null;
+  rutinasGrupo?: RutinaGrupoItem[];
+  eventosPorFecha?: Record<string, DiaEventoConfig>;
   /** Ver / editar actividades del día. */
   onAbrirDia: (sesionId: string) => void;
-  /** Abrir modal para escribir actividad propia. */
+  /** Abrir modal para editar día. */
   onAgregarDia: (sesionId: string) => void;
   renderBloqueCompacto: (bloque: Bloque) => ReactNode;
 }) {
@@ -205,8 +280,18 @@ export function WorkbookCalendario({
             ))}
           </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-5">
-            {gridSemana(sem.sesiones).map((s, i) =>
-              s ? (
+            {gridSemana(sem.sesiones).map((s, i) => {
+              if (!s) {
+                return (
+                  <div
+                    key={`empty-${sem.clave}-${i}`}
+                    className="hidden min-h-[140px] rounded-lg border border-transparent bg-muted/20 sm:block"
+                    aria-hidden
+                  />
+                );
+              }
+              const f = fechaDesdeEtiquetaSesion(s.ajustes_sesion);
+              return (
                 <WorkbookDiaCelda
                   key={s.id}
                   sesion={s}
@@ -215,18 +300,14 @@ export function WorkbookCalendario({
                   seleccionado={sesionSeleccionada === s.id}
                   destacado={sesionDestacadaId === s.id}
                   interaccionDnD={modalSesionId !== s.id}
+                  rutinasGrupo={rutinasGrupo}
+                  eventoDia={f ? eventosPorFecha[f] : undefined}
                   onAbrir={() => onAbrirDia(s.id)}
                   onAgregar={() => onAgregarDia(s.id)}
                   renderBloque={renderBloqueCompacto}
                 />
-              ) : (
-                <div
-                  key={`empty-${sem.clave}-${i}`}
-                  className="hidden min-h-[140px] rounded-lg border border-transparent bg-muted/20 sm:block"
-                  aria-hidden
-                />
-              ),
-            )}
+              );
+            })}
           </div>
         </div>
       ))}

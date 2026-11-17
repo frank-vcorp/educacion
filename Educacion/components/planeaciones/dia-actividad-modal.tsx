@@ -16,13 +16,14 @@ export function DiaActividadModal({
   open,
   onOpenChange,
   actividadesPanel,
-  manualPanel,
+  diaConfigPanel,
 }: {
   sesion: Sesion | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   actividadesPanel: ReactNode;
-  manualPanel: ReactNode;
+  diaConfigPanel?: ReactNode;
+  manualPanel?: ReactNode;
 }) {
   if (!sesion) return null;
 
@@ -38,17 +39,12 @@ export function DiaActividadModal({
         <DialogHeader>
           <DialogTitle className="text-base text-nem-verde">{etiqueta}</DialogTitle>
           <DialogDescription>
-            Escribe una actividad nueva o pulsa una existente en la lista para modificarla.
+            Edita las actividades de este día, asigna la tarea para casa o marca si es día sin clase.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          <div
-            className="space-y-2 rounded-lg border border-nem-verde/30 bg-nem-verde/5 p-3"
-            data-testid="actividad-manual-panel"
-          >
-            {manualPanel}
-          </div>
+          {diaConfigPanel}
 
           <div className="space-y-2">
             <p className="text-xs font-medium text-muted-foreground">Actividades de este día</p>

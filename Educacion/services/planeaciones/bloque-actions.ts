@@ -40,6 +40,8 @@
  */
 'use server';
 
+import { inferirMomentoPorTipo } from '@/lib/planeaciones/calendario-escolar';
+
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 
@@ -325,7 +327,7 @@ export async function createBloqueFromCatalogo(
 
   const { data: planeacion, error: errPlane } = await supabase
     .from('planeacion')
-    .select('id, docente_id, cct, estado')
+    .select('id, docente_id, cct, estado, modalidad')
     .eq('id', data.planeacionId)
     .maybeSingle();
   if (errPlane) return { ok: false, error: errPlane.message };
@@ -369,6 +371,7 @@ export async function createBloqueFromCatalogo(
     .select('id', { count: 'exact', head: true })
     .eq('sesion_id', data.sesionId);
   const orden = (countBloques ?? 0) + 1;
+  const momentoInferido = inferirMomentoPorTipo(catalogo.tipo, planeacion.modalidad);
 
   const { data: nuevoBloque, error: errIns } = await supabase
     .from('bloque')
@@ -386,6 +389,7 @@ export async function createBloqueFromCatalogo(
       ejes_articuladores: catalogo.ejes_articuladores ?? [],
       recursos_requeridos: catalogo.recursos_requeridos ?? [],
       duracion_min: catalogo.duracion_min,
+      momento: momentoInferido,
       orden,
       origen: 'kit_template',
     })

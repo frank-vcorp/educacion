@@ -119,6 +119,12 @@ import {
   agruparFechasPorSemana,
   fechaDesdeEtiquetaSesion,
 } from '@/lib/planeaciones/calendario-periodo';
+import {
+  esLunes,
+  esUltimoViernesDelMes,
+  type DiaEventoConfig,
+  type RutinaGrupoItem,
+} from '@/lib/planeaciones/calendario-escolar';
 const TIPO_LABEL: Record<string, string> = {
   apertura: 'Inicio',
   desarrollo: 'Desarrollo',
@@ -177,7 +183,7 @@ function parseSesionDropId(overId: string): string | null {
 
 const ACTIVIDAD_PROPIA_DRAG_ID = 'act-propia-manual';
 
-function ActividadPropiaCard() {
+function ActividadPropiaCard({ onEscribir }: { onEscribir?: () => void } = {}) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: ACTIVIDAD_PROPIA_DRAG_ID,
     data: { type: 'actividad_propia' },
@@ -208,8 +214,19 @@ function ActividadPropiaCard() {
             Actividad propia
           </p>
           <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
-            Arrastra a un día del calendario para escribirla (como en tu Word).
+            Arrastra a un día o escribe una actividad libre.
           </p>
+          {onEscribir && (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={onEscribir}
+              className="mt-2 h-7 w-full border-nem-verde/40 text-xs text-nem-verde hover:bg-nem-verde/10"
+            >
+              Escribir actividad
+            </Button>
+          )}
         </div>
       </div>
     </div>
@@ -582,14 +599,14 @@ function ActividadSortable({
               htmlFor={`obs-${bloque.id}`}
               className="text-xs font-medium text-muted-foreground"
             >
-              Observación / evidencias
+              ¿Qué se observará? (criterio formativo)
             </label>
             <Textarea
               id={`obs-${bloque.id}`}
               defaultValue={bloque.observacion ?? ''}
               rows={2}
               className="mt-1 text-xs"
-              placeholder="Qué observaste, evidencias, ajustes…"
+              placeholder="Ej. Participación en clase, escucha de indicaciones, convivencia pacífica…"
               onBlur={async (e) => {
                 const val = e.target.value.trim();
                 if (val === (bloque.observacion ?? '').trim()) return;
@@ -602,6 +619,30 @@ function ActividadSortable({
               }}
             />
           </div>
+          {(bloque.recursos_requeridos?.length ?? 0) > 0 && (
+            <div className="flex flex-wrap items-center gap-1 pt-1">
+              <span className="text-[11px] font-medium text-muted-foreground">
+                Materiales sugeridos:
+              </span>
+              {bloque.recursos_requeridos!.map((rec, idx) => {
+                const label =
+                  rec.clave_busqueda || rec.categoria || `Material ${idx + 1}`;
+                const texto =
+                  rec.cantidad && rec.cantidad > 1
+                    ? `${rec.cantidad}× ${label}`
+                    : label;
+                return (
+                  <Badge
+                    key={`${label}-${idx}`}
+                    variant="outline"
+                    className="text-[10px] font-normal"
+                  >
+                    {texto}
+                  </Badge>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
@@ -902,12 +943,65 @@ export function ActividadesEditor({
   });
   const [sesionSeleccionada, setSesionSeleccionada] = useState(sesionesIniciales[0]?.id ?? '');
   const [modalSesionId, setModalSesionId] = useState<string | null>(null);
+  const [actividadPropiaSesionId, setActividadPropiaSesionId] = useState<string | null>(null);
   const [bloqueEditandoId, setBloqueEditandoId] = useState<string | null>(null);
   const [enfocarManual, setEnfocarManual] = useState(false);
   const manualInputRef = useRef<HTMLTextAreaElement>(null);
   const [nuevoTexto, setNuevoTexto] = useState('');
   const [adding, setAdding] = useState(false);
   const [errorNuevo, setErrorNuevo] = useState<string | null>(null);
+
+  const rutinasStorageKey = `nem_rutinas_grupo_${docenteId}_${gradoPreescolar}`;
+  const eventosStorageKey = `nem_eventos_planeacion_${planeacionId}`;
+  const [rutinasGrupo, setRutinasGrupo] = useState<RutinaGrupoItem[]>([]);
+  const [eventosPorFecha, setEventosPorFecha] = useState<Record<string, DiaEventoConfig>>({});
+
+  useEffect(() => {
+    try {
+      const rRaw = localStorage.getItem(rutinasStorageKey);
+      if (rRaw) {
+        const parsed = JSON.parse(rRaw);
+        if (Array.isArray(parsed)) setRutinasGrupo(parsed);
+      }
+      const eRaw = localStorage.getItem(eventosStorageKey);
+      if (eRaw) {
+        const parsed = JSON.parse(eRaw);
+        if (parsed && typeof parsed === 'object') setEventosPorFecha(parsed);
+      }
+    } catch {
+      // ignore localStorage errors
+    }
+  }, [rutinasStorageKey, eventosStorageKey]);
+
+  const actualizarRutinasGrupo = useCallback(
+    (next: RutinaGrupoItem[]) => {
+      setRutinasGrupo(next);
+      try {
+        localStorage.setItem(rutinasStorageKey, JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+    },
+    [rutinasStorageKey],
+  );
+
+  const actualizarEventoDia = useCallback(
+    (fechaISO: string, patch: Partial<DiaEventoConfig>) => {
+      setEventosPorFecha((prev) => {
+        const next = {
+          ...prev,
+          [fechaISO]: { ...(prev[fechaISO] ?? {}), ...patch },
+        };
+        try {
+          localStorage.setItem(eventosStorageKey, JSON.stringify(next));
+        } catch {
+          // ignore
+        }
+        return next;
+      });
+    },
+    [eventosStorageKey],
+  );
   const [activeDrag, setActiveDrag] = useState<{
     tipo: 'catalogo' | 'bloque' | 'recurso';
     label: string;
@@ -1309,7 +1403,8 @@ export function ActividadesEditor({
 
     const sesionIdDestino = parseSesionDropId(overId);
     if (activeId === ACTIVIDAD_PROPIA_DRAG_ID && sesionIdDestino) {
-      abrirDiaParaEscribir(sesionIdDestino);
+      setSesionSeleccionada(sesionIdDestino);
+      setActividadPropiaSesionId(sesionIdDestino);
       return;
     }
 
@@ -1385,7 +1480,7 @@ export function ActividadesEditor({
       setErrorNuevo('Escribe la actividad antes de añadir.');
       return;
     }
-    const sesionId = modalSesionId ?? sesionSeleccionada;
+    const sesionId = actividadPropiaSesionId ?? modalSesionId ?? sesionSeleccionada;
     if (!sesionId) {
       setErrorNuevo('Selecciona un día o sección.');
       return;
@@ -1406,6 +1501,7 @@ export function ActividadesEditor({
         return;
       }
       setNuevoTexto('');
+      setActividadPropiaSesionId(null);
       await refresh();
     } finally {
       setAdding(false);
@@ -1751,8 +1847,10 @@ export function ActividadesEditor({
         sesionSeleccionada={sesionSeleccionada}
         sesionDestacadaId={sesionDestacadaId}
         modalSesionId={modalSesionId}
+        rutinasGrupo={rutinasGrupo}
+        eventosPorFecha={eventosPorFecha}
         onAbrirDia={abrirDia}
-        onAgregarDia={abrirDiaParaEscribir}
+        onAgregarDia={abrirDia}
         renderBloqueCompacto={renderBloqueCompacto}
       />
     </div>
@@ -1857,7 +1955,11 @@ export function ActividadesEditor({
             <aside className="sticky top-[4.5rem] z-10 max-h-[calc(100dvh-5.5rem)] self-start space-y-3 overflow-y-auto rounded-lg border bg-background/95 p-3 shadow-md backdrop-blur supports-[backdrop-filter]:bg-background/85">
               {esWorkbook ? (
                 <>
-                  <ActividadPropiaCard />
+                  <ActividadPropiaCard
+                    onEscribir={() =>
+                      setActividadPropiaSesionId(sesionSeleccionada || sesiones[0]?.id || null)
+                    }
+                  />
                   {panelCatalogo}
                 </>
               ) : (
@@ -1895,7 +1997,10 @@ export function ActividadesEditor({
             </div>
 
             <aside className="sticky top-[4.5rem] z-10 max-h-[calc(100dvh-5.5rem)] self-start space-y-4 overflow-y-auto rounded-lg border bg-background/95 p-3 shadow-md backdrop-blur supports-[backdrop-filter]:bg-background/85">
-              <ConsultaRapidaSidebar />
+              <ConsultaRapidaSidebar
+                onOpenBiblioteca={() => setBibliotecaOpen(true)}
+                onOpenRecursos={() => setRecursosModalOpen(true)}
+              />
               {esWorkbook && (
                 <>
                   <div className="border-t" />
@@ -1905,39 +2010,174 @@ export function ActividadesEditor({
             </aside>
           </div>
 
-          {esWorkbook && <RutinariasPanel />}
+          {esWorkbook && (
+            <RutinariasPanel
+              rutinas={rutinasGrupo}
+              onChangeRutinas={actualizarRutinasGrupo}
+            />
+          )}
 
-          {esWorkbook && sesionModal && (
-            <DiaActividadModal
-              sesion={sesionModal}
-              open={modalSesionId != null}
+          {esWorkbook && sesionModal && (() => {
+            const fechaModal = fechaDesdeEtiquetaSesion(sesionModal.ajustes_sesion);
+            const configDia = fechaModal ? (eventosPorFecha[fechaModal] ?? {}) : {};
+            const esLunesDia = fechaModal ? esLunes(fechaModal) : false;
+            const esCteAuto = fechaModal ? esUltimoViernesDelMes(fechaModal) : false;
+            const sinClaseActivo = configDia.sinClase ?? esCteAuto;
+
+            return (
+              <DiaActividadModal
+                sesion={sesionModal}
+                open={modalSesionId != null}
+                onOpenChange={(open) => {
+                  if (!open) {
+                    setModalSesionId(null);
+                    setBloqueEditandoId(null);
+                  }
+                }}
+                diaConfigPanel={
+                  fechaModal ? (
+                    <div className="space-y-2.5 rounded-lg border bg-muted/20 p-3">
+                      <div className="space-y-1">
+                        <label
+                          htmlFor={`tarea-dia-${fechaModal}`}
+                          className="text-xs font-medium text-foreground"
+                        >
+                          TAREA (para casa)
+                        </label>
+                        <Input
+                          id={`tarea-dia-${fechaModal}`}
+                          value={configDia.tareaCasa ?? ''}
+                          onChange={(e) =>
+                            actualizarEventoDia(fechaModal, { tareaCasa: e.target.value })
+                          }
+                          placeholder="Ej. Traer un recorte de su color favorito o preguntar en casa..."
+                          className="h-8 text-xs"
+                        />
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-4 pt-1">
+                        <label className="flex cursor-pointer items-center gap-1.5 text-xs">
+                          <input
+                            type="checkbox"
+                            checked={sinClaseActivo}
+                            onChange={(e) =>
+                              actualizarEventoDia(fechaModal, {
+                                sinClase: e.target.checked,
+                                motivoSinClase:
+                                  e.target.checked && !configDia.motivoSinClase
+                                    ? esCteAuto
+                                      ? 'Consejo Técnico Escolar (CTE)'
+                                      : 'Suspensión de clases'
+                                    : configDia.motivoSinClase,
+                              })
+                            }
+                            className="h-3.5 w-3.5 accent-amber-600"
+                          />
+                          <span>Día sin clase (CTE / Suspensión)</span>
+                        </label>
+
+                        {esLunesDia && (
+                          <label className="flex cursor-pointer items-center gap-1.5 text-xs">
+                            <input
+                              type="checkbox"
+                              checked={Boolean(configDia.ocultarHonores)}
+                              onChange={(e) =>
+                                actualizarEventoDia(fechaModal, {
+                                  ocultarHonores: e.target.checked,
+                                })
+                              }
+                              className="h-3.5 w-3.5 accent-nem-verde"
+                            />
+                            <span>Ocultar Honores a la bandera</span>
+                          </label>
+                        )}
+                      </div>
+
+                      {sinClaseActivo && (
+                        <Input
+                          value={
+                            configDia.motivoSinClase ??
+                            (esCteAuto ? 'Consejo Técnico Escolar (CTE)' : '')
+                          }
+                          onChange={(e) =>
+                            actualizarEventoDia(fechaModal, {
+                              motivoSinClase: e.target.value,
+                            })
+                          }
+                          placeholder="Motivo (ej. Consejo Técnico Escolar, Reunión sindical...)"
+                          className="h-8 text-xs"
+                        />
+                      )}
+                    </div>
+                  ) : null
+                }
+                actividadesPanel={
+                  <SesionDropArea
+                    sesion={sesionModal}
+                    bloques={bloquesPorSesion.get(sesionModal.id) ?? []}
+                    recursos={recursosPorSesion.get(sesionModal.id) ?? []}
+                    planeacionId={planeacionId}
+                    docenteId={docenteId}
+                    cct={cct}
+                    inventario={recursosInventario}
+                    esWorkbook={esWorkbook}
+                    momentosOptions={momentosWorkbook}
+                    droppableId={`ses-modal-${sesionModal.id}`}
+                    sinEncabezado
+                    bloqueEditandoId={bloqueEditandoId}
+                    onRefresh={refresh}
+                    onAssignRecurso={assignRecurso}
+                    onQuitarRecurso={quitarRecurso}
+                  />
+                }
+              />
+            );
+          })()}
+
+          {esWorkbook && (
+            <Dialog
+              open={actividadPropiaSesionId != null}
               onOpenChange={(open) => {
                 if (!open) {
-                  setModalSesionId(null);
-                  setBloqueEditandoId(null);
+                  setActividadPropiaSesionId(null);
+                  setErrorNuevo(null);
                 }
               }}
-              manualPanel={panelManual}
-              actividadesPanel={
-                <SesionDropArea
-                  sesion={sesionModal}
-                  bloques={bloquesPorSesion.get(sesionModal.id) ?? []}
-                  recursos={recursosPorSesion.get(sesionModal.id) ?? []}
-                  planeacionId={planeacionId}
-                  docenteId={docenteId}
-                  cct={cct}
-                  inventario={recursosInventario}
-                  esWorkbook={esWorkbook}
-                  momentosOptions={momentosWorkbook}
-                  droppableId={`ses-modal-${sesionModal.id}`}
-                  sinEncabezado
-                  bloqueEditandoId={bloqueEditandoId}
-                  onRefresh={refresh}
-                  onAssignRecurso={assignRecurso}
-                  onQuitarRecurso={quitarRecurso}
-                />
-              }
-            />
+            >
+              <DialogContent className="max-w-md" data-testid="actividad-propia-modal">
+                <DialogHeader>
+                  <DialogTitle className="text-base text-nem-verde">
+                    Nueva actividad propia
+                  </DialogTitle>
+                  <DialogDescription className="text-xs">
+                    Escribe una actividad personalizada y elige el día donde se agregará.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <label
+                      htmlFor="actividad-propia-dia-select"
+                      className="text-xs font-medium text-muted-foreground"
+                    >
+                      Día de la planeación
+                    </label>
+                    <select
+                      id="actividad-propia-dia-select"
+                      value={actividadPropiaSesionId ?? ''}
+                      onChange={(e) => setActividadPropiaSesionId(e.target.value)}
+                      className="h-9 w-full rounded-md border bg-background px-2.5 text-xs"
+                    >
+                      {sesiones.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {etiquetaSesion(s)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-2">{panelManual}</div>
+                </div>
+              </DialogContent>
+            </Dialog>
           )}
 
           <DragOverlay dropAnimation={null}>
