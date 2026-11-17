@@ -20,9 +20,11 @@ import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/shared/states';
 import { OnboardingDocenteBanner } from '@/components/dashboard/onboarding-docente-banner';
 import { DashboardRutinaDiariaWidget } from '@/components/dashboard/dashboard-rutina-diaria-widget';
+import { PlantelRolesWidget } from '@/components/dashboard/plantel-roles-widget';
 import { getServerSession } from '@/lib/auth/session';
 import { listPlaneaciones } from '@/services/planeaciones/planeacion-actions';
 import { listRecursos } from '@/services/recursos-aula/recurso-actions';
+import { getEstadoPlantelParaUsuario } from '@/services/plantel/plantel-actions';
 import { createClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
@@ -35,17 +37,19 @@ export default async function DashboardPage() {
   if (!session.docenteId) redirect('/onboarding/cct');
 
   const supabase = await createClient();
-  const [{ items: planeaciones }, { items: recursos }, gruposRes] = await Promise.all([
-    listPlaneaciones(session.docenteId),
-    listRecursos(session.docenteId),
-    supabase
-      .from('grupo')
-      .select('id, nombre, grado')
-      .eq('docente_id', session.docenteId)
-      .eq('activo', true)
-      .limit(1)
-      .maybeSingle(),
-  ]);
+  const [{ items: planeaciones }, { items: recursos }, gruposRes, estadoPlantel] =
+    await Promise.all([
+      listPlaneaciones(session.docenteId),
+      listRecursos(session.docenteId),
+      supabase
+        .from('grupo')
+        .select('id, nombre, grado')
+        .eq('docente_id', session.docenteId)
+        .eq('activo', true)
+        .limit(1)
+        .maybeSingle(),
+      getEstadoPlantelParaUsuario(),
+    ]);
 
   const grupo = gruposRes.data;
 
@@ -84,6 +88,8 @@ export default async function DashboardPage() {
           </p>
         )}
       </header>
+
+      {estadoPlantel && <PlantelRolesWidget estado={estadoPlantel} />}
 
       <OnboardingDocenteBanner
         nombreDocente={session.user.user_metadata?.nombre as string | undefined}

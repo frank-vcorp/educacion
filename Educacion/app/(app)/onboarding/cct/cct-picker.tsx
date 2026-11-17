@@ -25,11 +25,11 @@ function esCCTPreescolar(cct: CCTBasic): boolean {
   return cct.nivel === 'preescolar';
 }
 
-export function CCTPicker() {
+export function CCTPicker({ cctInvitado = null }: { cctInvitado?: CCTBasic | null }) {
   const router = useRouter();
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(cctInvitado?.nombre ?? '');
   const [results, setResults] = useState<CCTBasic[]>([]);
-  const [selected, setSelected] = useState<CCTBasic | null>(null);
+  const [selected, setSelected] = useState<CCTBasic | null>(cctInvitado);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [searching, setSearching] = useState(false);

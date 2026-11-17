@@ -5,13 +5,22 @@
  */
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import type { User } from '@supabase/supabase-js';
+import {
+  parseRolPlantelConfig,
+  type DirectorEstado,
+  type RolPlantel,
+} from '@/lib/auth/roles-cct';
 
 export interface SessionInfo {
   user: User;
   cct: string | null;
   docenteId: string | null;
+  docenteNombre: string | null;
   /** Nivel del docente en BD; MVP solo admite preescolar. */
   nivelDocente: string | null;
+  rolActivo: RolPlantel;
+  rolesDisponibles: RolPlantel[];
+  directorEstado?: DirectorEstado;
   hasAcceptedAviso: boolean;
   hasGrupoActivo: boolean;
 }
@@ -31,7 +40,7 @@ export async function getServerSession(): Promise<SessionInfo | null> {
   const [docenteRes, avisoRes, gruposRes] = await Promise.all([
     supabase
       .from('docente')
-      .select('id, cct, nivel, activo')
+      .select('id, nombre, cct, nivel, activo, configuracion_m4')
       .eq('id', user.id)
       .maybeSingle(),
     supabase
@@ -47,11 +56,20 @@ export async function getServerSession(): Promise<SessionInfo | null> {
       .eq('activo', true),
   ]);
 
+  const rolCfg = parseRolPlantelConfig(docenteRes.data?.configuracion_m4);
+
   return {
     user,
     cct: docenteRes.data?.cct ?? null,
     docenteId: docenteRes.data?.id ?? null,
+    docenteNombre:
+      docenteRes.data?.nombre ??
+      (user.user_metadata?.nombre as string | undefined) ??
+      null,
     nivelDocente: docenteRes.data?.nivel ?? null,
+    rolActivo: rolCfg.rolActivo,
+    rolesDisponibles: rolCfg.rolesDisponibles,
+    directorEstado: rolCfg.directorEstado,
     hasAcceptedAviso: !!avisoRes.data,
     hasGrupoActivo: (gruposRes.count ?? 0) > 0,
   };

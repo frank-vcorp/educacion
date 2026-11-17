@@ -70,6 +70,48 @@ export async function saveCCT(formData: FormData): Promise<OnboardingResult> {
   const cctValido = validarCCTPreescolar(cct);
   if (!cctValido.ok) return cctValido;
 
+  const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+  const rolInicial = meta.rol_inicial === 'director' ? 'director' : 'docente';
+  const invitadoPor =
+    typeof meta.inv_por_id === 'string' && typeof meta.inv_por_nombre === 'string'
+      ? {
+          id: meta.inv_por_id,
+          nombre: meta.inv_por_nombre,
+          rolObjetivo: rolInicial,
+        }
+      : null;
+
+  let directorEstado: 'pendiente_aprobacion' | 'pendiente_respaldo' | undefined;
+  if (rolInicial === 'director') {
+    try {
+      const { createAdminClient } = await import('@/lib/supabase/admin');
+      const admin = createAdminClient();
+      const { count } = await admin
+        .from('docente')
+        .select('id', { count: 'exact', head: true })
+        .eq('cct', parsed.data.cct)
+        .eq('activo', true)
+        .neq('id', user.id);
+      directorEstado = (count ?? 0) > 0 ? 'pendiente_aprobacion' : 'pendiente_respaldo';
+    } catch {
+      directorEstado = 'pendiente_respaldo';
+    }
+  }
+
+  const configuracionM4 = {
+    rolActivo: rolInicial,
+    rolesDisponibles: [rolInicial],
+    ...(directorEstado ? { directorEstado } : {}),
+    ...(invitadoPor ? { invitadoPor } : {}),
+    historialRoles: [
+      {
+        rol: rolInicial,
+        desde: new Date().toISOString(),
+        motivo: invitadoPor ? `Alta por invitación (${invitadoPor.nombre})` : 'Alta inicial',
+      },
+    ],
+  };
+
   // Upsert docente
   const { error } = await supabase
     .from('docente')
@@ -80,12 +122,16 @@ export async function saveCCT(formData: FormData): Promise<OnboardingResult> {
         email: user.email!,
         cct: parsed.data.cct,
         nivel: nivelDocenteForzado(),
+        configuracion_m4: configuracionM4,
       },
       { onConflict: 'id' },
     );
   if (error) return { ok: false, error: error.message };
 
-  return { ok: true, redirectTo: '/onboarding/grupo' };
+  return {
+    ok: true,
+    redirectTo: rolInicial === 'director' ? '/dashboard' : '/onboarding/grupo',
+  };
 }
 
 /**

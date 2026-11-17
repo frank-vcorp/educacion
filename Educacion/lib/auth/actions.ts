@@ -126,6 +126,17 @@ export async function register(formData: FormData): Promise<AuthResult> {
     return { ok: false, error: 'Las contraseñas no coinciden', field: 'confirmPassword' };
   }
 
+  const rolParam = String(formData.get('rol') ?? '').trim();
+  const invToken = String(formData.get('inv') ?? '').trim();
+
+  const { normalizarRolRegistro, verifyInvitacionCCT } = await import(
+    '@/lib/auth/invitacion-cct'
+  );
+  const invPayload = invToken ? await verifyInvitacionCCT(invToken) : null;
+  const rolInicial = invPayload
+    ? invPayload.rolObjetivo
+    : normalizarRolRegistro(rolParam);
+
   const supabase = await createClient();
 
   // 1) Crear usuario en auth.users
@@ -134,7 +145,17 @@ export async function register(formData: FormData): Promise<AuthResult> {
     password: parsed.data.password,
     options: {
       emailRedirectTo: `${getOrigin()}/auth/callback?redirect=/onboarding`,
-      data: { nombre: parsed.data.nombre },
+      data: {
+        nombre: parsed.data.nombre,
+        rol_inicial: rolInicial,
+        ...(invPayload
+          ? {
+              cct_invitado: invPayload.cct,
+              inv_por_id: invPayload.inviterId,
+              inv_por_nombre: invPayload.inviterNombre,
+            }
+          : {}),
+      },
     },
   });
   if (signUpError) return { ok: false, error: signUpError.message };

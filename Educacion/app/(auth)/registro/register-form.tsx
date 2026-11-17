@@ -10,11 +10,20 @@ import { register } from '@/lib/auth/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-export function RegisterForm() {
+export function RegisterForm({
+  rolInicial = 'docente',
+  invToken = '',
+  cctInvitado = null,
+}: {
+  rolInicial?: 'docente' | 'director';
+  invToken?: string;
+  cctInvitado?: string | null;
+} = {}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [field, setField] = useState<string | null>(null);
+  const [rol, setRol] = useState<'docente' | 'director'>(rolInicial);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -36,6 +45,41 @@ export function RegisterForm() {
 
   return (
     <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+      <input type="hidden" name="rol" value={rol} />
+      {invToken && <input type="hidden" name="inv" value={invToken} />}
+
+      {cctInvitado ? (
+        <div className="rounded-md border border-nem-verde/30 bg-nem-verde/5 px-3 py-2 text-xs text-nem-verde">
+          Invitación ligada al plantel <strong>CCT {cctInvitado}</strong> como{' '}
+          <strong>{rol === 'director' ? 'Director(a)' : 'Docente'}</strong>.
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-2 rounded-lg border bg-muted/30 p-1">
+          <button
+            type="button"
+            onClick={() => setRol('docente')}
+            className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              rol === 'docente'
+                ? 'bg-nem-verde text-white shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Soy Docente
+          </button>
+          <button
+            type="button"
+            onClick={() => setRol('director')}
+            className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              rol === 'director'
+                ? 'bg-nem-verde text-white shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Soy Director(a)
+          </button>
+        </div>
+      )}
+
       <div>
         <label htmlFor="nombre" className="text-sm font-medium">
           Nombre completo

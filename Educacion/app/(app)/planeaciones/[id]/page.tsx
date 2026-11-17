@@ -324,10 +324,24 @@ export default async function PlaneacionDetallePage({
       {isOwner && (
         <>
           <Separator className="my-6" />
+          {session.rolActivo === 'director' && (
+            <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-950">
+              <strong>Modo Director(a) — historial en solo lectura:</strong> conservas todas tus
+              planeaciones docentes anteriores para consultarlas o descargarlas en PDF. Si deseas
+              editarla, cambia a <strong>rol Docente</strong> desde tu{' '}
+              <Link href="/dashboard" className="font-semibold underline">
+                Panel principal
+              </Link>
+              .
+            </div>
+          )}
           {!esWorkbook && (
             <ModalidadEstructuraCard modalidad={modalidad} modalidadData={modalidadData} />
           )}
-          <section className="mt-4 space-y-4" aria-labelledby="actividades-heading">
+          <section
+            className={`mt-4 space-y-4 ${session.rolActivo === 'director' ? 'pointer-events-none select-none opacity-80' : ''}`}
+            aria-labelledby="actividades-heading"
+          >
             <h2 id="actividades-heading" className="sr-only">
               Actividades
             </h2>
