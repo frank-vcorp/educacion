@@ -22,6 +22,7 @@ import { OnboardingDocenteBanner } from '@/components/dashboard/onboarding-docen
 import { DashboardRutinaDiariaWidget } from '@/components/dashboard/dashboard-rutina-diaria-widget';
 import { PlantelRolesWidget } from '@/components/dashboard/plantel-roles-widget';
 import { getServerSession } from '@/lib/auth/session';
+import { isSuperuserEmail } from '@/lib/auth/superuser';
 import { listPlaneaciones } from '@/services/planeaciones/planeacion-actions';
 import { listRecursos } from '@/services/recursos-aula/recurso-actions';
 import { getEstadoPlantelParaUsuario } from '@/services/plantel/plantel-actions';
@@ -32,6 +33,10 @@ export const dynamic = 'force-dynamic';
 export default async function DashboardPage() {
   const session = await getServerSession();
   if (!session) redirect('/login');
+  // Superusuario sin plantel asignado va directo al panel /admin.
+  if (!session.docenteId && isSuperuserEmail(session.user.email)) {
+    redirect('/admin');
+  }
   // FIX-20260823-01: sin docente pero con sesión → paso 2 del onboarding.
   // No redirigir a /login (eso sería un loop con el middleware).
   if (!session.docenteId) redirect('/onboarding/cct');

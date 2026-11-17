@@ -123,7 +123,13 @@ export async function login(formData: FormData): Promise<AuthResult> {
   });
   if (error) return { ok: false, error: 'WhatsApp/correo o contraseña incorrectos' };
 
-  return { ok: true, redirectTo };
+  const { isSuperuserEmail } = await import('@/lib/auth/superuser');
+  const finalRedirect =
+    redirectTo === '/dashboard' && isSuperuserEmail(resolved.authEmail)
+      ? '/admin'
+      : redirectTo;
+
+  return { ok: true, redirectTo: finalRedirect };
 }
 
 /**
