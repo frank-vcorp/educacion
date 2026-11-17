@@ -1360,27 +1360,164 @@ export function WizardPlaneacion({
   }
 
   function renderEjes() {
+    const { sugeridos, restantes, tieneContexto } = ejesClasificados;
+    const todosSugeridosSeleccionados =
+      sugeridos.length > 0 &&
+      sugeridos.every((s) => form.ejesArticuladores.includes(s.eje.codigo));
+
+    const toggleTodosEjesSugeridos = () => {
+      const codigosSugeridos = sugeridos.map((s) => s.eje.codigo);
+      if (todosSugeridosSeleccionados) {
+        setForm((prev) => ({
+          ...prev,
+          ejesArticuladores: prev.ejesArticuladores.filter(
+            (c) => !codigosSugeridos.includes(c),
+          ),
+        }));
+      } else {
+        setForm((prev) => ({
+          ...prev,
+          ejesArticuladores: Array.from(
+            new Set([...prev.ejesArticuladores, ...codigosSugeridos]),
+          ),
+        }));
+      }
+    };
+
+    const renderEjeCard = (
+      e: EjeArticulador,
+      extra?: { sugerido?: boolean; origen?: 'ia' | 'afinidad'; razon?: string },
+    ) => {
+      const selected = form.ejesArticuladores.includes(e.codigo);
+      return (
+        <button
+          type="button"
+          key={e.codigo}
+          onClick={() => toggleEje(e.codigo)}
+          className={`flex items-start gap-3 rounded-lg border p-3 text-left transition-colors ${
+            selected
+              ? 'border-nem-verde bg-nem-verde/5'
+              : extra?.sugerido
+                ? 'border-nem-verde/30 bg-background hover:bg-nem-verde/5'
+                : 'hover:bg-muted'
+          }`}
+        >
+          <Checkbox checked={selected} aria-label={e.nombre} />
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="font-medium">{e.nombre}</p>
+              {extra?.sugerido && (
+                <Badge variant="verde" className="gap-1 text-[10px]">
+                  <Sparkles className="h-3 w-3" />
+                  {extra.origen === 'ia' ? 'Sugerido por IA' : 'Sugerido'}
+                </Badge>
+              )}
+            </div>
+            <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">
+              {e.descripcion}
+            </p>
+            {extra?.razon && (
+              <p className="mt-1 text-xs text-nem-verde">{extra.razon}</p>
+            )}
+          </div>
+        </button>
+      );
+    };
+
     return (
-      <div className="grid gap-2 sm:grid-cols-2">
-        {ejes.map((e) => {
-          const selected = form.ejesArticuladores.includes(e.codigo);
-          return (
-            <button
+      <div className="space-y-3">
+        <p className="flex items-center justify-between rounded-md border border-nem-verde/20 bg-nem-verde/5 px-3 py-2 text-xs text-muted-foreground">
+          <span>
+            Ejes articuladores transversales NEM (opcionales)
+          </span>
+          <Badge
+            variant={form.ejesArticuladores.length > 0 ? 'verde' : 'outline'}
+            className="text-xs"
+          >
+            {form.ejesArticuladores.length}{' '}
+            {form.ejesArticuladores.length === 1 ? 'eje seleccionado' : 'ejes seleccionados'}
+          </Badge>
+        </p>
+
+        {tieneContexto && (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/40 px-3 py-2 text-xs">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              {iaEjeState.loading ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-nem-verde" />
+                  Analizando con IA los ejes articuladores más afines...
+                </>
+              ) : iaEjeState.origen === 'ia' && iaEjeState.contextKey === ejeContextKey ? (
+                <>
+                  <Sparkles className="h-3.5 w-3.5 text-nem-verde" />
+                  Sugerencias IA listas · los demás ejes están ordenados por afinidad.
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-3.5 w-3.5 text-nem-verde" />
+                  Ordenados por afinidad con tu proyecto y PDAs.
+                </>
+              )}
+            </span>
+            <Button
               type="button"
-              key={e.codigo}
-              onClick={() => toggleEje(e.codigo)}
-              className={`flex items-start gap-3 rounded-lg border p-3 text-left ${
-                selected ? 'border-nem-verde bg-nem-verde/5' : 'hover:bg-muted'
-              }`}
+              variant="outline"
+              size="sm"
+              disabled={iaEjeState.loading || ejes.length === 0}
+              onClick={() => void analizarEjesConIa(true)}
+              className="h-7 gap-1 text-xs"
             >
-              <Checkbox checked={selected} aria-label={e.nombre} />
-              <div>
-                <p className="font-medium">{e.nombre}</p>
-                <p className="text-xs text-muted-foreground line-clamp-2">{e.descripcion}</p>
-              </div>
-            </button>
-          );
-        })}
+              {iaEjeState.loading ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Sparkles className="h-3 w-3 text-nem-verde" />
+              )}
+              {iaEjeState.origen === 'ia' ? 'Re-analizar con IA' : 'Sugerir con IA'}
+            </Button>
+          </div>
+        )}
+
+        {sugeridos.length > 0 && (
+          <div className="space-y-2 rounded-lg border border-nem-verde/30 bg-nem-verde/5 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="flex items-center gap-1.5 text-xs font-semibold text-nem-verde">
+                <Sparkles className="h-3.5 w-3.5" />
+                Sugeridos para tu planeación ({sugeridos.length})
+              </p>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={toggleTodosEjesSugeridos}
+                className="h-7 text-xs text-nem-verde hover:bg-nem-verde/10"
+              >
+                {todosSugeridosSeleccionados ? 'Quitar sugeridos' : 'Seleccionar sugeridos'}
+              </Button>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {sugeridos.map((item) =>
+                renderEjeCard(item.eje, {
+                  sugerido: true,
+                  origen: item.origen,
+                  razon: item.razon,
+                }),
+              )}
+            </div>
+          </div>
+        )}
+
+        {restantes.length > 0 && (
+          <div className="space-y-2">
+            {sugeridos.length > 0 && (
+              <p className="text-xs font-medium text-muted-foreground">
+                Otros ejes disponibles ({restantes.length}, ordenados por afinidad)
+              </p>
+            )}
+            <div className="grid gap-2 sm:grid-cols-2">
+              {restantes.map((item) => renderEjeCard(item.eje))}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
