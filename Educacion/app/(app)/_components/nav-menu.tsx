@@ -11,7 +11,7 @@ import { useEffect, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, BookOpen, Library, GraduationCap, BookText, LayoutDashboard, FileText, Users, Package } from 'lucide-react';
+import { Menu, X, BookOpen, Library, GraduationCap, BookText, LayoutDashboard, FileText, Users, Package, CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useConsultaRapidaOptional } from '@/components/consulta-rapida/consulta-rapida-context';
@@ -36,6 +36,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/planeaciones', label: 'Mis planeaciones', icon: FileText },
+  { href: '/calendario', label: 'Calendario SEP', icon: CalendarDays },
   { href: '/alumnos', label: 'Alumnos', icon: Users },
   { href: '/recursos-aula', label: 'Recursos', icon: Package },
   { href: '/biblioteca', label: 'Biblioteca', icon: Library },

@@ -25,6 +25,7 @@ import { createHash } from 'node:crypto';
 import {
   esLunes,
   esUltimoViernesDelMes,
+  obtenerAsuetoOficial,
   obtenerEfemeride,
   type DiaEventoConfig,
 } from '@/lib/planeaciones/calendario-escolar';
@@ -424,14 +425,16 @@ function buildCalendarioSemanalHtml(planeacion: PlaneacionPdfData, fechadas: Ses
         (inicioPeriodo != null && t < inicioPeriodo) || (finPeriodo != null && t > finPeriodo);
       const sesionesDia = porDia.get(t) ?? [];
       const cfgDia = planeacion.eventos_por_fecha?.[fechaISO];
-      const esCte = cfgDia?.sinClase ?? esUltimoViernesDelMes(fechaISO);
+      const motivoAsueto = obtenerAsuetoOficial(fechaISO);
+      const esCte = cfgDia?.sinClase ?? (Boolean(motivoAsueto) || esUltimoViernesDelMes(fechaISO));
+      const motivoSinClase = cfgDia?.motivoSinClase || motivoAsueto || 'Consejo Técnico Escolar (CTE)';
       const mostrarHonores = esLunes(fechaISO) && !cfgDia?.ocultarHonores && !esCte;
       const efemeride = obtenerEfemeride(fechaISO);
 
       const eventosHtml = [
         mostrarHonores ? '<div class="cal-ev cal-ev-honores">Honores a la bandera</div>' : '',
         esCte
-          ? `<div class="cal-ev cal-ev-cte">${escapeHtml(cfgDia?.motivoSinClase || 'Consejo Técnico Escolar (CTE)')}</div>`
+          ? `<div class="cal-ev cal-ev-cte">${escapeHtml(motivoSinClase)}</div>`
           : '',
         efemeride ? `<div class="cal-ev cal-ev-efem">${escapeHtml(efemeride.nombre)}</div>` : '',
         cfgDia?.tareaCasa ? `<div class="cal-ev cal-ev-tarea">TAREA: ${escapeHtml(cfgDia.tareaCasa)}</div>` : '',

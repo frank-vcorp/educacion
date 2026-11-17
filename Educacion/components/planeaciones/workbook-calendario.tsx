@@ -10,6 +10,7 @@ import {
   diaSemanaHabil,
   esLunes,
   esUltimoViernesDelMes,
+  obtenerAsuetoOficial,
   obtenerEfemeride,
   type DiaEventoConfig,
   type RutinaGrupoItem,
@@ -80,10 +81,13 @@ function WorkbookDiaCelda({
   const ids = bloques.map((b) => `blk-${b.id}`);
   const etiqueta = etiquetaSesion(sesion);
   const fechaISO = fechaDesdeEtiquetaSesion(sesion.ajustes_sesion);
-  const esCteAuto = fechaISO ? esUltimoViernesDelMes(fechaISO) : false;
-  const sinClase = eventoDia?.sinClase ?? esCteAuto;
+  const motivoAsueto = fechaISO ? obtenerAsuetoOficial(fechaISO) : null;
+  const esCteAuto = fechaISO ? !motivoAsueto && esUltimoViernesDelMes(fechaISO) : false;
+  const sinClase = eventoDia?.sinClase ?? (Boolean(motivoAsueto) || esCteAuto);
   const motivoSinClase =
-    eventoDia?.motivoSinClase?.trim() || (esCteAuto ? 'Consejo Técnico Escolar' : 'Sin clase');
+    eventoDia?.motivoSinClase?.trim() ||
+    motivoAsueto ||
+    (esCteAuto ? 'Consejo Técnico Escolar' : 'Sin clase');
   const mostrarHonores =
     Boolean(fechaISO && esLunes(fechaISO)) && !sinClase && !eventoDia?.ocultarHonores;
   const efemeride = fechaISO ? obtenerEfemeride(fechaISO) : null;
