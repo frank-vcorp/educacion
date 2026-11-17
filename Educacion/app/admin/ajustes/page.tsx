@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ArrowLeft, CheckCircle2, Cpu, ShieldCheck, XCircle } from 'lucide-react';
 import { requireSuperuserSession } from '@/lib/auth/require-superuser';
 import { AdminHeader } from '@/components/admin/admin-header';
+import { AdminIaTestButton } from '@/components/admin/admin-ia-test-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -97,6 +98,7 @@ export default async function AdminAjustesPage() {
               <span className="text-muted-foreground">AI_TIMEOUT_MS</span>
               <span className="font-mono text-xs text-slate-700">{timeoutMs} ms</span>
             </div>
+            <AdminIaTestButton />
           </CardContent>
         </Card>
 
