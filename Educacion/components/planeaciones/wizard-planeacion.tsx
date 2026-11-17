@@ -34,7 +34,7 @@ import {
 } from '@/components/ui/dialog';
 import type { CampoFormativo, EjeArticulador, PDA, Contenido } from '@/services/catalogo/catalogo';
 import { createPlaneacion } from '@/services/planeaciones/planeacion-actions';
-import { IAContextoProblemaPanel } from '@/components/ia/ia-contexto-problema-panel';
+import { SugerenciaCampoIaButton } from '@/components/ia/sugerencia-campo-ia-button';
 import {
   WizardModalidadSelector,
 } from '@/app/(app)/planeaciones/nueva/_components/wizard-modalidad-selector';
@@ -529,11 +529,13 @@ export function WizardPlaneacion({
           />
         </div>
         <div>
-          <Label htmlFor="problema">
-            {form.modalidad === 'centros_interes'
-              ? 'Contexto del centro de interés'
-              : 'Problema del contexto (pregunta detonadora)'}
-          </Label>
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <Label htmlFor="problema">
+              {form.modalidad === 'centros_interes'
+                ? 'Contexto del centro de interés'
+                : 'Problema del contexto (pregunta detonadora)'}
+            </Label>
+          </div>
           <Textarea
             id="problema"
             value={form.problemaContexto}
@@ -545,16 +547,15 @@ export function WizardPlaneacion({
             }
             rows={3}
           />
-          <div className="mt-3">
-            <IAContextoProblemaPanel
+          <div className="mt-1.5">
+            <SugerenciaCampoIaButton
+              campo="problema"
               modalidad={form.modalidad}
+              nombre={form.nombre}
               problemaContexto={form.problemaContexto}
               proposito={form.proposito}
-              ajustesRazonables={form.ajustesRazonables}
-              nivel={nivel}
-              onApplyProblema={(t) => set('problemaContexto', t)}
-              onApplyProposito={(t) => set('proposito', t)}
-              onApplyAjustes={(t) => set('ajustesRazonables', t)}
+              valorActual={form.problemaContexto}
+              onApply={(t) => set('problemaContexto', t)}
             />
           </div>
         </div>
@@ -566,6 +567,17 @@ export function WizardPlaneacion({
             onChange={(e) => set('proposito', e.target.value)}
             rows={2}
           />
+          <div className="mt-1.5">
+            <SugerenciaCampoIaButton
+              campo="proposito"
+              modalidad={form.modalidad}
+              nombre={form.nombre}
+              problemaContexto={form.problemaContexto}
+              proposito={form.proposito}
+              valorActual={form.proposito}
+              onApply={(t) => set('proposito', t)}
+            />
+          </div>
         </div>
         <div>
           <Label htmlFor="ajustes">Estrategias y ajustes razonables (BAP)</Label>
@@ -576,6 +588,17 @@ export function WizardPlaneacion({
             placeholder="Estrategias específicas para alumnos que enfrentan barreras para el aprendizaje (ej. apoyos en lenguaje, autorregulación, atención)."
             rows={3}
           />
+          <div className="mt-1.5">
+            <SugerenciaCampoIaButton
+              campo="ajustes_razonables"
+              modalidad={form.modalidad}
+              nombre={form.nombre}
+              problemaContexto={form.problemaContexto}
+              proposito={form.proposito}
+              valorActual={form.ajustesRazonables}
+              onApply={(t) => set('ajustesRazonables', t)}
+            />
+          </div>
         </div>
         <div>
           <Label htmlFor="producto">Producto central / integrador (opcional)</Label>
