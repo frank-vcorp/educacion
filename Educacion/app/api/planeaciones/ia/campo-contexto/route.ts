@@ -32,6 +32,9 @@ const BodySchema = z.object({
   nombre: z.string().max(300).optional().default(''),
   problema_contexto: z.string().max(1000).optional().default(''),
   proposito: z.string().max(1000).optional().default(''),
+  alcance_temporal: z.string().max(80).optional().default(''),
+  periodo_inicio: z.string().max(30).optional().default(''),
+  periodo_fin: z.string().max(30).optional().default(''),
   nivel: z.literal(NIVEL_EDUCATIVO_MVP).optional(),
 });
 
@@ -124,7 +127,17 @@ export async function POST(request: Request) {
     );
   }
 
-  const { campo, modalidad, nombre, problema_contexto, proposito, nivel } = parsed.data;
+  const {
+    campo,
+    modalidad,
+    nombre,
+    problema_contexto,
+    proposito,
+    alcance_temporal,
+    periodo_inicio,
+    periodo_fin,
+    nivel,
+  } = parsed.data;
 
   const irredactable = findIrredactableField({
     extras: { nombre, problema_contexto, proposito },
@@ -146,10 +159,24 @@ export async function POST(request: Request) {
   });
   const extras = anon.extras ?? {};
 
+  const ALCANCE_DESC: Record<string, string> = {
+    semanal: 'Una semana (5 días hábiles L–V)',
+    quincenal: 'Quincenal (~10 días hábiles, 2 semanas)',
+    mensual: 'Mensual (~1 mes escolar)',
+    fechas: 'Por rango de fechas personalizado',
+  };
+  const periodoTxt =
+    periodo_inicio && periodo_fin
+      ? ` del ${periodo_inicio} al ${periodo_fin}`
+      : periodo_inicio
+        ? ` desde ${periodo_inicio}`
+        : '';
+
   const userMsg = JSON.stringify({
     marco_educativo: 'Nueva Escuela Mexicana (NEM, SEP México) — Fase 2 Preescolar, niñas y niños de 3 a 5 años. Todo debe plantearse con actividades lúdicas, sensoriales y acordes a su edad (nunca tareas rígidas de primaria).',
     modalidad_seleccionada: modalidad,
     descripcion_modalidad: MODALIDAD_CONTEXTO[modalidad],
+    alcance_del_proyecto: `${ALCANCE_DESC[alcance_temporal] ?? (alcance_temporal || 'No especificado')}${periodoTxt}`,
     nivel: nivel ?? NIVEL_EDUCATIVO_MVP,
     nombre_planeacion: extras.nombre ?? '',
     problema_contexto: extras.problema_contexto ?? '',

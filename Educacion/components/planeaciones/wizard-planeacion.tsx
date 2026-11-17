@@ -512,6 +512,26 @@ export function WizardPlaneacion({
             );
           })}
         </div>
+        <div className="grid gap-3 pt-2 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="inicio">Inicio del periodo</Label>
+            <Input
+              id="inicio"
+              type="date"
+              value={form.periodoInicio}
+              onChange={(e) => set('periodoInicio', e.target.value)}
+            />
+          </div>
+          <div>
+            <Label htmlFor="fin">Fin del periodo</Label>
+            <Input
+              id="fin"
+              type="date"
+              value={form.periodoFin}
+              onChange={(e) => set('periodoFin', e.target.value)}
+            />
+          </div>
+        </div>
       </div>
     );
   }
@@ -551,6 +571,9 @@ export function WizardPlaneacion({
             <SugerenciaCampoIaButton
               campo="problema"
               modalidad={form.modalidad}
+              alcanceTemporal={form.alcanceTemporal}
+              periodoInicio={form.periodoInicio}
+              periodoFin={form.periodoFin}
               nombre={form.nombre}
               problemaContexto={form.problemaContexto}
               proposito={form.proposito}
@@ -571,6 +594,9 @@ export function WizardPlaneacion({
             <SugerenciaCampoIaButton
               campo="proposito"
               modalidad={form.modalidad}
+              alcanceTemporal={form.alcanceTemporal}
+              periodoInicio={form.periodoInicio}
+              periodoFin={form.periodoFin}
               nombre={form.nombre}
               problemaContexto={form.problemaContexto}
               proposito={form.proposito}
@@ -592,6 +618,9 @@ export function WizardPlaneacion({
             <SugerenciaCampoIaButton
               campo="ajustes_razonables"
               modalidad={form.modalidad}
+              alcanceTemporal={form.alcanceTemporal}
+              periodoInicio={form.periodoInicio}
+              periodoFin={form.periodoFin}
               nombre={form.nombre}
               problemaContexto={form.problemaContexto}
               proposito={form.proposito}
@@ -608,26 +637,6 @@ export function WizardPlaneacion({
             onChange={(e) => set('productoIntegrador', e.target.value)}
             placeholder="Ej. Carteles de los derechos, mural comunitario, recetario del aula"
           />
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <Label htmlFor="inicio">Inicio del periodo</Label>
-            <Input
-              id="inicio"
-              type="date"
-              value={form.periodoInicio}
-              onChange={(e) => set('periodoInicio', e.target.value)}
-            />
-          </div>
-          <div>
-            <Label htmlFor="fin">Fin del periodo</Label>
-            <Input
-              id="fin"
-              type="date"
-              value={form.periodoFin}
-              onChange={(e) => set('periodoFin', e.target.value)}
-            />
-          </div>
         </div>
       </div>
     );

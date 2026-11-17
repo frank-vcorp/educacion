@@ -8,6 +8,9 @@ import type { Modalidad } from '@/components/planeaciones/wizard-modalidad-data'
 export interface SugerenciaCampoIaButtonProps {
   campo: 'problema' | 'proposito' | 'ajustes_razonables';
   modalidad: Modalidad;
+  alcanceTemporal?: string;
+  periodoInicio?: string;
+  periodoFin?: string;
   nombre: string;
   problemaContexto: string;
   proposito: string;
@@ -18,6 +21,9 @@ export interface SugerenciaCampoIaButtonProps {
 export function SugerenciaCampoIaButton({
   campo,
   modalidad,
+  alcanceTemporal,
+  periodoInicio,
+  periodoFin,
   nombre,
   problemaContexto,
   proposito,
@@ -44,6 +50,9 @@ export function SugerenciaCampoIaButton({
         body: JSON.stringify({
           campo,
           modalidad,
+          alcance_temporal: alcanceTemporal ?? '',
+          periodo_inicio: periodoInicio ?? '',
+          periodo_fin: periodoFin ?? '',
           nombre,
           problema_contexto: problemaContexto,
           proposito,
