@@ -2,13 +2,18 @@
  * Onboarding Paso 2 — CCT (autocomplete desde catálogo SEP).
  * SPEC_TEC_04 D-FIN-4.
  */
+import { redirect } from 'next/navigation';
 import { OnboardingShell } from '../_components/onboarding-shell';
 import { CCTPicker } from './cct-picker';
 import { getServerSession } from '@/lib/auth/session';
+import { isSuperuserEmail } from '@/lib/auth/superuser';
 import { createClient } from '@/lib/supabase/server';
 
 export default async function OnboardingPaso2() {
   const session = await getServerSession();
+  if (session && !session.docenteId && isSuperuserEmail(session.user.email)) {
+    redirect('/admin');
+  }
   const cctInvitadoClave =
     typeof session?.user.user_metadata?.cct_invitado === 'string'
       ? session.user.user_metadata.cct_invitado
